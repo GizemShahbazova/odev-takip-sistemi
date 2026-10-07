@@ -27,6 +27,22 @@ service cloud.firestore {
         && request.resource.data.createdAt is timestamp
         && request.resource.data.createdAt == request.time;
       allow update, delete: if false;
+      match /assignments/{assignmentId} {
+        allow get, list: if ownsClass(classId);
+        allow create: if ownsClass(classId)
+          && request.resource.data.keys().hasAll(['title', 'description', 'dueDate', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['title', 'description', 'dueDate', 'createdAt'])
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.title.size() <= 120
+          && request.resource.data.description is string
+          && request.resource.data.description.size() <= 2000
+          && request.resource.data.dueDate is string
+          && request.resource.data.dueDate.matches('20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])')
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
       match /students/{studentId} {
         allow get, list: if ownsClass(classId);
         allow create: if ownsClass(classId)

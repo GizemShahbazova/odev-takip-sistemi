@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar ve öğrenciler.">
-  <title>Ödev Takip Sistemi | Sınıflar</title>
+  <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
+  <title>Ödev Takip Sistemi | Öğretmen Paneli</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
 </head>
@@ -18,7 +18,7 @@
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
       <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen hesabınızla sağdaki giriş alanını kullanabilirsiniz.</p><p>Öğretmenler için sınıf ve ödev yönetimi, veliler için çocuklarının ödevlerini takip etme ekranları burada yer alacak.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen girişi, sınıf oluşturma ve öğrenci ekleme hazır. Ödev ekleme ve veli takibi sonraki adımlarda açılacak.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Sınıf, öğrenci ve ödev kayıtları hazır. Veli girişi ve tamamlanma takibi sonraki adımlarda açılacak.</p></div>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
       <p class="eyebrow">ÖĞRETMEN PANELİ</p>
@@ -34,10 +34,11 @@
       <p id="classes-load-status" role="status" aria-live="polite"></p>
       <p id="classes-empty" class="empty-state" hidden>Henüz sınıfınız yok. İlk sınıfınızı yukarıdan oluşturabilirsiniz.</p>
       <ul id="classes-list" class="classes-list" aria-label="Sınıflarınız"></ul>
-      <p class="note">Öğrenci listesini açmak için sınıfın yanındaki Öğrenciler düğmesini kullanın.</p>
+      <p class="note">Sınıfın yanındaki düğmelerle öğrenci listesini veya ödevlerini açabilirsiniz.</p>
     </section>
     <section id="students-view" class="intro" aria-labelledby="students-title" hidden>
       <button id="back-to-classes" type="button" class="back-button">← Sınıflara dön</button>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><span aria-current="page">Öğrenciler</span><button id="students-to-assignments" type="button">Ödevler</button></nav>
       <p class="eyebrow">SINIF LİSTESİ</p>
       <div class="section-heading"><h1 id="students-title">Öğrenciler</h1><span id="student-count" class="badge">—</span></div>
       <p class="lead">Bu sınıfa öğrencilerinizi ekleyin ve kayıtlı öğrencileri görüntüleyin.</p>
@@ -51,7 +52,30 @@
       <p id="students-load-status" role="status" aria-live="polite"></p>
       <p id="students-empty" class="empty-state" hidden>Bu sınıfta henüz öğrenci yok. İlk öğrenciyi yukarıdan ekleyebilirsiniz.</p>
       <ul id="students-list" class="classes-list" aria-label="Bu sınıfın öğrencileri"></ul>
-      <p class="note">Ödev ve veli bağlantısı sonraki adımlarda açılacak.</p>
+      <p class="note">Bu sınıfın ödevlerini Ödevler bölümünden açabilirsiniz. Veli bağlantısı sonraki adımda açılacak.</p>
+    </section>
+    <section id="assignments-view" class="intro" aria-labelledby="assignments-title" hidden>
+      <button id="assignments-back" type="button" class="back-button">← Sınıflara dön</button>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="assignments-to-students" type="button">Öğrenciler</button><span aria-current="page">Ödevler</span></nav>
+      <p class="eyebrow">SINIF ÖDEVLERİ</p>
+      <div class="section-heading"><h1 id="assignments-title">Ödevler</h1><span id="assignment-count" class="badge">—</span></div>
+      <p class="lead">Sınıfınıza ödev ekleyin ve teslim tarihlerini takip edin.</p>
+      <form id="assignment-form" class="class-form">
+        <label for="assignment-name">Ödev başlığı</label>
+        <input id="assignment-name" type="text" required maxlength="120" placeholder="Örneğin: Unit 1 kelime çalışması" autocomplete="off">
+        <label for="assignment-description">Açıklama <span class="optional">(isteğe bağlı)</span></label>
+        <textarea id="assignment-description" rows="4" maxlength="2000" placeholder="Öğrencilerden ne yapmalarını istiyorsunuz?"></textarea>
+        <label for="assignment-due-date">Son teslim tarihi</label>
+        <input id="assignment-due-date" type="date" required min="2000-01-01" max="2099-12-31" aria-describedby="assignment-help">
+        <p id="assignment-help" class="note">Bir teslim günü seçin. Başlık en fazla 120, açıklama 2000 karakter olabilir.</p>
+        <button id="create-assignment" class="primary" type="submit">Ödev ekle</button>
+      </form>
+      <p id="assignments-status" role="status" aria-live="polite"></p>
+      <div class="list-heading"><h2>Kayıtlı ödevler</h2><button id="refresh-assignments" class="secondary" type="button">Yenile</button></div>
+      <p id="assignments-load-status" role="status" aria-live="polite"></p>
+      <p id="assignments-empty" class="empty-state" hidden>Bu sınıfta henüz ödev yok. İlk ödevi yukarıdan ekleyebilirsiniz.</p>
+      <ul id="assignments-list" class="assignment-list" aria-label="Bu sınıfın ödevleri"></ul>
+      <p class="note">Ödevler teslim tarihine göre sıralanır. Veli erişimi ve tamamlanma takibi sonraki adımda açılacak.</p>
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">

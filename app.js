@@ -1,4 +1,4 @@
-/* Giriş, kullanıcı profili ve öğretmene ait sınıflar ve sınıfa bağlı öğrenciler.
+/* Giriş, kullanıcı profili ve öğretmene ait sınıflar ve sınıfa bağlı öğrenciler ve ödevler.
    Erişim yetkileri Firestore Security Rules tarafından uygulanır. */
 (() => {
   const el = (id) => document.getElementById(id);
@@ -14,11 +14,148 @@
   let selectionVersion = 0;
   let studentListRequest = 0;
   let savingStudent = false;
+  let assignmentListRequest = 0;
+  let savingAssignment = false;
+  function assignmentStatus(message, kind = '') {
+    el('assignments-status').textContent = message;
+    el('assignments-status').className = kind;
+  }
+  function clearAssignments() {
+    ++assignmentListRequest;
+    savingAssignment = false;
+    el('assignments-view').hidden = true;
+    el('assignments-title').textContent = 'Ödevler';
+    el('assignments-list').replaceChildren();
+    el('assignment-count').textContent = '—';
+    el('assignments-empty').hidden = true;
+    el('assignment-name').value = '';
+    el('assignment-description').value = '';
+    el('assignment-due-date').value = '';
+    el('create-assignment').disabled = false;
+    el('create-assignment').textContent = 'Ödev ekle';
+    el('refresh-assignments').disabled = false;
+    el('assignments-load-status').textContent = '';
+    el('assignments-load-status').className = '';
+    assignmentStatus('');
+  }
+  function validDueDate(value) {
+    if (!/^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(value)) return false;
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  }
+  async function openAssignments(item) {
+    if (!teacherUid || auth?.currentUser?.uid !== teacherUid || !knownClasses.has(item.id)) return;
+    clearStudents();
+    selectedClass = {id: item.id, name: item.name};
+    el('classes-view').hidden = true;
+    el('assignments-view').hidden = false;
+    el('assignments-title').textContent = item.name + ' · Ödevler';
+    el('assignments-title').setAttribute('tabindex', '-1');
+    el('assignments-title').focus();
+    await loadAssignments();
+  }
+  async function loadAssignments() {
+    const uid = teacherUid;
+    const session = profileRequest;
+    const classId = selectedClass?.id;
+    const version = selectionVersion;
+    if (!classId || !sameClass(uid, session, classId, version)) return;
+    const request = ++assignmentListRequest;
+    el('refresh-assignments').disabled = true;
+    el('assignments-load-status').className = '';
+    el('assignments-load-status').textContent = 'Ödevler yükleniyor…';
+    try {
+      const result = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments'));
+      if (request !== assignmentListRequest || !sameClass(uid, session, classId, version)) return;
+      const assignments = result.docs.map(record => ({...record.data(), id: record.id}));
+      assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
+      el('assignments-list').replaceChildren();
+      for (const item of assignments) {
+        const row = document.createElement('li');
+        const title = document.createElement('h3');
+        title.textContent = item.title;
+        const due = document.createElement('p');
+        due.className = 'assignment-date';
+        const date = document.createElement('time');
+        date.textContent = validDueDate(item.dueDate) ? item.dueDate.split('-').reverse().join('.') : 'Tarih belirtilmemiş';
+        if (validDueDate(item.dueDate)) date.setAttribute('datetime', item.dueDate);
+        due.append(document.createTextNode('Son teslim: '), date);
+        row.append(title, due);
+        if (item.description) {
+          const description = document.createElement('p');
+          description.className = 'assignment-description';
+          description.textContent = item.description;
+          row.append(description);
+        }
+        el('assignments-list').append(row);
+      }
+      el('assignment-count').textContent = assignments.length + ' ödev';
+      el('assignments-empty').hidden = assignments.length !== 0;
+      el('assignments-load-status').textContent = '';
+    } catch (error) {
+      if (request !== assignmentListRequest || !sameClass(uid, session, classId, version)) return;
+      el('assignments-load-status').textContent = error.code === 'permission-denied' ? 'Ödevler okunamadı. Yeni ödev erişim kurallarının yayımlandığını kontrol edin ve Yenile’ye basın.' : 'Ödevler yüklenemedi. Bağlantınızı kontrol edip Yenile’ye basın.';
+      el('assignments-load-status').className = 'error';
+    } finally {
+      if (request === assignmentListRequest && sameClass(uid, session, classId, version)) el('refresh-assignments').disabled = false;
+    }
+  }
+  el('assignments-back').addEventListener('click', backToClasses);
+  el('students-to-assignments').addEventListener('click', () => {if (selectedClass) return openAssignments(selectedClass);});
+  el('assignments-to-students').addEventListener('click', () => {if (selectedClass) return openStudents(selectedClass);});
+  el('refresh-assignments').addEventListener('click', loadAssignments);
+  el('assignment-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const uid = teacherUid;
+    const session = profileRequest;
+    const classId = selectedClass?.id;
+    const version = selectionVersion;
+    if (!classId || !sameClass(uid, session, classId, version) || savingAssignment || el('assignments-view').hidden) return;
+    const title = el('assignment-name').value.trim();
+    const description = el('assignment-description').value.trim();
+    const dueDate = el('assignment-due-date').value;
+    if (!title || title.length > 120) {
+      assignmentStatus('Ödev başlığını 1–120 karakter arasında yazın.', 'error');
+      el('assignment-name').focus(); return;
+    }
+    if (description.length > 2000) {
+      assignmentStatus('Açıklama en fazla 2000 karakter olabilir.', 'error');
+      el('assignment-description').focus(); return;
+    }
+    if (!validDueDate(dueDate)) {
+      assignmentStatus('2000–2099 arasında geçerli bir son teslim tarihi seçin.', 'error');
+      el('assignment-due-date').focus(); return;
+    }
+    savingAssignment = true;
+    el('create-assignment').disabled = true;
+    el('create-assignment').textContent = 'Kaydediliyor…';
+    assignmentStatus('Ödev kaydediliyor…');
+    try {
+      await fs.addDoc(fs.collection(db, 'classes', classId, 'assignments'), {title, description, dueDate, createdAt: fs.serverTimestamp()});
+      if (!sameClass(uid, session, classId, version)) return;
+      el('assignment-name').value = '';
+      el('assignment-description').value = '';
+      el('assignment-due-date').value = '';
+      assignmentStatus('“' + title + '” bu sınıfa eklendi.', 'success');
+      await loadAssignments();
+    } catch (error) {
+      if (!sameClass(uid, session, classId, version)) return;
+      assignmentStatus(error.code === 'permission-denied' ? 'Ödev kaydedilemedi. Yeni ödev erişim kurallarının Firebase’de yayımlandığını kontrol edin.' : 'Ödev kaydedilemedi. Bağlantınızı kontrol edin; yeniden denemeden önce listeyi yenileyin.', 'error');
+    } finally {
+      if (sameClass(uid, session, classId, version)) {
+        savingAssignment = false;
+        el('create-assignment').disabled = false;
+        el('create-assignment').textContent = 'Ödev ekle';
+      }
+    }
+  });
   function studentStatus(message, kind = '') {
     el('students-status').textContent = message;
     el('students-status').className = kind;
   }
   function clearStudents() {
+    clearAssignments();
     selectedClass = null;
     ++selectionVersion;
     ++studentListRequest;
@@ -110,7 +247,7 @@
     const session = profileRequest;
     const classId = selectedClass?.id;
     const version = selectionVersion;
-    if (!classId || !sameClass(uid, session, classId, version) || savingStudent) return;
+    if (!classId || !sameClass(uid, session, classId, version) || savingStudent || el('students-view').hidden) return;
     const name = el('student-name').value.trim();
     if (!name || name.length > 100) {
       studentStatus('Öğrencinin adını ve soyadını 1–100 karakter arasında yazın.', 'error');
@@ -200,7 +337,16 @@
         open.textContent = 'Öğrenciler';
         open.setAttribute('aria-label', item.name + ' sınıfının öğrencileri');
         open.addEventListener('click', () => openStudents(item));
-        row.append(symbol, label, open);
+        const homework = document.createElement('button');
+        homework.type = 'button';
+        homework.className = 'class-open';
+        homework.textContent = 'Ödevler';
+        homework.setAttribute('aria-label', item.name + ' sınıfının ödevleri');
+        homework.addEventListener('click', () => openAssignments(item));
+        const actions = document.createElement('div');
+        actions.className = 'class-actions';
+        actions.append(open, homework);
+        row.append(symbol, label, actions);
         el('classes-list').append(row);
       }
       el('class-count').textContent = classes.length + ' sınıf';
