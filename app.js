@@ -16,9 +16,112 @@
   let savingStudent = false;
   let assignmentListRequest = 0;
   let savingAssignment = false;
+  let resultsRequest = 0;
+  function clearResults() {
+    ++resultsRequest;
+    el('results-view').hidden = true;
+    el('results-table').replaceChildren();
+    el('results-wrap').hidden = true;
+    el('results-title').textContent = 'Takip tablosu';
+    el('results-summary').textContent = '';
+    el('results-empty').hidden = true;
+    el('results-load-status').textContent = '';
+    el('results-load-status').className = '';
+    el('refresh-results').disabled = false;
+  }
+  async function openResults(item) {
+    if (!teacherUid || auth?.currentUser?.uid !== teacherUid || !knownClasses.has(item.id)) return;
+    clearStudents();
+    selectedClass = {id:item.id, name:item.name};
+    el('classes-view').hidden = true;
+    el('results-view').hidden = false;
+    el('results-title').textContent = item.name + ' · Takip tablosu';
+    el('results-title').focus();
+    await loadResults();
+  }
+  async function loadResults() {
+    const uid = teacherUid, session = profileRequest;
+    const classId = selectedClass?.id, version = selectionVersion;
+    if (!classId || !sameClass(uid, session, classId, version)) return;
+    const request = ++resultsRequest;
+    const current = () => request === resultsRequest && sameClass(uid, session, classId, version);
+    el('refresh-results').disabled = true;
+    el('results-table').replaceChildren();
+    el('results-wrap').hidden = true;
+    el('results-empty').hidden = true;
+    el('results-summary').textContent = '';
+    el('results-load-status').className = '';
+    el('results-load-status').textContent = 'Tamamlanma bilgileri yükleniyor…';
+    try {
+      const [studentRecords, assignmentRecords] = await Promise.all([
+        fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students')),
+        fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments'))
+      ]);
+      if (!current()) return;
+      const students = studentRecords.docs.map(r => ({...r.data(), id:r.id}));
+      const assignments = assignmentRecords.docs.map(r => ({...r.data(), id:r.id}));
+      students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
+      assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
+      if (!students.length || !assignments.length) {
+        el('results-empty').textContent = !students.length ? 'Bu sınıfta henüz öğrenci yok. Öğrenciler bölümünden ekleyebilirsiniz.' : 'Bu sınıfta henüz ödev yok. Ödevler bölümünden ekleyebilirsiniz.';
+        el('results-empty').hidden = false;
+        el('results-load-status').textContent = '';
+        return;
+      }
+      const completions = await Promise.all(students.map(async student => {
+        const result = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students', student.id, 'completions'));
+        return new Map(result.docs.map(r => [r.id, r.data()]));
+      }));
+      if (!current()) return;
+      const table = el('results-table');
+      const caption = document.createElement('caption');
+      caption.textContent = selectedClass.name + ' · Öğrencilere göre ödev durumu';
+      table.append(caption);
+      const head = document.createElement('thead'), header = document.createElement('tr');
+      const first = document.createElement('th');first.textContent = 'Öğrenci';first.setAttribute('scope','col');header.append(first);
+      for (const assignment of assignments) {
+        const cell = document.createElement('th');cell.setAttribute('scope','col');
+        const label = document.createElement('span');label.textContent = assignment.title;
+        const date = document.createElement('small');date.textContent = validDueDate(assignment.dueDate) ? assignment.dueDate.split('-').reverse().join('.') : 'Tarih belirtilmemiş';
+        cell.append(label, date);header.append(cell);
+      }
+      const totalHeader = document.createElement('th');totalHeader.textContent = 'Tamamlanan';totalHeader.setAttribute('scope','col');header.append(totalHeader);head.append(header);table.append(head);
+      const body = document.createElement('tbody');let total = 0;
+      students.forEach((student,index) => {
+        const row = document.createElement('tr'), label = document.createElement('th');
+        label.setAttribute('scope','row');label.textContent = student.name;row.append(label);let done = 0;
+        for (const assignment of assignments) {
+          const cell = document.createElement('td');
+          const completed = completions[index].get(assignment.id)?.completed === true;
+          const badge = document.createElement('span');badge.className = completed ? 'completion-state done' : 'completion-state pending';
+          badge.textContent = completed ? '✓ Tamamlandı' : 'Bekliyor';cell.append(badge);row.append(cell);
+          if (completed) ++done;
+        }
+        const count = document.createElement('td');count.textContent = done + ' / ' + assignments.length;row.append(count);body.append(row);total += done;
+      });
+      table.append(body);
+      el('results-wrap').hidden = false;
+      el('results-summary').textContent = students.length + ' öğrenci · ' + assignments.length + ' ödev · ' + total + ' / ' + (students.length * assignments.length) + ' tamamlanan';
+      el('results-load-status').textContent = '';
+    } catch (error) {
+      if (!current()) return;
+      el('results-load-status').className = 'error';
+      el('results-load-status').textContent = 'Takip bilgileri yüklenemedi. Bağlantınızı ve yeni erişim kurallarını kontrol edip Yenile’ye basın.';
+    } finally {
+      if (current()) el('refresh-results').disabled = false;
+    }
+  }
+  el('refresh-results').addEventListener('click', loadResults);
+  el('results-back').addEventListener('click', backToClasses);
+  el('students-to-results').addEventListener('click', () => {if (selectedClass) return openResults(selectedClass);});
+  el('assignments-to-results').addEventListener('click', () => {if (selectedClass) return openResults(selectedClass);});
+  el('results-to-students').addEventListener('click', () => {if (selectedClass) return openStudents(selectedClass);});
+  el('results-to-assignments').addEventListener('click', () => {if (selectedClass) return openAssignments(selectedClass);});
   let parentUid = null;
   let parentListRequest = 0;
+  let savingCompletions = new Set();
   function clearParent() {
+    savingCompletions = new Set();
     parentUid = null;
     ++parentListRequest;
     el('parent-view').hidden = true;
@@ -37,7 +140,7 @@
     return typeof value === 'string' && value.length > 0 && value.length <= 1500
       && !value.includes('/') && value !== '.' && value !== '..' && !/^__.*__$/.test(value);
   }
-  function parentAssignment(item) {
+  function parentAssignment(item, context) {
     const row = document.createElement('li');
     const title = document.createElement('h3');
     title.textContent = item.title;
@@ -54,12 +157,62 @@
       description.textContent = item.description;
       row.append(description);
     }
+    let completed = context.completions.get(item.id)?.completed === true;
+    const controls = document.createElement('div');
+    controls.className = 'completion-controls';
+    const state = document.createElement('span');
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'completion-toggle';
+    const message = document.createElement('p');
+    message.className = 'completion-message';
+    message.setAttribute('role', 'status');
+    message.setAttribute('aria-live', 'polite');
+    function renderState() {
+      state.textContent = completed ? '✓ Tamamlandı' : 'Bekliyor';
+      state.className = completed ? 'completion-state done' : 'completion-state pending';
+      toggle.textContent = completed ? 'İşareti geri al' : 'Tamamlandı olarak işaretle';
+      toggle.setAttribute('aria-label', context.studentName + ' · ' + item.title + ': ' + toggle.textContent);
+    }
+    renderState();
+    controls.append(state, toggle);
+    row.append(controls, message);
+    toggle.addEventListener('click', async () => {
+      const {uid, session, request, classId, studentId} = context;
+      const key = classId + '/' + studentId + '/' + item.id;
+      if (!sameParent(uid, session, request) || savingCompletions.has(key)) return;
+      const next = !completed;
+      savingCompletions.add(key);
+      toggle.disabled = true;
+      el('refresh-parent').disabled = true;
+      message.textContent = 'Kaydediliyor…';
+      message.className = 'completion-message';
+      try {
+        await fs.setDoc(fs.doc(db, 'classes', classId, 'students', studentId, 'completions', item.id), {
+          completed: next, updatedBy: uid, updatedAt: fs.serverTimestamp()
+        });
+        if (!sameParent(uid, session, request)) return;
+        completed = next;
+        renderState();
+        message.textContent = next ? 'Tamamlandı olarak kaydedildi.' : 'İşaret geri alındı.';
+      } catch (error) {
+        if (!sameParent(uid, session, request)) return;
+        message.textContent = 'Kaydedilemedi. Bağlantınızı kontrol edip Yenile düğmesiyle durumu tekrar okuyun; sorun sürerse öğretmeninizle iletişime geçin.';
+        message.className = 'completion-message error';
+      } finally {
+        if (sameParent(uid, session, request)) {
+          savingCompletions.delete(key);
+          toggle.disabled = false;
+          el('refresh-parent').disabled = savingCompletions.size > 0;
+        }
+      }
+    });
     return row;
   }
   async function loadParentChildren() {
     const uid = parentUid;
     const session = profileRequest;
-    if (!uid || auth?.currentUser?.uid !== uid) return;
+    if (!uid || auth?.currentUser?.uid !== uid || savingCompletions.size > 0) return;
     const request = ++parentListRequest;
     el('refresh-parent').disabled = true;
     // Clear previous data immediately so revoked links cannot leave old cards on screen.
@@ -81,19 +234,25 @@
         const [classRecord, assignmentRecords, studentRecords] = await Promise.all([
           fs.getDocFromServer(fs.doc(db, 'classes', classId)),
           fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments')),
-          Promise.all(studentIds.map(studentId => fs.getDocFromServer(fs.doc(db, 'classes', classId, 'students', studentId))))
+          Promise.all(studentIds.map(async studentId => {
+            const [record, completedRecords] = await Promise.all([
+              fs.getDocFromServer(fs.doc(db, 'classes', classId, 'students', studentId)),
+              fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students', studentId, 'completions'))
+            ]);
+            return {record, studentId, completions: new Map(completedRecords.docs.map(r => [r.id, r.data()]))};
+          }))
         ]);
-        if (!classRecord.exists() || studentRecords.some(record => !record.exists())) throw {code: 'parent/missing-record'};
+        if (!classRecord.exists() || studentRecords.some(student => !student.record.exists())) throw {code: 'parent/missing-record'};
         const assignments = assignmentRecords.docs.map(record => ({...record.data(), id: record.id}));
         assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
-        return {className: classRecord.data().name, students: studentRecords.map(record => record.data()), assignments};
+        return {classId, className: classRecord.data().name, students: studentRecords.map(student => ({...student.record.data(), id: student.studentId, completions: student.completions})), assignments};
       }));
       if (!sameParent(uid, session, request)) return;
       const cards = [];
       let failures = 0;
       for (const result of results) {
         if (result.status !== 'fulfilled') { ++failures; continue; }
-        const {className, students, assignments} = result.value;
+        const {classId, className, students, assignments} = result.value;
         for (const student of students) {
           const section = document.createElement('section');
           section.className = 'child-card';
@@ -112,7 +271,7 @@
             const list = document.createElement('ul');
             list.className = 'assignment-list';
             list.setAttribute('aria-label', student.name + ' için sınıf ödevleri');
-            for (const item of assignments) list.append(parentAssignment(item));
+            for (const item of assignments) list.append(parentAssignment(item, {uid, session, request, classId, studentId: student.id, studentName: student.name, completions: student.completions}));
             section.append(list);
           }
           cards.push({section, name: String(student.name)});
@@ -272,6 +431,7 @@
     el('students-status').className = kind;
   }
   function clearStudents() {
+    clearResults();
     clearAssignments();
     selectedClass = null;
     ++selectionVersion;
@@ -464,7 +624,11 @@
         homework.addEventListener('click', () => openAssignments(item));
         const actions = document.createElement('div');
         actions.className = 'class-actions';
-        actions.append(open, homework);
+        const track = document.createElement('button');
+        track.type = 'button';track.className = 'class-open';track.textContent = 'Takip tablosu';
+        track.setAttribute('aria-label', item.name + ' sınıfının ödev takip tablosu');
+        track.addEventListener('click', () => openResults(item));
+        actions.append(open, homework, track);
         row.append(symbol, label, actions);
         el('classes-list').append(row);
       }

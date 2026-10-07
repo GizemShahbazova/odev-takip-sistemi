@@ -18,7 +18,7 @@
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
       <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen veya veli hesabınızla giriş alanını kullanabilirsiniz.</p><p>Öğretmenler sınıflarını ve ödevlerini yönetir; veliler kendilerine bağlanan çocuklarının ödevlerini görür.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ve veli ekranları hazır. Ödevleri tamamlandı olarak işaretleme ve sınıf sonuç tablosu sonraki adımda eklenecek.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ve veli ekranları hazır. Veliler tamamlanan ödevleri işaretler; öğretmenler sonuçları sınıf tablosunda izler.</p></div>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
       <p class="eyebrow">ÖĞRETMEN PANELİ</p>
@@ -34,11 +34,11 @@
       <p id="classes-load-status" role="status" aria-live="polite"></p>
       <p id="classes-empty" class="empty-state" hidden>Henüz sınıfınız yok. İlk sınıfınızı yukarıdan oluşturabilirsiniz.</p>
       <ul id="classes-list" class="classes-list" aria-label="Sınıflarınız"></ul>
-      <p class="note">Sınıfın yanındaki düğmelerle öğrenci listesini veya ödevlerini açabilirsiniz.</p>
+      <p class="note">Sınıfın yanındaki düğmelerle öğrenci listesini, ödevleri veya takip tablosunu açabilirsiniz.</p>
     </section>
     <section id="students-view" class="intro" aria-labelledby="students-title" hidden>
       <button id="back-to-classes" type="button" class="back-button">← Sınıflara dön</button>
-      <nav class="class-tabs" aria-label="Sınıf bölümleri"><span aria-current="page">Öğrenciler</span><button id="students-to-assignments" type="button">Ödevler</button></nav>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><span aria-current="page">Öğrenciler</span><button id="students-to-assignments" type="button">Ödevler</button><button id="students-to-results" type="button">Takip tablosu</button></nav>
       <p class="eyebrow">SINIF LİSTESİ</p>
       <div class="section-heading"><h1 id="students-title">Öğrenciler</h1><span id="student-count" class="badge">—</span></div>
       <p class="lead">Bu sınıfa öğrencilerinizi ekleyin ve kayıtlı öğrencileri görüntüleyin.</p>
@@ -56,7 +56,7 @@
     </section>
     <section id="assignments-view" class="intro" aria-labelledby="assignments-title" hidden>
       <button id="assignments-back" type="button" class="back-button">← Sınıflara dön</button>
-      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="assignments-to-students" type="button">Öğrenciler</button><span aria-current="page">Ödevler</span></nav>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="assignments-to-students" type="button">Öğrenciler</button><span aria-current="page">Ödevler</span><button id="assignments-to-results" type="button">Takip tablosu</button></nav>
       <p class="eyebrow">SINIF ÖDEVLERİ</p>
       <div class="section-heading"><h1 id="assignments-title">Ödevler</h1><span id="assignment-count" class="badge">—</span></div>
       <p class="lead">Sınıfınıza ödev ekleyin ve teslim tarihlerini takip edin.</p>
@@ -75,7 +75,20 @@
       <p id="assignments-load-status" role="status" aria-live="polite"></p>
       <p id="assignments-empty" class="empty-state" hidden>Bu sınıfta henüz ödev yok. İlk ödevi yukarıdan ekleyebilirsiniz.</p>
       <ul id="assignments-list" class="assignment-list" aria-label="Bu sınıfın ödevleri"></ul>
-      <p class="note">Ödevler teslim tarihine göre sıralanır. Veliler bu ödevleri görebilir. Tamamlanma takibi sonraki adımda eklenecek.</p>
+      <p class="note">Ödevler teslim tarihine göre sıralanır. Veliler bu ödevleri görebilir. Sonuçları Takip tablosu bölümünden görebilirsiniz.</p>
+    </section>
+    <section id="results-view" class="intro" aria-labelledby="results-title" hidden>
+      <button id="results-back" type="button" class="back-button">← Sınıflara dön</button>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="results-to-students" type="button">Öğrenciler</button><button id="results-to-assignments" type="button">Ödevler</button><span aria-current="page">Takip tablosu</span></nav>
+      <p class="eyebrow">ÖDEV TAMAMLANMA DURUMU</p>
+      <h1 id="results-title" tabindex="-1">Takip tablosu</h1>
+      <p class="lead">Velilerin bildirdiği ödev durumlarını öğrencilere göre izleyin.</p>
+      <div class="list-heading"><h2>Sınıf sonuçları</h2><button id="refresh-results" class="secondary" type="button">Yenile</button></div>
+      <p id="results-summary" class="results-summary"></p>
+      <p id="results-load-status" role="status" aria-live="polite"></p>
+      <p id="results-empty" class="empty-state" hidden></p>
+      <p id="results-help" class="note">Tamamlandı: veli işaretlemiş. Bekliyor: tamamlanma bildirimi yok veya işaret geri alınmış. Güncel sonuçlar için Yenile’ye basın. Geniş tabloları sağa kaydırabilirsiniz.</p>
+      <div id="results-wrap" class="table-scroll" role="region" aria-label="Sınıf ödev takip tablosu" aria-describedby="results-help" tabindex="0" hidden><table id="results-table"></table></div>
     </section>
     <section id="parent-view" class="intro" aria-labelledby="parent-title" hidden>
       <p class="eyebrow">VELİ PANELİ</p>
@@ -85,7 +98,7 @@
       <p id="parent-load-status" role="status" aria-live="polite"></p>
       <p id="parent-empty" class="empty-state" hidden>Hesabınıza henüz öğrenci bağlanmamış. Öğretmeninizle iletişime geçin.</p>
       <div id="parent-children"></div>
-      <p class="note">Ödevler son teslim tarihine göre sıralanır. Yeni ödevleri görmek için Yenile düğmesini kullanabilirsiniz.</p>
+      <p class="note">Ödevler son teslim tarihine göre sıralanır. Tamamladığınız ödevleri işaretleyebilir, yanlış işareti geri alabilirsiniz. Yeni ödevleri ve güncel durumu görmek için Yenile düğmesini kullanın.</p>
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">

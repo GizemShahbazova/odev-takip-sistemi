@@ -63,6 +63,7 @@ service cloud.firestore {
           && request.resource.data.createdAt is timestamp
           && request.resource.data.createdAt == request.time;
         allow update, delete: if false;
+
       }
       match /students/{studentId} {
         allow get: if ownsClass(classId) || linkedStudent(classId, studentId);
@@ -76,6 +77,19 @@ service cloud.firestore {
           && request.resource.data.createdAt is timestamp
           && request.resource.data.createdAt == request.time;
         allow update, delete: if false;
+        match /completions/{assignmentId} {
+          allow get, list: if ownsClass(classId) || linkedStudent(classId, studentId);
+          allow create, update: if linkedStudent(classId, studentId)
+            && exists(/databases/$(database)/documents/classes/$(classId)/students/$(studentId))
+            && exists(/databases/$(database)/documents/classes/$(classId)/assignments/$(assignmentId))
+            && request.resource.data.keys().hasAll(['completed', 'updatedBy', 'updatedAt'])
+            && request.resource.data.keys().hasOnly(['completed', 'updatedBy', 'updatedAt'])
+            && request.resource.data.completed is bool
+            && request.resource.data.updatedBy == request.auth.uid
+            && request.resource.data.updatedAt is timestamp
+            && request.resource.data.updatedAt == request.time;
+          allow delete: if false;
+        }
       }
     }
   }
