@@ -18,7 +18,7 @@
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
       <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen veya veli hesabınızla giriş alanını kullanabilirsiniz.</p><p>Öğretmenler sınıflarını ve ödevlerini yönetir; veliler kendilerine bağlanan çocuklarının ödevlerini görür.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ve veli ekranları hazır. Veliler tamamlanan ödevleri işaretler; öğretmenler sonuçları sınıf tablosunda izler.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ve veli ekranları hazır. Öğretmen ödev durumlarını günceller; veli çocuğunun ödevlerini ve güncel durumunu takip eder.</p></div>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
       <p class="eyebrow">ÖĞRETMEN PANELİ</p>
@@ -82,12 +82,12 @@
       <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="results-to-students" type="button">Öğrenciler</button><button id="results-to-assignments" type="button">Ödevler</button><span aria-current="page">Takip tablosu</span></nav>
       <p class="eyebrow">ÖDEV TAMAMLANMA DURUMU</p>
       <h1 id="results-title" tabindex="-1">Takip tablosu</h1>
-      <p class="lead">Velilerin bildirdiği ödev durumlarını öğrencilere göre izleyin.</p>
+      <p class="lead">Her öğrenci için ödev durumunu seçin: Beklemede, Tamamlandı veya Yapılmadı.</p>
       <div class="list-heading"><h2>Sınıf sonuçları</h2><button id="refresh-results" class="secondary" type="button">Yenile</button></div>
       <p id="results-summary" class="results-summary"></p>
       <p id="results-load-status" role="status" aria-live="polite"></p>
       <p id="results-empty" class="empty-state" hidden></p>
-      <p id="results-help" class="note">Tamamlandı: veli işaretlemiş. Bekliyor: tamamlanma bildirimi yok veya işaret geri alınmış. Güncel sonuçlar için Yenile’ye basın. Geniş tabloları sağa kaydırabilirsiniz.</p>
+      <p id="results-help" class="note">Durum değişikliği seçim yaptığınızda kaydedilir. Beklemede: henüz sonuçlandırılmamış. Yapılmadı: öğretmen ödevin yapılmadığını belirtmiş. Güncel sonuçlar için Yenile’ye basın. Geniş tabloları sağa kaydırabilirsiniz.</p>
       <div id="results-wrap" class="table-scroll" role="region" aria-label="Sınıf ödev takip tablosu" aria-describedby="results-help" tabindex="0" hidden><table id="results-table"></table></div>
     </section>
     <section id="parent-view" class="intro" aria-labelledby="parent-title" hidden>
@@ -97,8 +97,13 @@
       <div class="list-heading"><h2>Öğrenci ve ödevler</h2><button id="refresh-parent" class="secondary" type="button">Yenile</button></div>
       <p id="parent-load-status" role="status" aria-live="polite"></p>
       <p id="parent-empty" class="empty-state" hidden>Hesabınıza henüz öğrenci bağlanmamış. Öğretmeninizle iletişime geçin.</p>
+      <section id="parent-notices-view" class="parent-notices" aria-labelledby="parent-notices-title" hidden>
+        <h2 id="parent-notices-title">Güncel bildirimler</h2>
+        <ul id="parent-notices"></ul>
+        <p class="note">Güncel ödev durumları ve teslim tarihine üç gün veya daha az kalan ödevler.</p>
+      </section>
       <div id="parent-children"></div>
-      <p class="note">Ödevler son teslim tarihine göre sıralanır. Tamamladığınız ödevleri işaretleyebilir, yanlış işareti geri alabilirsiniz. Yeni ödevleri ve güncel durumu görmek için Yenile düğmesini kullanın.</p>
+      <p class="note">Ödevler son teslim tarihine göre sıralanır. Ödev durumlarını öğretmeniniz günceller. Güncel durumları ve hatırlatmaları görmek için Yenile düğmesini kullanın.</p>
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">

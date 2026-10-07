@@ -17,7 +17,56 @@
   let assignmentListRequest = 0;
   let savingAssignment = false;
   let resultsRequest = 0;
+  let savingResults = new Set();
+  function homeworkStatus(record) {
+    if (['completed', 'pending', 'missing'].includes(record?.status)) return record.status;
+    return record?.completed === true ? 'completed' : 'pending';
+  }
+  function statusLabel(value) {
+    return {completed:'Tamamlandı', pending:'Beklemede', missing:'Yapılmadı'}[value];
+  }
+  function paintStatus(badge, value) {
+    badge.className = 'completion-state ' + {completed:'done', pending:'pending', missing:'missing'}[value];
+    badge.textContent = value === 'completed' ? '✓ Tamamlandı' : statusLabel(value);
+  }
+  function teacherStatusControl(context, initial, changed) {
+    const {uid, classId, student, assignment, current} = context;
+    let value = initial;
+    const wrap = document.createElement('div');wrap.className = 'teacher-status';
+    const badge = document.createElement('span');paintStatus(badge,value);
+    const select = document.createElement('select');select.className = 'status-select';
+    select.setAttribute('aria-label', student.name + ' · ' + assignment.title + ' durumu');
+    for (const optionValue of ['pending','completed','missing']) {
+      const option = document.createElement('option');option.value = optionValue;option.textContent = statusLabel(optionValue);select.append(option);
+    }
+    select.value = value;
+    const message = document.createElement('p');message.className = 'completion-message';
+    message.setAttribute('role','status');message.setAttribute('aria-live','polite');
+    wrap.append(badge,select,message);
+    select.addEventListener('change',async () => {
+      const next = select.value, key = student.id + '/' + assignment.id;
+      if (!current() || savingResults.has(key) || !['pending','completed','missing'].includes(next) || next === value) {select.value = value;return;}
+      savingResults.add(key);select.disabled = true;el('refresh-results').disabled = true;
+      message.textContent = 'Kaydediliyor…';message.className = 'completion-message';
+      try {
+        await fs.setDoc(fs.doc(db,'classes',classId,'students',student.id,'completions',assignment.id), {
+          status:next, completed:next === 'completed', updatedBy:uid, updatedAt:fs.serverTimestamp()
+        });
+        if (!current()) return;
+        value = next;select.value = value;paintStatus(badge,value);changed(next);
+        message.textContent = 'Kaydedildi.';
+      } catch (error) {
+        if (!current()) return;
+        select.value = value;message.className = 'completion-message error';
+        message.textContent = 'Kaydedilemedi. Yenile ile durumu tekrar okuyup yeniden deneyin.';
+      } finally {
+        if (current()) {savingResults.delete(key);select.disabled = false;el('refresh-results').disabled = savingResults.size > 0;}
+      }
+    });
+    return wrap;
+  }
   function clearResults() {
+    savingResults = new Set();
     ++resultsRequest;
     el('results-view').hidden = true;
     el('results-table').replaceChildren();
@@ -42,7 +91,7 @@
   async function loadResults() {
     const uid = teacherUid, session = profileRequest;
     const classId = selectedClass?.id, version = selectionVersion;
-    if (!classId || !sameClass(uid, session, classId, version)) return;
+    if (!classId || !sameClass(uid, session, classId, version) || savingResults.size > 0) return;
     const request = ++resultsRequest;
     const current = () => request === resultsRequest && sameClass(uid, session, classId, version);
     el('refresh-results').disabled = true;
@@ -86,22 +135,31 @@
         cell.append(label, date);header.append(cell);
       }
       const totalHeader = document.createElement('th');totalHeader.textContent = 'Tamamlanan';totalHeader.setAttribute('scope','col');header.append(totalHeader);head.append(header);table.append(head);
-      const body = document.createElement('tbody');let total = 0;
+      const body = document.createElement('tbody');
+      const counts = [];
+      function renderTotals() {
+        let total = 0;
+        students.forEach((student,index) => {
+          const done = assignments.filter(assignment => homeworkStatus(completions[index].get(assignment.id)) === 'completed').length;
+          counts[index].textContent = done + ' / ' + assignments.length;total += done;
+        });
+        el('results-summary').textContent = students.length + ' öğrenci · ' + assignments.length + ' ödev · ' + total + ' / ' + (students.length * assignments.length) + ' tamamlanan';
+      }
       students.forEach((student,index) => {
         const row = document.createElement('tr'), label = document.createElement('th');
-        label.setAttribute('scope','row');label.textContent = student.name;row.append(label);let done = 0;
+        label.setAttribute('scope','row');label.textContent = student.name;row.append(label);
         for (const assignment of assignments) {
           const cell = document.createElement('td');
-          const completed = completions[index].get(assignment.id)?.completed === true;
-          const badge = document.createElement('span');badge.className = completed ? 'completion-state done' : 'completion-state pending';
-          badge.textContent = completed ? '✓ Tamamlandı' : 'Bekliyor';cell.append(badge);row.append(cell);
-          if (completed) ++done;
+          const value = homeworkStatus(completions[index].get(assignment.id));
+          cell.append(teacherStatusControl({uid,classId,student,assignment,current},value,next => {
+            completions[index].set(assignment.id,{status:next,completed:next === 'completed'});renderTotals();
+          }));row.append(cell);
         }
-        const count = document.createElement('td');count.textContent = done + ' / ' + assignments.length;row.append(count);body.append(row);total += done;
+        const count = document.createElement('td');counts.push(count);row.append(count);body.append(row);
       });
       table.append(body);
       el('results-wrap').hidden = false;
-      el('results-summary').textContent = students.length + ' öğrenci · ' + assignments.length + ' ödev · ' + total + ' / ' + (students.length * assignments.length) + ' tamamlanan';
+      renderTotals();
       el('results-load-status').textContent = '';
     } catch (error) {
       if (!current()) return;
@@ -119,13 +177,13 @@
   el('results-to-assignments').addEventListener('click', () => {if (selectedClass) return openAssignments(selectedClass);});
   let parentUid = null;
   let parentListRequest = 0;
-  let savingCompletions = new Set();
   function clearParent() {
-    savingCompletions = new Set();
     parentUid = null;
     ++parentListRequest;
     el('parent-view').hidden = true;
     el('parent-children').replaceChildren();
+    el('parent-notices').replaceChildren();
+    el('parent-notices-view').hidden = true;
     el('parent-count').textContent = '—';
     el('parent-empty').hidden = true;
     el('parent-load-status').textContent = '';
@@ -139,6 +197,27 @@
   function validRecordId(value) {
     return typeof value === 'string' && value.length > 0 && value.length <= 1500
       && !value.includes('/') && value !== '.' && value !== '..' && !/^__.*__$/.test(value);
+  }
+  function dueInDays(value) {
+    if (!validDueDate(value)) return null;
+    const parts = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Baku',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+    const fields = Object.fromEntries(parts.map(part => [part.type,part.value]));
+    const today = Date.UTC(Number(fields.year),Number(fields.month)-1,Number(fields.day));
+    const [year,month,day] = value.split('-').map(Number);
+    return Math.round((Date.UTC(year,month-1,day)-today)/86400000);
+  }
+  function parentNotice(student, item) {
+    const record = student.completions.get(item.id), value = homeworkStatus(record);
+    const messages = [];
+    if (record?.status) messages.push(student.name + ' · ' + item.title + ': ' + statusLabel(value));
+    const days = dueInDays(item.dueDate);
+    if (value !== 'completed' && days !== null && days >= 0 && days <= 3) {
+      messages.push(student.name + ' · ' + item.title + ': ' + (days === 0 ? 'Son teslim bugün.' : 'Son teslim tarihine ' + days + ' gün kaldı.'));
+    }
+    for (const text of messages) {
+      const notice = document.createElement('li');notice.textContent = text;el('parent-notices').append(notice);
+      el('parent-notices-view').hidden = false;
+    }
   }
   function parentAssignment(item, context) {
     const row = document.createElement('li');
@@ -157,66 +236,32 @@
       description.textContent = item.description;
       row.append(description);
     }
-    let completed = context.completions.get(item.id)?.completed === true;
+    const record = context.completions.get(item.id);
+    const state = document.createElement('span');
+    paintStatus(state, homeworkStatus(record));
     const controls = document.createElement('div');
     controls.className = 'completion-controls';
-    const state = document.createElement('span');
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'completion-toggle';
-    const message = document.createElement('p');
-    message.className = 'completion-message';
-    message.setAttribute('role', 'status');
-    message.setAttribute('aria-live', 'polite');
-    function renderState() {
-      state.textContent = completed ? '✓ Tamamlandı' : 'Bekliyor';
-      state.className = completed ? 'completion-state done' : 'completion-state pending';
-      toggle.textContent = completed ? 'İşareti geri al' : 'Tamamlandı olarak işaretle';
-      toggle.setAttribute('aria-label', context.studentName + ' · ' + item.title + ': ' + toggle.textContent);
+    controls.append(state);
+    row.append(controls);
+    const updatedDate = record?.updatedAt?.toDate?.();
+    if (updatedDate instanceof Date && !Number.isNaN(updatedDate.getTime())) {
+      const updated = document.createElement('p');
+      updated.className = 'note';
+      updated.textContent = 'Son güncelleme: ' + new Intl.DateTimeFormat('tr-TR', {dateStyle:'short', timeStyle:'short', timeZone:'Asia/Baku'}).format(updatedDate);
+      row.append(updated);
     }
-    renderState();
-    controls.append(state, toggle);
-    row.append(controls, message);
-    toggle.addEventListener('click', async () => {
-      const {uid, session, request, classId, studentId} = context;
-      const key = classId + '/' + studentId + '/' + item.id;
-      if (!sameParent(uid, session, request) || savingCompletions.has(key)) return;
-      const next = !completed;
-      savingCompletions.add(key);
-      toggle.disabled = true;
-      el('refresh-parent').disabled = true;
-      message.textContent = 'Kaydediliyor…';
-      message.className = 'completion-message';
-      try {
-        await fs.setDoc(fs.doc(db, 'classes', classId, 'students', studentId, 'completions', item.id), {
-          completed: next, updatedBy: uid, updatedAt: fs.serverTimestamp()
-        });
-        if (!sameParent(uid, session, request)) return;
-        completed = next;
-        renderState();
-        message.textContent = next ? 'Tamamlandı olarak kaydedildi.' : 'İşaret geri alındı.';
-      } catch (error) {
-        if (!sameParent(uid, session, request)) return;
-        message.textContent = 'Kaydedilemedi. Bağlantınızı kontrol edip Yenile düğmesiyle durumu tekrar okuyun; sorun sürerse öğretmeninizle iletişime geçin.';
-        message.className = 'completion-message error';
-      } finally {
-        if (sameParent(uid, session, request)) {
-          savingCompletions.delete(key);
-          toggle.disabled = false;
-          el('refresh-parent').disabled = savingCompletions.size > 0;
-        }
-      }
-    });
     return row;
   }
   async function loadParentChildren() {
     const uid = parentUid;
     const session = profileRequest;
-    if (!uid || auth?.currentUser?.uid !== uid || savingCompletions.size > 0) return;
+    if (!uid || auth?.currentUser?.uid !== uid) return;
     const request = ++parentListRequest;
     el('refresh-parent').disabled = true;
     // Clear previous data immediately so revoked links cannot leave old cards on screen.
     el('parent-children').replaceChildren();
+    el('parent-notices').replaceChildren();
+    el('parent-notices-view').hidden = true;
     el('parent-empty').hidden = true;
     el('parent-count').textContent = '—';
     el('parent-load-status').className = '';
@@ -272,6 +317,7 @@
             list.className = 'assignment-list';
             list.setAttribute('aria-label', student.name + ' için sınıf ödevleri');
             for (const item of assignments) list.append(parentAssignment(item, {uid, session, request, classId, studentId: student.id, studentName: student.name, completions: student.completions}));
+            for (const item of assignments) parentNotice(student,item);
             section.append(list);
           }
           cards.push({section, name: String(student.name)});
