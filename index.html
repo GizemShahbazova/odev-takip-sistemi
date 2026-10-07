@@ -9,16 +9,32 @@
   <script src="./app.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#intro-title">İçeriğe geç</a>
+  <a class="skip-link" href="#main-content">İçeriğe geç</a>
   <header class="site-header"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><span class="stage">Sınıfınızın ortak çalışma alanı</span></header>
-  <main>
-    <aside class="sidebar" aria-label="Site menüsü"><p class="menu-heading">GEZİNME</p><a class="menu-active" href="./" aria-current="page">Ana sayfa</a><div class="sidebar-note"><strong>Öğretmen ve veli</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div></aside>
-    <section class="intro" aria-labelledby="intro-title">
+  <main id="main-content" tabindex="-1">
+    <aside class="sidebar" aria-label="Site menüsü"><p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a><div class="sidebar-note"><strong>Öğretmen ve veli</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div></aside>
+    <section id="intro-view" class="intro" aria-labelledby="intro-title">
       <p class="eyebrow">HOŞ GELDİNİZ</p>
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
       <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen hesabınızla sağdaki giriş alanını kullanabilirsiniz.</p><p>Öğretmenler için sınıf ve ödev yönetimi, veliler için çocuklarının ödevlerini takip etme ekranları burada yer alacak.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Şu anda öğretmen girişi hazır. Sınıf oluşturma, ödev ekleme ve veli takibi sonraki adımlarda açılacak.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen girişi ve sınıf oluşturma hazır. Ödev ekleme ve veli takibi sonraki adımlarda açılacak.</p></div>
+    </section>
+    <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
+      <p class="eyebrow">ÖĞRETMEN PANELİ</p>
+      <div class="section-heading"><h1 id="classes-title">Sınıflarım</h1><span id="class-count" class="badge">—</span></div>
+      <p class="lead">Sınıflarınızı oluşturun ve tek bir yerden takip edin.</p>
+      <form id="class-form" class="class-form">
+        <label for="class-name">Yeni sınıfın adı</label>
+        <div class="class-input-row"><input id="class-name" type="text" required maxlength="60" placeholder="Örneğin: 5-A" autocomplete="off" aria-describedby="class-help"><button id="create-class" class="primary" type="submit">Sınıf oluştur</button></div>
+        <p id="class-help" class="note">Sınıf adını en fazla 60 karakterle yazın.</p>
+      </form>
+      <p id="classes-status" role="status" aria-live="polite"></p>
+      <div class="list-heading"><h2>Kayıtlı sınıflar</h2><button id="refresh-classes" class="secondary" type="button">Yenile</button></div>
+      <p id="classes-load-status" role="status" aria-live="polite"></p>
+      <p id="classes-empty" class="empty-state" hidden>Henüz sınıfınız yok. İlk sınıfınızı yukarıdan oluşturabilirsiniz.</p>
+      <ul id="classes-list" class="classes-list" aria-label="Sınıflarınız"></ul>
+      <p class="note">Öğrenci ve ödev ekleme sonraki adımda açılacak.</p>
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">
@@ -32,7 +48,7 @@
       </div>
       <div id="account-view" hidden>
         <p class="eyebrow">HESABINIZ</p><h2 id="welcome">Hesap kontrol ediliyor…</h2><p id="account-email" class="muted"></p>
-        <div id="profile-details" hidden><span id="role" class="badge"></span><p class="success-note">Giriş başarılı. Kullanıcı kaydınız okundu.</p><div class="next-step"><h3>Sırada sınıfınız var.</h3><p>Bir sonraki aşamada sınıf oluşturma ve ödev ekleme ekranlarını hazırlayacağız.</p></div></div>
+        <div id="profile-details" hidden><span id="role" class="badge"></span><p class="success-note">Giriş başarılı. Kullanıcı kaydınız okundu.</p></div>
         <button id="retry-profile" type="button" class="secondary" hidden>Kaydı yeniden kontrol et</button>
         <button id="logout-button" type="button" class="secondary">Çıkış yap</button>
       </div>

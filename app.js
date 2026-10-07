@@ -1,4 +1,4 @@
-/* İlk sürüm yalnızca giriş yapar ve users/{UID} kaydını okur.
+/* Giriş, kullanıcı profili ve öğretmene ait sınıflar.
    Erişim yetkileri Firestore Security Rules tarafından uygulanır. */
 (() => {
   const el = (id) => document.getElementById(id);
@@ -6,6 +6,109 @@
   const loginButton = el('login-button');
   let auth, db, api, fs;
   let profileRequest = 0;
+  let teacherUid = null;
+  let listRequest = 0;
+  let savingClass = false;
+  function classStatus(message, kind = '') {
+    el('classes-status').textContent = message;
+    el('classes-status').className = kind;
+  }
+  function clearClasses() {
+    teacherUid = null;
+    ++listRequest;
+    savingClass = false;
+    el('classes-view').hidden = true;
+    el('intro-view').hidden = false;
+    el('menu-home').textContent = 'Ana sayfa';
+    el('classes-list').replaceChildren();
+    el('class-count').textContent = '—';
+    el('classes-empty').hidden = true;
+    el('class-name').value = '';
+    el('create-class').disabled = false;
+    el('create-class').textContent = 'Sınıf oluştur';
+    el('refresh-classes').disabled = false;
+    el('classes-load-status').textContent = '';
+    classStatus('');
+  }
+  function sameTeacher(uid, session) {
+    return uid === teacherUid && auth?.currentUser?.uid === uid && session === profileRequest;
+  }
+  async function loadClasses() {
+    const uid = teacherUid;
+    const session = profileRequest;
+    if (!uid || !sameTeacher(uid, session)) return;
+    const request = ++listRequest;
+    el('refresh-classes').disabled = true;
+    el('classes-load-status').className = '';
+    el('classes-load-status').textContent = 'Sınıflarınız yükleniyor…';
+    try {
+      const q = fs.query(fs.collection(db, 'classes'), fs.where('teacherId', '==', uid));
+      const result = await fs.getDocsFromServer(q);
+      if (request !== listRequest || !sameTeacher(uid, session)) return;
+      const classes = result.docs.map(record => ({id: record.id, ...record.data()}));
+      classes.sort((a, b) => String(a.name).localeCompare(String(b.name), 'tr', {numeric: true}));
+      el('classes-list').replaceChildren();
+      for (const item of classes) {
+        const row = document.createElement('li');
+        const symbol = document.createElement('span');
+        symbol.className = 'class-symbol';
+        symbol.textContent = 'S';
+        symbol.setAttribute('aria-hidden', 'true');
+        const label = document.createElement('div');
+        label.className = 'class-label';
+        const name = document.createElement('strong');
+        name.textContent = item.name;
+        const detail = document.createElement('p');
+        const date = item.createdAt?.toDate?.();
+        detail.textContent = date ? 'Oluşturuldu: ' + new Intl.DateTimeFormat('tr-TR').format(date) : 'Sınıf kaydı';
+        label.append(name, detail);
+        row.append(symbol, label);
+        el('classes-list').append(row);
+      }
+      el('class-count').textContent = classes.length + ' sınıf';
+      el('classes-empty').hidden = classes.length !== 0;
+      el('classes-load-status').textContent = '';
+    } catch (error) {
+      if (request !== listRequest || !sameTeacher(uid, session)) return;
+      el('classes-load-status').textContent = error.code === 'permission-denied' ? 'Sınıflar okunamadı. Yeni sınıf erişim kurallarının yayımlandığını kontrol edin ve Yenile’ye basın.' : 'Sınıflar yüklenemedi. Bağlantınızı kontrol edip Yenile’ye basın.';
+      el('classes-load-status').className = 'error';
+    } finally {
+      if (request === listRequest && sameTeacher(uid, session)) el('refresh-classes').disabled = false;
+    }
+  }
+  el('refresh-classes').addEventListener('click', loadClasses);
+  el('class-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const uid = teacherUid;
+    const session = profileRequest;
+    if (!uid || !sameTeacher(uid, session) || savingClass) return;
+    const name = el('class-name').value.trim();
+    if (!name || name.length > 60) {
+      classStatus('Sınıf adını 1–60 karakter arasında yazın.', 'error');
+      el('class-name').focus();
+      return;
+    }
+    savingClass = true;
+    el('create-class').disabled = true;
+    el('create-class').textContent = 'Kaydediliyor…';
+    classStatus('Sınıf kaydediliyor…');
+    try {
+      await fs.addDoc(fs.collection(db, 'classes'), {name, teacherId: uid, createdAt: fs.serverTimestamp()});
+      if (!sameTeacher(uid, session)) return;
+      el('class-name').value = '';
+      classStatus('“' + name + '” sınıfı oluşturuldu.', 'success');
+      await loadClasses();
+    } catch (error) {
+      if (!sameTeacher(uid, session)) return;
+      classStatus(error.code === 'permission-denied' ? 'Sınıf kaydedilemedi. Yeni sınıf erişim kurallarının Firebase’de yayımlandığını kontrol edin.' : 'Sınıf kaydedilemedi. Bağlantınızı kontrol edin; yeniden denemeden önce listeyi yenileyin.', 'error');
+    } finally {
+      if (sameTeacher(uid, session)) {
+        savingClass = false;
+        el('create-class').disabled = false;
+        el('create-class').textContent = 'Sınıf oluştur';
+      }
+    }
+  });
   function status(message, kind = '') {
     el('status').textContent = message;
     el('status').className = kind;
@@ -31,6 +134,7 @@
   el('reload-button').addEventListener('click', () => window.location.reload());
   async function loadProfile(user) {
     const request = ++profileRequest;
+    clearClasses();
     el('profile-details').hidden = true;
     el('retry-profile').hidden = true;
     el('welcome').textContent = 'Hesap kontrol ediliyor…';
@@ -46,6 +150,13 @@
       el('role').textContent = profile.role === 'teacher' ? 'Öğretmen' : 'Veli';
       el('profile-details').hidden = false;
       status('Hesabınız hazır.', 'success');
+      if (profile.role === 'teacher') {
+        teacherUid = user.uid;
+        el('intro-view').hidden = true;
+        el('classes-view').hidden = false;
+        el('menu-home').textContent = 'Sınıflarım';
+        await loadClasses();
+      }
     } catch (error) {
       if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
       el('welcome').textContent = 'Giriş yapıldı; profil okunamadı.';
@@ -99,6 +210,7 @@
       await api.setPersistence(auth, api.browserSessionPersistence);
       api.onAuthStateChanged(auth, (user) => {
         ++profileRequest;
+        clearClasses();
         el('login-view').hidden = Boolean(user);
         el('account-view').hidden = !user;
         el('profile-details').hidden = true;

@@ -1,45 +1,28 @@
-# Ödev Takip Sistemi — İlk giriş (v0.1)
+# Ödev Takip Sistemi — Sınıflar (v0.2)
 
-Bu sürüm, e-posta/şifreyle Firebase Authentication girişi yapar, Firestore’daki users/{UID} belgesini sunucudan okur ve adı/rolü gösterir. Çıkış yapma, yanlış şifre ve profil okuma hataları için mesajlar içerir. Oturum aynı tarayıcı sekmesinin oturumu boyunca korunur. Sınıf, ödev ve veli-öğrenci eşleştirmesi sonraki aşamadır.
+Öğretmen girişi, kendi kullanıcı profilini okuma, sınıf oluşturma ve kendi sınıflarını listeleme. METUClass’tan esinlenen, telefona uyumlu düzen. Öğrenci, ödev ve veli eşleştirmesi sonraki aşamada.
 
-## GitHub Pages üzerinden açma
+## Güncelleme sırası
 
-1. Gizem’in GitHub hesabında yeni bir depo oluşturun: `odev-takip-sistemi`.
-2. ZIP dosyasını bilgisayarda çıkarın.
-3. GitHub’da Add file → Upload files seçin. Klasörün içindeki index.html, style.css ve app.js dosyalarını birlikte yükleyin. index.html deponun kökünde olmalı. ZIP dosyasını yüklemek siteyi açmaz.
-4. Commit changes ile kaydedin.
-5. Settings → Pages → Source: Deploy from a branch → Branch: main → Folder: /(root) → Save.
-6. GitHub’ın verdiği HTTPS site adresini açın. Gizem’in Firebase Authentication’da oluşturduğunuz e-posta adresi ve site şifresiyle giriş yapın.
-7. Başarılı sonuç: Merhaba Gizem. / Öğretmen / Kullanıcı kaydınız okundu.
+1. Bu ZIP’i bilgisayarda ayıklayın.
+2. `firestore.rules` dosyasını bir metin düzenleyicide açıp tamamını kopyalayın.
+3. Firebase Console → `odev-takip-sistemi-6652a` → Firestore Database → Rules: mevcut metni bu dosyanın tamamıyla değiştirin ve Publish’e basın. Başarılı yayın olmadan sınıflar çalışmaz.
+4. GitHub → `GizemShahbazova/odev-takip-sistemi` → Add file → Upload files: bu paketteki beş dosyayı deponun köküne yükleyin, Commit changes ile kaydedin. Aynı adlardaki dosyalar güncellenir; ayrı klasör veya ZIP yüklemeyin.
+5. Pages yayını tamamlanınca https://gizemshahbazova.github.io/odev-takip-sistemi/ adresini açın. Eski ekran görünüyorsa Ctrl+F5 ile yenileyin.
+6. Gizem’in mevcut hesabıyla giriş yapın. Sınıflarım ekranında örnek `5-A` sınıfını oluşturun, sayfayı yenileyerek kayıtlı kaldığını kontrol edin.
 
-Bu adımlar GitHub arayüzündeki seçeneklere göre küçük farklılıklar gösterebilir. Sonraki ekranlarda birlikte ilerleyin.
+GitHub’a firestore.rules yüklemek Firebase’deki kuralları otomatik yayımlamaz. İlk adım olan Firebase Console yayını ayrıca gereklidir. Firestore’da classes koleksiyonunu elle açmak gerekmez; ilk sınıf kaydıyla oluşur.
 
-## Firebase’de hazırlanan ayarlar
+## Veri ve yetkiler
 
-- Proje: odev-takip-sistemi-6652a; Firestore Standard, (default), Frankfurt.
-- Authentication → Email/Password etkin.
-- users/qD30Waxms3Nc0UtpUVTGzFaJPmE3 → name: Gizem (string), role: teacher (string).
-- firestore.rules dosyasındaki başlangıç kuralı Firebase Console → Firestore → Rules üzerinden yayınlanmış olmalı.
-- GitHub’a firestore.rules yüklemek Firebase’deki kuralları değiştirmez.
-- auth/unauthorized-domain hatası çıkarsa Firebase Authentication → Settings → Authorized domains altında GitHub Pages alan adınızı ekleyin (örneğin kullanici.github.io; https veya /depo-adi olmadan).
+- `users/{UID}`: mevcut `name` ve `role` kaydı. Kullanıcı yalnızca kendi profilini okur. Site üzerinden rol değiştirilemez.
+- `classes/{otomatik kimlik}`: `name` (1–60 karakter metin), `teacherId` (öğretmen UID), `createdAt` (sunucu zamanı).
+- Öğretmen rolü Firestore’daki kullanıcı belgesinden kontrol edilir. Öğretmen yalnızca kendi UID’siyle sınıf oluşturabilir ve kendi sınıflarını okuyabilir. Liste sorgusu teacherId filtresi içerir.
+- Güncelleme ve silme bu aşamada kapalıdır; diğer koleksiyonlar için izin verilmez.
+- Firebase web ayarları giriş şifresi değildir. Pakette kullanıcı şifresi veya yönetici anahtarı bulunmaz.
 
-## Dosyalar
+## Kontroller
 
-- index.html: giriş ekranı
-- style.css: telefon ve bilgisayar görünümü
-- app.js: Firebase bağlantısı, giriş, profil okuma ve çıkış
-- firestore.rules: başlangıç erişim kuralının kopyası
+JavaScript sözdizimi ve HTML dosya/eleman bağlantıları kontrol edildi. Firebase taklitleriyle öğretmen filtresi, sınıf kaydetme ve listeleme, boş ad, kayıt hatası, çıkışta temizleme, gecikmiş liste yanıtı ve veli arayüzü kontrolleri yapıldı. Bunlar canlı Firebase yetki testlerinin yerine geçmez. Yeni kuralların gerçek serviste yayımlanması, sınıf kayıtlarının kalıcılığı ve telefon görünümü kullanıcı ile doğrulanacak. Önceki v0.1 girişi, profil okuma, sayfa yenilemede oturumun korunması ve çıkış kullanıcı tarafından doğrulanmıştı.
 
-Firebase web config değerleri uygulamaya gömülüdür; bunlar giriş şifresi değildir. Hiçbir kullanıcı şifresi dosyalarda bulunmaz. Kullanıcı rolleri site üzerinden değiştirilemez. Site kodundaki rol gösterimi bir yetki kontrolü değildir; gerçek veri erişimini Firestore kuralları belirler.
-
-## İlk deneme
-
-1. Yanlış şifre deneyin: açıklayıcı hata mesajı görünmeli.
-2. Doğru şifreyle giriş yapın: Gizem’in adı ve Öğretmen rolü görünmeli.
-3. Sayfayı yenileyin: aynı sekmede oturum devam etmeli.
-4. Çıkış yapın: giriş formu dönmeli, profil görünmemeli.
-5. Telefonda siteyi açın: form ekran genişliğine sığmalı.
-
-Geliştirme sırasında JavaScript sözdizimi ve dosya bağlantıları kontrol edilmiştir. Gerçek hesapla giriş ve cihaz görünümü kullanıcı tarafında henüz doğrulanmamıştır.
-
-Referanslar: https://firebase.google.com/docs/auth/web/password-auth ve https://firebase.google.com/docs/firestore/query-data/get-data
+Kaynaklar: https://firebase.google.com/docs/firestore/manage-data/add-data ve https://firebase.google.com/docs/firestore/security/rules-conditions
