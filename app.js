@@ -16,6 +16,123 @@
   let savingStudent = false;
   let assignmentListRequest = 0;
   let savingAssignment = false;
+  let parentUid = null;
+  let parentListRequest = 0;
+  function clearParent() {
+    parentUid = null;
+    ++parentListRequest;
+    el('parent-view').hidden = true;
+    el('parent-children').replaceChildren();
+    el('parent-count').textContent = '—';
+    el('parent-empty').hidden = true;
+    el('parent-load-status').textContent = '';
+    el('parent-load-status').className = '';
+    el('refresh-parent').disabled = false;
+  }
+  function sameParent(uid, session, request) {
+    return Boolean(uid) && parentUid === uid && auth?.currentUser?.uid === uid
+      && profileRequest === session && parentListRequest === request;
+  }
+  function validRecordId(value) {
+    return typeof value === 'string' && value.length > 0 && value.length <= 1500
+      && !value.includes('/') && value !== '.' && value !== '..' && !/^__.*__$/.test(value);
+  }
+  function parentAssignment(item) {
+    const row = document.createElement('li');
+    const title = document.createElement('h3');
+    title.textContent = item.title;
+    const due = document.createElement('p');
+    due.className = 'assignment-date';
+    const date = document.createElement('time');
+    date.textContent = validDueDate(item.dueDate) ? item.dueDate.split('-').reverse().join('.') : 'Tarih belirtilmemiş';
+    if (validDueDate(item.dueDate)) date.setAttribute('datetime', item.dueDate);
+    due.append(document.createTextNode('Son teslim: '), date);
+    row.append(title, due);
+    if (item.description) {
+      const description = document.createElement('p');
+      description.className = 'assignment-description';
+      description.textContent = item.description;
+      row.append(description);
+    }
+    return row;
+  }
+  async function loadParentChildren() {
+    const uid = parentUid;
+    const session = profileRequest;
+    if (!uid || auth?.currentUser?.uid !== uid) return;
+    const request = ++parentListRequest;
+    el('refresh-parent').disabled = true;
+    // Clear previous data immediately so revoked links cannot leave old cards on screen.
+    el('parent-children').replaceChildren();
+    el('parent-empty').hidden = true;
+    el('parent-count').textContent = '—';
+    el('parent-load-status').className = '';
+    el('parent-load-status').textContent = 'Çocuğunuzun ödevleri yükleniyor…';
+    try {
+      const links = await fs.getDocsFromServer(fs.collection(db, 'users', uid, 'children'));
+      if (!sameParent(uid, session, request)) return;
+      const results = await Promise.allSettled(links.docs.map(async link => {
+        const classId = link.id;
+        const ids = link.data().studentIds;
+        if (!validRecordId(classId) || !Array.isArray(ids) || ids.length === 0 || !ids.every(validRecordId)) {
+          throw {code: 'parent/invalid-link'};
+        }
+        const studentIds = [...new Set(ids)];
+        const [classRecord, assignmentRecords, studentRecords] = await Promise.all([
+          fs.getDocFromServer(fs.doc(db, 'classes', classId)),
+          fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments')),
+          Promise.all(studentIds.map(studentId => fs.getDocFromServer(fs.doc(db, 'classes', classId, 'students', studentId))))
+        ]);
+        if (!classRecord.exists() || studentRecords.some(record => !record.exists())) throw {code: 'parent/missing-record'};
+        const assignments = assignmentRecords.docs.map(record => ({...record.data(), id: record.id}));
+        assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
+        return {className: classRecord.data().name, students: studentRecords.map(record => record.data()), assignments};
+      }));
+      if (!sameParent(uid, session, request)) return;
+      const cards = [];
+      let failures = 0;
+      for (const result of results) {
+        if (result.status !== 'fulfilled') { ++failures; continue; }
+        const {className, students, assignments} = result.value;
+        for (const student of students) {
+          const section = document.createElement('section');
+          section.className = 'child-card';
+          const heading = document.createElement('h2');
+          heading.textContent = student.name;
+          const subtitle = document.createElement('p');
+          subtitle.className = 'child-subtitle';
+          subtitle.textContent = className + ' · ' + assignments.length + ' ödev';
+          section.append(heading, subtitle);
+          if (assignments.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'empty-state';
+            empty.textContent = 'Bu sınıfta henüz ödev yok.';
+            section.append(empty);
+          } else {
+            const list = document.createElement('ul');
+            list.className = 'assignment-list';
+            list.setAttribute('aria-label', student.name + ' için sınıf ödevleri');
+            for (const item of assignments) list.append(parentAssignment(item));
+            section.append(list);
+          }
+          cards.push({section, name: String(student.name)});
+        }
+      }
+      cards.sort((a,b) => a.name.localeCompare(b.name, 'tr'));
+      for (const card of cards) el('parent-children').append(card.section);
+      el('parent-count').textContent = cards.length + ' öğrenci';
+      el('parent-empty').hidden = links.docs.length !== 0;
+      el('parent-load-status').className = failures ? 'error' : '';
+      el('parent-load-status').textContent = failures ? 'Bazı öğrenci kayıtları yüklenemedi. Yenile düğmesiyle tekrar deneyin; sorun sürerse öğretmeninizle iletişime geçin.' : '';
+    } catch (error) {
+      if (!sameParent(uid, session, request)) return;
+      el('parent-load-status').textContent = 'Ödevler yüklenemedi. Bağlantınızı kontrol edip Yenile düğmesiyle tekrar deneyin; sorun sürerse öğretmeninizle iletişime geçin.';
+      el('parent-load-status').className = 'error';
+    } finally {
+      if (sameParent(uid, session, request)) el('refresh-parent').disabled = false;
+    }
+  }
+  el('refresh-parent').addEventListener('click', loadParentChildren);
   function assignmentStatus(message, kind = '') {
     el('assignments-status').textContent = message;
     el('assignments-status').className = kind;
@@ -239,6 +356,7 @@
   el('back-to-classes').addEventListener('click', backToClasses);
   el('menu-home').addEventListener('click', (event) => {
     if (teacherUid && auth?.currentUser?.uid === teacherUid) {event.preventDefault(); backToClasses();}
+    else if (parentUid && auth?.currentUser?.uid === parentUid) {event.preventDefault(); el('parent-title').focus();}
   });
   el('refresh-students').addEventListener('click', loadStudents);
   el('student-form').addEventListener('submit', async (event) => {
@@ -280,6 +398,7 @@
     el('classes-status').className = kind;
   }
   function clearClasses() {
+    clearParent();
     clearStudents();
     knownClasses.clear();
     teacherUid = null;
@@ -440,6 +559,12 @@
         el('classes-view').hidden = false;
         el('menu-home').textContent = 'Sınıflarım';
         await loadClasses();
+      } else {
+        parentUid = user.uid;
+        el('intro-view').hidden = true;
+        el('parent-view').hidden = false;
+        el('menu-home').textContent = 'Çocuğumun ödevleri';
+        await loadParentChildren();
       }
     } catch (error) {
       if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;

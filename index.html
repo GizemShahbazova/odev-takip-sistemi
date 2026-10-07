@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
-  <title>Ödev Takip Sistemi | Öğretmen Paneli</title>
+  <title>Ödev Takip Sistemi | Öğretmen ve Veli</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
 </head>
@@ -17,8 +17,8 @@
       <p class="eyebrow">HOŞ GELDİNİZ</p>
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
-      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen hesabınızla sağdaki giriş alanını kullanabilirsiniz.</p><p>Öğretmenler için sınıf ve ödev yönetimi, veliler için çocuklarının ödevlerini takip etme ekranları burada yer alacak.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Sınıf, öğrenci ve ödev kayıtları hazır. Veli girişi ve tamamlanma takibi sonraki adımlarda açılacak.</p></div>
+      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen veya veli hesabınızla giriş alanını kullanabilirsiniz.</p><p>Öğretmenler sınıflarını ve ödevlerini yönetir; veliler kendilerine bağlanan çocuklarının ödevlerini görür.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ve veli ekranları hazır. Ödevleri tamamlandı olarak işaretleme ve sınıf sonuç tablosu sonraki adımda eklenecek.</p></div>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
       <p class="eyebrow">ÖĞRETMEN PANELİ</p>
@@ -52,7 +52,7 @@
       <p id="students-load-status" role="status" aria-live="polite"></p>
       <p id="students-empty" class="empty-state" hidden>Bu sınıfta henüz öğrenci yok. İlk öğrenciyi yukarıdan ekleyebilirsiniz.</p>
       <ul id="students-list" class="classes-list" aria-label="Bu sınıfın öğrencileri"></ul>
-      <p class="note">Bu sınıfın ödevlerini Ödevler bölümünden açabilirsiniz. Veli bağlantısı sonraki adımda açılacak.</p>
+      <p class="note">Bu sınıfın ödevlerini Ödevler bölümünden açabilirsiniz. Veliler yalnızca hesaplarına bağlanan öğrencilerin ödevlerini görebilir.</p>
     </section>
     <section id="assignments-view" class="intro" aria-labelledby="assignments-title" hidden>
       <button id="assignments-back" type="button" class="back-button">← Sınıflara dön</button>
@@ -75,11 +75,21 @@
       <p id="assignments-load-status" role="status" aria-live="polite"></p>
       <p id="assignments-empty" class="empty-state" hidden>Bu sınıfta henüz ödev yok. İlk ödevi yukarıdan ekleyebilirsiniz.</p>
       <ul id="assignments-list" class="assignment-list" aria-label="Bu sınıfın ödevleri"></ul>
-      <p class="note">Ödevler teslim tarihine göre sıralanır. Veli erişimi ve tamamlanma takibi sonraki adımda açılacak.</p>
+      <p class="note">Ödevler teslim tarihine göre sıralanır. Veliler bu ödevleri görebilir. Tamamlanma takibi sonraki adımda eklenecek.</p>
+    </section>
+    <section id="parent-view" class="intro" aria-labelledby="parent-title" hidden>
+      <p class="eyebrow">VELİ PANELİ</p>
+      <div class="section-heading"><h1 id="parent-title" tabindex="-1">Çocuğumun ödevleri</h1><span id="parent-count" class="badge">—</span></div>
+      <p class="lead">Çocuğunuzun sınıf ödevlerini ve teslim tarihlerini takip edin.</p>
+      <div class="list-heading"><h2>Öğrenci ve ödevler</h2><button id="refresh-parent" class="secondary" type="button">Yenile</button></div>
+      <p id="parent-load-status" role="status" aria-live="polite"></p>
+      <p id="parent-empty" class="empty-state" hidden>Hesabınıza henüz öğrenci bağlanmamış. Öğretmeninizle iletişime geçin.</p>
+      <div id="parent-children"></div>
+      <p class="note">Ödevler son teslim tarihine göre sıralanır. Yeni ödevleri görmek için Yenile düğmesini kullanabilirsiniz.</p>
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">
-        <p class="eyebrow">ÖĞRETMEN EKRANI</p><h2>Giriş yap</h2><p class="muted">Ödev Takip hesabınızı kullanın.</p>
+        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Ödev Takip hesabınızı kullanın.</p>
         <form id="login-form">
           <label for="email">E-posta adresi</label><input id="email" type="email" autocomplete="username" required maxlength="254" placeholder="ornek@gmail.com">
           <label for="password">Şifre</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="toggle-password" aria-label="Şifreyi göster" aria-pressed="false">Göster</button></div>

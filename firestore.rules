@@ -11,12 +11,33 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/classes/$(classId))
         && get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == request.auth.uid;
     }
+    function isParent() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'parent';
+    }
+    function linkedClass(classId) {
+      return isParent()
+        && exists(/databases/$(database)/documents/classes/$(classId))
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds is list
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds.size() > 0;
+    }
+    function linkedStudent(classId, studentId) {
+      return linkedClass(classId)
+        && studentId in get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds;
+    }
     match /users/{userId} {
       allow get: if request.auth != null && request.auth.uid == userId;
       allow list, create, update, delete: if false;
+      match /children/{classId} {
+        allow get, list: if isParent() && request.auth.uid == userId;
+        allow create, update, delete: if false;
+      }
     }
     match /classes/{classId} {
-      allow get, list: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow get: if (isTeacher() && resource.data.teacherId == request.auth.uid) || linkedClass(classId);
+      allow list: if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow create: if isTeacher()
         && request.resource.data.keys().hasAll(['name', 'teacherId', 'createdAt'])
         && request.resource.data.keys().hasOnly(['name', 'teacherId', 'createdAt'])
@@ -28,7 +49,7 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
       allow update, delete: if false;
       match /assignments/{assignmentId} {
-        allow get, list: if ownsClass(classId);
+        allow get, list: if ownsClass(classId) || linkedClass(classId);
         allow create: if ownsClass(classId)
           && request.resource.data.keys().hasAll(['title', 'description', 'dueDate', 'createdAt'])
           && request.resource.data.keys().hasOnly(['title', 'description', 'dueDate', 'createdAt'])
@@ -44,7 +65,8 @@ service cloud.firestore {
         allow update, delete: if false;
       }
       match /students/{studentId} {
-        allow get, list: if ownsClass(classId);
+        allow get: if ownsClass(classId) || linkedStudent(classId, studentId);
+        allow list: if ownsClass(classId);
         allow create: if ownsClass(classId)
           && request.resource.data.keys().hasAll(['name', 'createdAt'])
           && request.resource.data.keys().hasOnly(['name', 'createdAt'])
