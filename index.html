@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Gizem’in ödev takip sistemi — öğretmen girişi.">
-  <title>Ödev Takip Sistemi | Giriş</title>
+  <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar ve öğrenciler.">
+  <title>Ödev Takip Sistemi | Sınıflar</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
 </head>
@@ -18,7 +18,7 @@
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
       <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen hesabınızla sağdaki giriş alanını kullanabilirsiniz.</p><p>Öğretmenler için sınıf ve ödev yönetimi, veliler için çocuklarının ödevlerini takip etme ekranları burada yer alacak.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen girişi ve sınıf oluşturma hazır. Ödev ekleme ve veli takibi sonraki adımlarda açılacak.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen girişi, sınıf oluşturma ve öğrenci ekleme hazır. Ödev ekleme ve veli takibi sonraki adımlarda açılacak.</p></div>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
       <p class="eyebrow">ÖĞRETMEN PANELİ</p>
@@ -34,7 +34,24 @@
       <p id="classes-load-status" role="status" aria-live="polite"></p>
       <p id="classes-empty" class="empty-state" hidden>Henüz sınıfınız yok. İlk sınıfınızı yukarıdan oluşturabilirsiniz.</p>
       <ul id="classes-list" class="classes-list" aria-label="Sınıflarınız"></ul>
-      <p class="note">Öğrenci ve ödev ekleme sonraki adımda açılacak.</p>
+      <p class="note">Öğrenci listesini açmak için sınıfın yanındaki Öğrenciler düğmesini kullanın.</p>
+    </section>
+    <section id="students-view" class="intro" aria-labelledby="students-title" hidden>
+      <button id="back-to-classes" type="button" class="back-button">← Sınıflara dön</button>
+      <p class="eyebrow">SINIF LİSTESİ</p>
+      <div class="section-heading"><h1 id="students-title">Öğrenciler</h1><span id="student-count" class="badge">—</span></div>
+      <p class="lead">Bu sınıfa öğrencilerinizi ekleyin ve kayıtlı öğrencileri görüntüleyin.</p>
+      <form id="student-form" class="class-form">
+        <label for="student-name">Öğrencinin adı ve soyadı</label>
+        <div class="class-input-row"><input id="student-name" type="text" required maxlength="100" placeholder="Örneğin: Örnek Öğrenci" autocomplete="off" aria-describedby="student-help"><button id="create-student" class="primary" type="submit">Öğrenci ekle</button></div>
+        <p id="student-help" class="note">Ad ve soyadını en fazla 100 karakterle yazın.</p>
+      </form>
+      <p id="students-status" role="status" aria-live="polite"></p>
+      <div class="list-heading"><h2>Kayıtlı öğrenciler</h2><button id="refresh-students" class="secondary" type="button">Yenile</button></div>
+      <p id="students-load-status" role="status" aria-live="polite"></p>
+      <p id="students-empty" class="empty-state" hidden>Bu sınıfta henüz öğrenci yok. İlk öğrenciyi yukarıdan ekleyebilirsiniz.</p>
+      <ul id="students-list" class="classes-list" aria-label="Bu sınıfın öğrencileri"></ul>
+      <p class="note">Ödev ve veli bağlantısı sonraki adımlarda açılacak.</p>
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">

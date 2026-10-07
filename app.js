@@ -1,4 +1,4 @@
-/* Giriş, kullanıcı profili ve öğretmene ait sınıflar.
+/* Giriş, kullanıcı profili ve öğretmene ait sınıflar ve sınıfa bağlı öğrenciler.
    Erişim yetkileri Firestore Security Rules tarafından uygulanır. */
 (() => {
   const el = (id) => document.getElementById(id);
@@ -9,11 +9,142 @@
   let teacherUid = null;
   let listRequest = 0;
   let savingClass = false;
+  let knownClasses = new Map();
+  let selectedClass = null;
+  let selectionVersion = 0;
+  let studentListRequest = 0;
+  let savingStudent = false;
+  function studentStatus(message, kind = '') {
+    el('students-status').textContent = message;
+    el('students-status').className = kind;
+  }
+  function clearStudents() {
+    selectedClass = null;
+    ++selectionVersion;
+    ++studentListRequest;
+    savingStudent = false;
+    el('students-view').hidden = true;
+    el('students-title').textContent = 'Öğrenciler';
+    el('students-list').replaceChildren();
+    el('student-count').textContent = '—';
+    el('students-empty').hidden = true;
+    el('student-name').value = '';
+    el('create-student').disabled = false;
+    el('create-student').textContent = 'Öğrenci ekle';
+    el('refresh-students').disabled = false;
+    el('students-load-status').textContent = '';
+    el('students-load-status').className = '';
+    studentStatus('');
+  }
+  function sameClass(uid, session, classId, version) {
+    return sameTeacher(uid, session) && selectedClass?.id === classId && version === selectionVersion;
+  }
+  async function openStudents(item) {
+    if (!teacherUid || auth?.currentUser?.uid !== teacherUid || !knownClasses.has(item.id)) return;
+    clearStudents();
+    selectedClass = {id: item.id, name: item.name};
+    el('classes-view').hidden = true;
+    el('students-view').hidden = false;
+    el('students-title').textContent = item.name + ' · Öğrenciler';
+    el('students-title').setAttribute('tabindex', '-1');
+    el('students-title').focus();
+    await loadStudents();
+  }
+  function backToClasses() {
+    clearStudents();
+    if (teacherUid && auth?.currentUser?.uid === teacherUid) {
+      el('classes-view').hidden = false;
+      el('classes-title').setAttribute('tabindex', '-1');
+      el('classes-title').focus();
+    }
+  }
+  async function loadStudents() {
+    const uid = teacherUid;
+    const session = profileRequest;
+    const classId = selectedClass?.id;
+    const version = selectionVersion;
+    if (!classId || !sameClass(uid, session, classId, version)) return;
+    const request = ++studentListRequest;
+    el('refresh-students').disabled = true;
+    el('students-load-status').className = '';
+    el('students-load-status').textContent = 'Öğrenciler yükleniyor…';
+    try {
+      const result = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students'));
+      if (request !== studentListRequest || !sameClass(uid, session, classId, version)) return;
+      const students = result.docs.map(record => ({...record.data(), id: record.id}));
+      students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
+      el('students-list').replaceChildren();
+      students.forEach((student, index) => {
+        const row = document.createElement('li');
+        const position = document.createElement('span');
+        position.className = 'class-symbol student-position';
+        position.textContent = String(index + 1);
+        position.setAttribute('aria-hidden', 'true');
+        const label = document.createElement('div');
+        label.className = 'class-label';
+        const name = document.createElement('strong');
+        name.textContent = student.name;
+        label.append(name);
+        row.append(position, label);
+        el('students-list').append(row);
+      });
+      el('student-count').textContent = students.length + ' öğrenci';
+      el('students-empty').hidden = students.length !== 0;
+      el('students-load-status').textContent = '';
+    } catch (error) {
+      if (request !== studentListRequest || !sameClass(uid, session, classId, version)) return;
+      el('students-load-status').textContent = error.code === 'permission-denied' ? 'Öğrenciler okunamadı. Yeni öğrenci erişim kurallarının yayımlandığını kontrol edin ve Yenile’ye basın.' : 'Öğrenciler yüklenemedi. Bağlantınızı kontrol edip Yenile’ye basın.';
+      el('students-load-status').className = 'error';
+    } finally {
+      if (request === studentListRequest && sameClass(uid, session, classId, version)) el('refresh-students').disabled = false;
+    }
+  }
+  el('back-to-classes').addEventListener('click', backToClasses);
+  el('menu-home').addEventListener('click', (event) => {
+    if (teacherUid && auth?.currentUser?.uid === teacherUid) {event.preventDefault(); backToClasses();}
+  });
+  el('refresh-students').addEventListener('click', loadStudents);
+  el('student-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const uid = teacherUid;
+    const session = profileRequest;
+    const classId = selectedClass?.id;
+    const version = selectionVersion;
+    if (!classId || !sameClass(uid, session, classId, version) || savingStudent) return;
+    const name = el('student-name').value.trim();
+    if (!name || name.length > 100) {
+      studentStatus('Öğrencinin adını ve soyadını 1–100 karakter arasında yazın.', 'error');
+      el('student-name').focus();
+      return;
+    }
+    savingStudent = true;
+    el('create-student').disabled = true;
+    el('create-student').textContent = 'Kaydediliyor…';
+    studentStatus('Öğrenci kaydediliyor…');
+    try {
+      await fs.addDoc(fs.collection(db, 'classes', classId, 'students'), {name, createdAt: fs.serverTimestamp()});
+      if (!sameClass(uid, session, classId, version)) return;
+      el('student-name').value = '';
+      studentStatus('“' + name + '” bu sınıfa eklendi.', 'success');
+      await loadStudents();
+    } catch (error) {
+      if (!sameClass(uid, session, classId, version)) return;
+      studentStatus(error.code === 'permission-denied' ? 'Öğrenci kaydedilemedi. Yeni öğrenci erişim kurallarının Firebase’de yayımlandığını kontrol edin.' : 'Öğrenci kaydedilemedi. Bağlantınızı kontrol edin; yeniden denemeden önce listeyi yenileyin.', 'error');
+    } finally {
+      if (sameClass(uid, session, classId, version)) {
+        savingStudent = false;
+        el('create-student').disabled = false;
+        el('create-student').textContent = 'Öğrenci ekle';
+      }
+    }
+  });
   function classStatus(message, kind = '') {
     el('classes-status').textContent = message;
     el('classes-status').className = kind;
   }
   function clearClasses() {
+    clearStudents();
+    knownClasses.clear();
     teacherUid = null;
     ++listRequest;
     savingClass = false;
@@ -45,7 +176,8 @@
       const q = fs.query(fs.collection(db, 'classes'), fs.where('teacherId', '==', uid));
       const result = await fs.getDocsFromServer(q);
       if (request !== listRequest || !sameTeacher(uid, session)) return;
-      const classes = result.docs.map(record => ({id: record.id, ...record.data()}));
+      const classes = result.docs.map(record => ({...record.data(), id: record.id}));
+      knownClasses = new Map(classes.map(item => [item.id, item]));
       classes.sort((a, b) => String(a.name).localeCompare(String(b.name), 'tr', {numeric: true}));
       el('classes-list').replaceChildren();
       for (const item of classes) {
@@ -62,7 +194,13 @@
         const date = item.createdAt?.toDate?.();
         detail.textContent = date ? 'Oluşturuldu: ' + new Intl.DateTimeFormat('tr-TR').format(date) : 'Sınıf kaydı';
         label.append(name, detail);
-        row.append(symbol, label);
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'class-open';
+        open.textContent = 'Öğrenciler';
+        open.setAttribute('aria-label', item.name + ' sınıfının öğrencileri');
+        open.addEventListener('click', () => openStudents(item));
+        row.append(symbol, label, open);
         el('classes-list').append(row);
       }
       el('class-count').textContent = classes.length + ' sınıf';
