@@ -16,6 +16,82 @@
   let savingStudent = false;
   let assignmentListRequest = 0;
   let savingAssignment = false;
+  let recordContext = null;
+  let savingRecord = false;
+  function closeRecord() {
+    recordContext = null;savingRecord = false;
+    el('record-dialog').close();
+    el('record-save').disabled = false;el('record-cancel').disabled = false;
+  }
+  function recordActions(kind,item) {
+    const actions = document.createElement('div');actions.className = 'record-actions';
+    for (const action of ['edit','delete']) {
+      const button = document.createElement('button');button.type = 'button';
+      button.className = action === 'delete' ? 'record-delete' : 'class-open';
+      button.textContent = action === 'delete' ? 'Sil' : 'Düzenle';
+      button.setAttribute('aria-label',(item.name || item.title) + ': ' + button.textContent);
+      button.addEventListener('click',() => openRecord(kind,item,action));actions.append(button);
+    }
+    return actions;
+  }
+  function openRecord(kind,item,action) {
+    const uid = teacherUid, session = profileRequest, classId = kind === 'class' ? item.id : selectedClass?.id;
+    const version = selectionVersion;
+    if (!uid || !sameTeacher(uid,session) || !classId || !knownClasses.has(classId)) return;
+    const current = () => kind === 'class' ? sameTeacher(uid,session) : sameClass(uid,session,classId,version);
+    recordContext = {kind,item,action,uid,session,classId,current};
+    const label = {class:'Sınıf',student:'Öğrenci',assignment:'Ödev'}[kind];
+    el('record-title').textContent = label + (action === 'delete' ? ' sil' : ' düzenle');
+    el('record-fields').hidden = action === 'delete';
+    el('record-warning').hidden = action !== 'delete';
+    el('record-warning').textContent = '“' + (item.name || item.title) + '” listelerden kaldırılacak.' + (kind === 'class' ? ' Bu sınıfın öğrencileri ve ödevleri de görünmeyecek.' : '') + ' Bağlı geçmiş kayıtları korunur.';
+    el('record-name-label').textContent = kind === 'assignment' ? 'Ödev başlığı' : label + ' adı';
+    el('record-name').value = item.name || item.title;
+    el('record-name').maxLength = {class:60,student:100,assignment:120}[kind];
+    el('record-name').required = action === 'edit';
+    el('record-assignment-fields').hidden = kind !== 'assignment' || action !== 'edit';
+    el('record-description').value = item.description || '';
+    el('record-date').value = item.dueDate || '';
+    el('record-date').required = kind === 'assignment' && action === 'edit';
+    el('record-message').textContent = '';el('record-message').className = '';
+    el('record-save').textContent = action === 'delete' ? 'Sil' : 'Değişiklikleri kaydet';
+    el('record-save').disabled = false;el('record-cancel').disabled = false;
+    el('record-dialog').showModal();
+  }
+  el('record-cancel').addEventListener('click',() => {if (!savingRecord) closeRecord();});
+  el('record-dialog').addEventListener('cancel',event => {event.preventDefault();if (!savingRecord) closeRecord();});
+  el('record-form').addEventListener('submit',async event => {
+    event.preventDefault();
+    const context = recordContext;
+    if (!context || savingRecord || !context.current()) return;
+    const {kind,item,action,classId} = context;
+    let patch = {deleted:true};
+    if (action === 'edit') {
+      const name = el('record-name').value.trim(),limit = {class:60,student:100,assignment:120}[kind];
+      if (!name || name.length > limit) {el('record-message').textContent = 'Adı 1–' + limit + ' karakter arasında yazın.';return;}
+      patch = kind === 'assignment' ? {title:name,description:el('record-description').value.trim(),dueDate:el('record-date').value} : {name};
+      if (kind === 'assignment' && (patch.description.length > 2000 || !validDueDate(patch.dueDate))) {el('record-message').textContent = 'Açıklama en fazla 2000 karakter olmalı; geçerli bir teslim günü seçin.';return;}
+    }
+    savingRecord = true;el('record-save').disabled = true;el('record-cancel').disabled = true;
+    el('record-message').textContent = 'Kaydediliyor…';
+    const path = kind === 'class' ? ['classes',item.id] : ['classes',classId,kind === 'student' ? 'students' : 'assignments',item.id];
+    try {
+      await fs.updateDoc(fs.doc(db,...path),patch);
+      if (recordContext !== context || !context.current()) return;
+      closeRecord();
+      if (kind === 'class') {
+        if (selectedClass?.id === item.id) backToClasses();
+        await loadClasses();classStatus(action === 'delete' ? 'Sınıf listeden kaldırıldı.' : 'Sınıf adı güncellendi.','success');
+      } else if (kind === 'student') {await loadStudents();studentStatus(action === 'delete' ? 'Öğrenci listeden kaldırıldı.' : 'Öğrenci adı güncellendi.','success');}
+      else {await loadAssignments();assignmentStatus(action === 'delete' ? 'Ödev listeden kaldırıldı.' : 'Ödev güncellendi.','success');}
+    } catch (error) {
+      if (recordContext !== context || !context.current()) return;
+      el('record-message').textContent = 'İşlem kaydedilemedi. Bağlantınızı ve yeni erişim kurallarını kontrol edip tekrar deneyin.';
+      el('record-message').className = 'error';
+    } finally {
+      if (recordContext === context && context.current()) {savingRecord = false;el('record-save').disabled = false;el('record-cancel').disabled = false;}
+    }
+  });
   let resultsRequest = 0;
   let savingResults = new Set();
   function homeworkStatus(record) {
@@ -107,8 +183,8 @@
         fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments'))
       ]);
       if (!current()) return;
-      const students = studentRecords.docs.map(r => ({...r.data(), id:r.id}));
-      const assignments = assignmentRecords.docs.map(r => ({...r.data(), id:r.id}));
+      const students = studentRecords.docs.map(r => ({...r.data(), id:r.id})).filter(item => item.deleted !== true);
+      const assignments = assignmentRecords.docs.map(r => ({...r.data(), id:r.id})).filter(item => item.deleted !== true);
       students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
       assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
       if (!students.length || !assignments.length) {
@@ -275,28 +351,29 @@
         if (!validRecordId(classId) || !Array.isArray(ids) || ids.length === 0 || !ids.every(validRecordId)) {
           throw {code: 'parent/invalid-link'};
         }
+        const classRecord = await fs.getDocFromServer(fs.doc(db, 'classes', classId));
+        if (!classRecord.exists() || classRecord.data().deleted === true) return null;
         const studentIds = [...new Set(ids)];
-        const [classRecord, assignmentRecords, studentRecords] = await Promise.all([
-          fs.getDocFromServer(fs.doc(db, 'classes', classId)),
+        const [assignmentRecords, studentRecords] = await Promise.all([
           fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments')),
           Promise.all(studentIds.map(async studentId => {
-            const [record, completedRecords] = await Promise.all([
-              fs.getDocFromServer(fs.doc(db, 'classes', classId, 'students', studentId)),
-              fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students', studentId, 'completions'))
-            ]);
+            const record = await fs.getDocFromServer(fs.doc(db, 'classes', classId, 'students', studentId));
+            if (!record.exists() || record.data().deleted === true) return null;
+            const completedRecords = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students', studentId, 'completions'));
             return {record, studentId, completions: new Map(completedRecords.docs.map(r => [r.id, r.data()]))};
           }))
         ]);
-        if (!classRecord.exists() || studentRecords.some(student => !student.record.exists())) throw {code: 'parent/missing-record'};
-        const assignments = assignmentRecords.docs.map(record => ({...record.data(), id: record.id}));
+
+        const assignments = assignmentRecords.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
         assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
-        return {classId, className: classRecord.data().name, students: studentRecords.map(student => ({...student.record.data(), id: student.studentId, completions: student.completions})), assignments};
+        return {classId, className: classRecord.data().name, students: studentRecords.filter(Boolean).map(student => ({...student.record.data(), id: student.studentId, completions: student.completions})), assignments};
       }));
       if (!sameParent(uid, session, request)) return;
       const cards = [];
       let failures = 0;
       for (const result of results) {
         if (result.status !== 'fulfilled') { ++failures; continue; }
+        if (!result.value) continue;
         const {classId, className, students, assignments} = result.value;
         for (const student of students) {
           const section = document.createElement('section');
@@ -326,7 +403,7 @@
       cards.sort((a,b) => a.name.localeCompare(b.name, 'tr'));
       for (const card of cards) el('parent-children').append(card.section);
       el('parent-count').textContent = cards.length + ' öğrenci';
-      el('parent-empty').hidden = links.docs.length !== 0;
+      el('parent-empty').hidden = cards.length !== 0 || failures > 0;
       el('parent-load-status').className = failures ? 'error' : '';
       el('parent-load-status').textContent = failures ? 'Bazı öğrenci kayıtları yüklenemedi. Yenile düğmesiyle tekrar deneyin; sorun sürerse öğretmeninizle iletişime geçin.' : '';
     } catch (error) {
@@ -390,7 +467,7 @@
     try {
       const result = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments'));
       if (request !== assignmentListRequest || !sameClass(uid, session, classId, version)) return;
-      const assignments = result.docs.map(record => ({...record.data(), id: record.id}));
+      const assignments = result.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
       assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
       el('assignments-list').replaceChildren();
       for (const item of assignments) {
@@ -410,6 +487,7 @@
           description.textContent = item.description;
           row.append(description);
         }
+        row.append(recordActions('assignment',item));
         el('assignments-list').append(row);
       }
       el('assignment-count').textContent = assignments.length + ' ödev';
@@ -531,7 +609,7 @@
     try {
       const result = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students'));
       if (request !== studentListRequest || !sameClass(uid, session, classId, version)) return;
-      const students = result.docs.map(record => ({...record.data(), id: record.id}));
+      const students = result.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
       students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
       el('students-list').replaceChildren();
       students.forEach((student, index) => {
@@ -545,7 +623,7 @@
         const name = document.createElement('strong');
         name.textContent = student.name;
         label.append(name);
-        row.append(position, label);
+        row.append(position, label,recordActions('student',student));
         el('students-list').append(row);
       });
       el('student-count').textContent = students.length + ' öğrenci';
@@ -604,6 +682,7 @@
     el('classes-status').className = kind;
   }
   function clearClasses() {
+    closeRecord();
     clearParent();
     clearStudents();
     knownClasses.clear();
@@ -638,7 +717,7 @@
       const q = fs.query(fs.collection(db, 'classes'), fs.where('teacherId', '==', uid));
       const result = await fs.getDocsFromServer(q);
       if (request !== listRequest || !sameTeacher(uid, session)) return;
-      const classes = result.docs.map(record => ({...record.data(), id: record.id}));
+      const classes = result.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
       knownClasses = new Map(classes.map(item => [item.id, item]));
       classes.sort((a, b) => String(a.name).localeCompare(String(b.name), 'tr', {numeric: true}));
       el('classes-list').replaceChildren();
@@ -674,7 +753,7 @@
         track.type = 'button';track.className = 'class-open';track.textContent = 'Takip tablosu';
         track.setAttribute('aria-label', item.name + ' sınıfının ödev takip tablosu');
         track.addEventListener('click', () => openResults(item));
-        actions.append(open, homework, track);
+        actions.append(open, homework, track,recordActions('class',item));
         row.append(symbol, label, actions);
         el('classes-list').append(row);
       }

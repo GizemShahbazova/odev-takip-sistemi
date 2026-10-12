@@ -96,7 +96,7 @@
       <p class="lead">Çocuğunuzun sınıf ödevlerini ve teslim tarihlerini takip edin.</p>
       <div class="list-heading"><h2>Öğrenci ve ödevler</h2><button id="refresh-parent" class="secondary" type="button">Yenile</button></div>
       <p id="parent-load-status" role="status" aria-live="polite"></p>
-      <p id="parent-empty" class="empty-state" hidden>Hesabınıza henüz öğrenci bağlanmamış. Öğretmeninizle iletişime geçin.</p>
+      <p id="parent-empty" class="empty-state" hidden>Hesabınıza bağlı aktif öğrenci bulunmuyor. Öğretmeninizle iletişime geçin.</p>
       <section id="parent-notices-view" class="parent-notices" aria-labelledby="parent-notices-title" hidden>
         <h2 id="parent-notices-title">Güncel bildirimler</h2>
         <ul id="parent-notices"></ul>
@@ -126,6 +126,21 @@
       <noscript><p>Giriş yapmak için tarayıcınızda JavaScript’i etkinleştirin.</p></noscript>
     </section>
   </main>
+  <dialog id="record-dialog" aria-labelledby="record-title">
+    <form id="record-form">
+      <h2 id="record-title">Düzenle</h2>
+      <p id="record-warning" class="delete-warning" hidden></p>
+      <div id="record-fields">
+        <label id="record-name-label" for="record-name">Ad</label><input id="record-name" type="text" required autocomplete="off">
+        <div id="record-assignment-fields" hidden>
+          <label for="record-description">Açıklama</label><textarea id="record-description" rows="4" maxlength="2000"></textarea>
+          <label for="record-date">Son teslim tarihi</label><input id="record-date" type="date" min="2000-01-01" max="2099-12-31">
+        </div>
+      </div>
+      <p id="record-message" role="status" aria-live="polite"></p>
+      <div class="dialog-actions"><button id="record-cancel" type="button" class="secondary">Vazgeç</button><button id="record-save" type="submit" class="primary">Kaydet</button></div>
+    </form>
+  </dialog>
   <footer>Ödev Takip Sistemi <span>Öğretmen · Öğrenci · Veli</span></footer>
 </body>
 </html>

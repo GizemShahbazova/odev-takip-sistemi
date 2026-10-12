@@ -1,81 +1,64 @@
-# Ödev Takip Sistemi — Öğretmen durum yönetimi (v0.7)
+# Ödev Takip Sistemi — Düzenleme ve silme (v0.8)
 
-İş akışı değişti: ödev durumunu yalnızca öğretmen belirler. Veli kendi çocuğunun ödevlerini, durumlarını ve site içindeki güncel bildirimleri görür; durum değiştiremez.
-
-## Bu pakette çalışanlar
-
-- Öğretmen: Sınıflarım → 5-A → Takip tablosu. Her öğrenci/ödev hücresinde Beklemede, Tamamlandı, Yapılmadı seçimi bulunur. Seçim sunucuda kaydedilir, toplamlar güncellenir.
-- Veli: durum değiştirme düğmeleri kaldırıldı. Firebase kuralları da veliye tamamlanma yazma izni vermez.
-- Veli ekranındaki Güncel bildirimler bölümü, öğretmenin kaydettiği güncel durumları ve son teslim tarihine üç gün veya daha az kalan tamamlanmamış ödevleri gösterir.
-- Bu site içi bildirimler sayfa açılınca veya Yenile/F5 ile hesaplanır. Telefonun sistem bildirimleri veya e-posta değildir. Bildirim geçmişi ve okunma durumu tutulmaz.
-- Üç günlük hesap Bakü takvim gününe (Asia/Baku) göre yapılır. Son teslim bugün de hatırlatma gösterilir. Tamamlanan ödevler için teslim hatırlatması gösterilmez.
-- Önceki sınıf, öğrenci, ödev ve veli bağlantıları korunur. Eski boolean tamamlanma kayıtları okunmaya devam eder; Gizem bunları öğretmen tablosundan değiştirebilir.
-
-## Henüz etkin olmayan e-postalar
-
-Bu pakette otomatik e-posta gönderilmez. GitHub Pages üzerinde sayfa kapalıyken çalışan bir zamanlayıcı yoktur. E-posta otomasyonunun sunucuda kurulması gerekir.
-
-Kullanıcının seçtiği tetikleyici: öğretmen Yapılmadı seçince ilgili veliye e-posta. Teslim tarihi geçti diye kendiliğinden Yapılmadı durumuna geçilmez.
-
-Sonraki sunucu kurulumu için somut davranış:
-
-1. Durum değişikliğinde öğrenciye bağlı velilerin hesapları bulunur. Güncel durum bildirimleri ilgili velilerin site içi bildirim kaydına eklenir.
-2. Yeni durum Yapılmadı ise ilgili velilerin e-posta adreslerine bilgilendirme gönderilir. Aynı olay yeniden işlendiğinde tekrar gönderilmesini önleyen olay kimliği kullanılır.
-3. Her gün Bakü saatiyle 09.00’da, son teslim tarihi tam üç gün sonra olan ödevler incelenir. Tamamlanmış öğrencilere hatırlatma gönderilmez. Aynı ödev/öğrenci/veli/teslim tarihi için hatırlatma bir kez oluşturulur.
-4. E-postalar sunucudaki güvenilir kodun oluşturduğu kuyruğa alınır. Alıcılar kullanıcıların kendileri değil, mevcut yetkili veli bağlantılarıyla belirlenir. Tarayıcıya gönderim şifresi veya servis anahtarı konmaz.
-5. Test önce deneme veli hesabıyla yapılır; gönderim ve hata kayıtları kontrol edilir. Yeniden deneme mekanizması ve e-posta hizmeti ayarları kurulur.
-
-Firebase’in yerleşik Cloud Functions ve zamanlanmış iş yoluyla kurulumunda Blaze planı ve faturalandırma gerekir. Ayrıca SMTP/e-posta gönderim hizmeti gerekir. Spark planı bu frontend güncellemesi için yeterlidir; bu paket billing ayarı değiştirmez. E-posta ve telefon bildirimi kurulumunun tamamlandığı varsayılmamalıdır.
+Öğretmen sınıf ve öğrenci adını, ödev başlığını/açıklamasını/teslim tarihini düzenler. Her kayıtta Düzenle ve Sil düğmeleri vardır. Veli yalnızca okur; öğretmen Beklemede, Tamamlandı, Yapılmadı durumlarını yönetmeye devam eder.
 
 ## Yükleme
 
 1. ZIP’i ayıklayın.
-2. firestore.rules dosyasının tamamını Firebase Console → Firestore Database → Rules bölümünde mevcut metnin tamamıyla değiştirin, Publish’e basın. Bu adım eski veli yazma yetkisini kapatır.
-3. GitHub → GizemShahbazova/odev-takip-sistemi → Add file → Upload files: beş dosyayı mevcut dosyaların bulunduğu köke yükleyin ve Commit changes yapın. ZIP/klasör yüklemeyin.
-4. Pages yayını tamamlandıktan sonra https://gizemshahbazova.github.io/odev-takip-sistemi/ adresini Ctrl+F5 ile yenileyin.
+2. firestore.rules dosyasının tamamını Firebase Console → Firestore Database → Rules bölümünde mevcut metnin tamamıyla değiştirin; Publish’e basın.
+3. GitHub → GizemShahbazova/odev-takip-sistemi → Add file → Upload files: paketteki beş dosyayı deponun köküne mevcut dosyaların üzerine yükleyin, Commit changes yapın. ZIP veya klasör yüklemeyin.
+4. Yayın tamamlanınca https://gizemshahbazova.github.io/odev-takip-sistemi/ adresini Ctrl+F5 ile yenileyin.
 
-GitHub’a firestore.rules dosyası yüklemek Firebase kurallarını kendiliğinden yayımlamaz. Eski uygulamada açık kalan veli düğmesi yeni kurallar yayımlanınca yazamaz; Ctrl+F5 ile yeni arayüz yüklenir.
+GitHub’a kuralları yüklemek Firebase kurallarını yayımlamaz. Veri taşıma gerekmez; eski belgeler ve veli bağlantıları uyumludur.
 
-## Canlı doğrulama
+## Kullanım
 
-1. Gizem hesabıyla 5-A → Takip tablosu açın. Öğrenci A → Ödev 1 için Beklemede seçin. Kaydedildi mesajından sonra F5 yapın; durum korunmalı.
-2. Aynı hücreyi Tamamlandı yapın. Ardından deneme veli hesabına geçin. Öğrenci A’nın ödevi Tamamlandı görünmeli, durum değiştirme düğmesi bulunmamalı.
-3. Gizem’e dönün, Yapılmadı seçin. Veli ekranını Yenile ile açın; kart ve Güncel bildirimler bölümü Yapılmadı göstermeli. Bu aşamada e-posta beklemeyin; gönderim hizmeti henüz kurulmadı.
-4. Veli Öğrenci B’yi görmemeli. Öğretmen tablosunda Öğrenci B’nin durumu bağımsız kalmalı.
-5. İsterseniz Beklemede’ye dönün. F5 ile kontrol edin.
-6. Deneme hatırlatması için üç gün sonrasına teslim tarihli bir ödev ekleyin. Veli ekranında tamamlanmamış ödev için üç gün kaldı hatırlatması görünmeli. İki gün veya bir gün kaldığında site içi hatırlatma devam eder.
-7. Telefon görünümünü kontrol edin; geniş öğretmen tablosu yatay kaydırılabilir.
+- Sınıflarım: sınıf satırında Düzenle ile adı değişir, Sil ile sınıf listeden kaldırılır.
+- Öğrenciler: öğrenci satırında Düzenle ile adı değişir, Sil ile öğrenci kaldırılır.
+- Ödevler: ödev kartında Düzenle ile başlık, açıklama ve teslim tarihi değişir, Sil ile ödev kaldırılır.
+- Sil düğmesi onay penceresi açar. Vazgeç işlemi kayıt yapmaz. Kaydet/Sil sırasında düğmeler kilitlenir.
+- Düzenleme kimliği değiştirmez; ödev sonuçları ve veli bağlantıları korunur.
+- Sınıf adı 1–60, öğrenci adı 1–100, başlık 1–120 karakter; açıklama en fazla 2000 karakter. Tarih 2000–2099 arası geçerli takvim günüdür.
 
-## Durum kaydı ve erişim
+## Silmenin anlamı
 
-Yol: classes/{classId}/students/{studentId}/completions/{assignmentId}
+Silme, ilgili belgeye deleted: true ekleyerek kaydı etkin listelerden kaldırır. Veritabanından kalıcı veri temizleme değildir. Sınıf silinince onun öğrencileri, ödevleri ve sonuç tablosu site içinde görünmez. Öğrenci silinince veli o öğrenciyi görmez; ödev silinince öğretmen/veli listeleri, takip tablosu ve hatırlatmalardan çıkar.
 
-Yeni kayıt alanları:
-- status: string — pending, completed veya missing.
-- completed: boolean — status completed ise true, diğerlerinde false. Eski sürümle uyum için korunur.
-- updatedBy: giriş yapan öğretmenin UID’si.
-- updatedAt: serverTimestamp.
+Bağlı geçmiş sonuçları, veli bağlantıları ve alt koleksiyonlar veritabanında korunur. Böylece kalıcı silmenin alt koleksiyonları kendiliğinden silmemesinden kaynaklanabilecek yarım temizleme sorunları önlenir. Yeniden aynı isimle eklenen kayıt yeni kimlik alır; eski sonuçlar otomatik aktarılmaz. Geri alma ekranı yoktur; gerekiyorsa yönetici Firebase Console’da deleted alanını false yapabilir. Gerçek kişisel veri temizliği gerekiyorsa bu işlemden ayrı, kapsamı belirlenmiş kalıcı temizleme gerekir.
 
-Yeni alanlar dışında alan kabul edilmez. Öğretmen yalnızca kendi sınıfındaki mevcut öğrenci ve mevcut ödev için durum kaydını oluşturabilir/güncelleyebilir. completed ile status tutarlı olmalıdır. updatedBy giriş yapan UID ve updatedAt sunucu istek zamanı olmalıdır. Silme kapalıdır.
+Arşivleme veri erişimini tümüyle geri alma mekanizması değildir: bağlı veli kendi sınıf/öğrenci belgesinin silinme işaretini okuyabilir, aktif sınıfın ödev sorgusu silinmiş ödev belgelerini de döndürür; site bu kayıtları filtreler. Silinmiş sınıfın alt kayıtlarını okumak veliye kapalıdır, silinmiş öğrencinin tamamlanma kayıtlarını okumak da kapalıdır. Öğretmen etkin sınıfın geçmiş belgelerine sahiplik sınırı içinde erişebilir. Gizli veriler arşivleme ile kalıcı silinmiş sayılmaz.
 
-Veli yalnızca bağlı öğrencisinin kayıtlarını okur; oluşturma/güncelleme/silme kapalıdır. Profil, rol ve çocuk bağlantısı değiştirmek site üzerinden kapalı kalır. E-posta kuyruğu veya sunucu bildirim koleksiyonu için istemci yazma izni bu pakette açılmaz.
+Yeni durum kaydı silinmiş sınıf/öğrenci/ödev için oluşturulamaz. Yeni öğrenci/ödev silinmiş sınıfa eklenemez. Güncelleme ve arşivleme yalnızca sınıf sahibi teacher hesabına açıktır. Profil/rol/veli bağlantılarını değiştirme izni açılmaz.
 
-Bir sonuç okuması başarısızsa tablo başarıyla yüklenmiş gibi gösterilmez. Kayıt başarısızsa önceki durum ve seçim korunur; hata mesajı gösterilir. Aynı hücrede tekrar tıklama ve kayıt sürerken Yenile engellenir. Açılmış kayıt işlemi gezinmeden sonra sunucuda tamamlanabilir; gecikmiş yanıt yeni oturumun ekranını değiştirmez.
+## Canlı test
 
-İki öğretmen aynı hesapla farklı tarayıcılardan aynı durumu değiştirirse son sunucu kaydı geçerlidir. Değişiklik geçmişi bu sürümde yoktur.
+Önce mevcut gerçek kayıtlar yerine deneme kayıtları oluşturun:
 
-## Yetki testleri
+1. Deneme Sınıfı oluşturun, adını Düzenle ile Deneme Sınıfı 2 yapın; F5 sonrasında kontrol edin.
+2. Bu sınıfta Deneme Öğrenci ekleyin, adını değiştirin; F5 yapın.
+3. Bir deneme ödevi oluşturun; başlığını, açıklamasını ve teslim tarihini değiştirin. F5 sonrasında alanların korunmasını kontrol edin.
+4. Takip tablosunda öğrenci/ödev durumunu Tamamlandı yapın. Ödevin adını tekrar değiştirin; mevcut sonuç korunmalı.
+5. Ödevde Sil → Vazgeç deneyin; ödev kalmalı. Ardından Sil ile onaylayın; liste ve takip tablosundan çıkmalı.
+6. Deneme öğrencisini silin; öğrenci sayısı düşmeli. Son olarak deneme sınıfını silin; sınıf listeden çıkmalı.
+7. Veli hesabında düzenleme/silme düğmesi olmamalı. Bağlı öğrencinin/sınıfın adı değişince Yenile/F5 ile yeni adı gelmeli; silinmiş kayıtlar görünmemeli.
+8. Telefon üzerinde düzenleme penceresini ve düğmeleri deneyin.
 
-Canlı olumlu yazmayı öğretmen hesabıyla yapın. Rules Playground ile veli UID’siyle tamamlanma oluşturma/güncelleme isteği reddedilmelidir. Başka öğretmenin sınıfına yazma da reddedilmelidir. Yanlış status, completed ile tutarsız status, yanlış updatedBy, fazladan alan veya var olmayan ödev/öğrenciye yazma reddedilmelidir. Oturumsuz okumalar/yazmalar reddedilmelidir.
+Bu sürüm de yeni bilgileri Yenile/F5 ile okur. Önceden açık olan sayfa sunucu verisi değişince kendiliğinden temizlenmez.
 
-## Yapılan kontroller
+## Teknik yetki sınırları
 
-JavaScript sözdizimi, HTML kimlikleri/dosya bağlantıları, ZIP bütünlüğü kontrol edildi. Taklit Firebase SDK ile öğretmenin üç durum arasında kayıt yapması, doğru öğrenci/ödev yolu ve öğretmen UID’si, toplamların güncellenmesi, hata halinde geri dönme, tekrar işlem/yenileme engeli, eski kayıt uyumu, velide işlem düğmesi olmaması, güncel bildirimler, Bakü takviminde üç gün sınırı, gecikmiş öğretmen yanıtlarının veli ekranını etkilememesi, yükleme hataları ve çıkışta temizleme test edildi. Önceki öğretmen sınıf/öğrenci/ödev işlemleri geçti.
+Sınıf güncellemesi yalnızca name/deleted, öğrenci güncellemesi yalnızca name/deleted, ödev güncellemesi yalnızca title/description/dueDate/deleted alanlarına açıktır. teacherId ve createdAt değiştirilemez. deleted alanı yoksa false kabul edilir. Kayıt silinmişse site üzerinden yeniden değiştirilemez. Doğrudan fiziksel belge silme kapalıdır.
 
-Bu kontroller gerçek Firebase Security Rules motorunun testleri değildir. Firebase Emulator burada hazır değil; otomatik emülatör yetki testi yapılmadı. Canlı yetki, kalıcılık ve telefon görünümü yüklemeden sonra doğrulanmalıdır. E-posta gönderim testi yapılmadı; otomasyon bu pakette bulunmaz.
+Veli bağlantı modeli users/{veliUID}/children/{classId} altındaki studentIds dizisidir. Arşivlenmiş sınıf/öğrenci bağlantıları yeni arayüzde hata yerine aktif öğrenci yok durumuyla gösterilir. Başka öğretmenin kayıtlarına veya veli hesabıyla güncelleme isteklerine izin verilmemelidir; Firebase Rules Playground ile ayrıca kontrol edin.
+
+## Yapılan kontroller ve sınırları
+
+JavaScript sözdizimi, HTML kimlikleri/yerel dosya bağlantıları ve ZIP bütünlüğü kontrol edildi. Taklit Firebase SDK ile sınıf/öğrenci adı değişikliği, ödevin üç alanının düzenlenmesi, geçersiz tarih/boş ad, hata halinde formun korunması, iptal, onaylı arşivleme, veli ve sonuç tablosu filtreleri, bağlı geçmişin korunması ve gecikmiş kayıt yanıtlarının başka oturumu etkilememesi test edildi. Önceki öğretmen durum yönetimi ve sınıf/öğrenci/ödev işlemlerinin kontrolleri geçti.
+
+Bu testler Firebase Security Rules motorunu çalıştırmaz. Firebase Emulator hazır olmadığından otomatik emülatör yetki testi yapılmadı. Tarayıcı/telefon görünümü ve gerçek Firebase kalıcılığı yüklemeden sonra kullanıcıyla doğrulanmalıdır.
+
+Otomatik e-postalar henüz etkin değildir. Site içi güncel durumlar ve Bakü takvimine göre üç gün veya daha az kalan ödev hatırlatmaları korunur. E-posta otomasyonu ayrı sunucu/gönderim hizmeti kurulumu bekler.
 
 Kaynaklar:
-- https://firebase.google.com/docs/functions/schedule-functions
-- https://firebase.google.com/docs/functions/get-started
-- https://firebase.google.com/docs/extensions/official/firestore-send-email
+- https://firebase.google.com/docs/firestore/manage-data/delete-data
 - https://firebase.google.com/docs/firestore/security/rules-fields
