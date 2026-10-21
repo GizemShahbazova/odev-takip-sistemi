@@ -6,13 +6,14 @@
   <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
   <title>Ödev Takip Sistemi | Öğretmen ve Veli</title>
   <link rel="stylesheet" href="./style.css">
+  <script src="./parent-auth.js" defer></script>
   <script src="./app.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
-  <header class="site-header"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><span class="stage">Sınıfınızın ortak çalışma alanı</span></header>
+  <header class="site-header"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><div class="header-links"><a href="./materyaller/">Materyaller</a><span class="stage">Sınıfınızın ortak çalışma alanı</span></div></header>
   <main id="main-content" tabindex="-1">
-    <aside class="sidebar" aria-label="Site menüsü"><p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a><div class="sidebar-note"><strong>Öğretmen ve veli</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div></aside>
+    <aside class="sidebar" aria-label="Site menüsü"><p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a><a class="menu-link" href="./materyaller/">Materyaller</a><div class="sidebar-note"><strong>Öğretmen ve veli</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div></aside>
     <section id="intro-view" class="intro" aria-labelledby="intro-title">
       <p class="eyebrow">HOŞ GELDİNİZ</p>
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
@@ -107,13 +108,26 @@
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">
-        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Ödev Takip hesabınızı kullanın.</p>
+        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Veli kodunuz ve şifrenizle giriş yapın.</p>
+        <div class="login-tabs" role="group" aria-label="Giriş türü">
+          <button id="login-parent" type="button" aria-pressed="true">Veli girişi</button>
+          <button id="login-email" type="button" aria-pressed="false">E-posta ile giriş</button>
+        </div>
         <form id="login-form">
-          <label for="email">E-posta adresi</label><input id="email" type="email" autocomplete="username" required maxlength="254" placeholder="ornek@gmail.com">
-          <label for="password">Şifre</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="toggle-password" aria-label="Şifreyi göster" aria-pressed="false">Göster</button></div>
+          <div id="code-fields"><label for="parent-code">6 haneli veli kodu</label><input id="parent-code" type="text" inputmode="numeric" pattern="[1-9][0-9]{5}" minlength="6" maxlength="6" autocomplete="username" required placeholder="Örneğin: 123456"></div>
+          <div id="email-fields" hidden><label for="email">E-posta adresi</label><input id="email" type="email" autocomplete="username" disabled maxlength="254" placeholder="ornek@gmail.com"></div>
+          <label id="password-label" for="password">Şifre veya geçici giriş anahtarı</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="toggle-password" aria-label="Şifreyi göster" aria-pressed="false">Göster</button></div>
           <button id="login-button" class="primary" type="submit" disabled>Bağlanıyor…</button>
         </form>
-        <p class="note">Size tanımlanan e-posta adresi ve şifreyle giriş yapın.</p>
+        <p id="login-help" class="note">İlk girişte öğretmeninizin verdiği YENI- ile başlayan geçici anahtarı kullanın. Sonraki girişlerde kendi şifrenizi yazın. Şifrenizi unuttuysanız öğretmeninizden yeni anahtar isteyin.</p>
+        <form id="setup-form" hidden>
+          <h3>Kendi şifrenizi belirleyin</h3>
+          <p class="muted">Şifre en az 10 karakter olmalı; harf ve rakam içermelidir.</p>
+          <label for="new-password">Yeni şifre</label><input id="new-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
+          <label for="repeat-password">Yeni şifreyi tekrar yazın</label><input id="repeat-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
+          <button id="setup-save" class="primary" type="submit">Şifremi oluştur ve giriş yap</button>
+          <button id="setup-cancel" class="secondary" type="button">Vazgeç</button>
+        </form>
       </div>
       <div id="account-view" hidden>
         <p class="eyebrow">HESABINIZ</p><h2 id="welcome">Hesap kontrol ediliyor…</h2><p id="account-email" class="muted"></p>
@@ -144,3 +158,4 @@
   <footer>Ödev Takip Sistemi <span>Öğretmen · Öğrenci · Veli</span></footer>
 </body>
 </html>
+

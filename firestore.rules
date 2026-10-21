@@ -28,7 +28,27 @@ service cloud.firestore {
     function isParent() {
       return request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'parent';
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'parent'
+        && parentSessionValid();
+    }
+    function parentSessionValid() {
+      let profile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return !('authVersion' in profile) || (
+        profile.authVersion is int && profile.authVersion >= 1
+        && profile.get('accessReady', false) == true
+        && request.auth.token.get('parentAuthVersion', -1) == profile.authVersion
+        && request.auth.token.auth_time > profile.get('requireAuthAfter', 9999999999)
+      );
+    }
+    match /parentAccounts/{uid} { allow read, write: if false; }
+    match /parentCodes/{code} { allow read, write: if false; }
+    // Public username routing; never contains a UID, real email, name or secret.
+    match /parentLogins/{code} {
+      allow get: if code.matches('[1-9][0-9]{5}')
+        && resource.data.keys().hasOnly(['email'])
+        && resource.data.email is string
+        && resource.data.email.matches('veli-' + code + '-[a-f0-9]{24}@odev-takip-sistemi-6652a[.]invalid');
+      allow list, create, update, delete: if false;
     }
     function linkedClass(classId) {
       return isParent()
@@ -129,3 +149,4 @@ service cloud.firestore {
     }
   }
 }
+

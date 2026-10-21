@@ -5,6 +5,34 @@
   const form = el('login-form');
   const loginButton = el('login-button');
   let auth, db, api, fs;
+  let loginMode = 'parent', pendingSetup = null, loginOperation = 0;
+  function resetSetup() {
+    pendingSetup = null;
+    el('setup-form').hidden = true;
+    form.hidden = false;
+    el('new-password').value = ''; el('repeat-password').value = '';
+    el('setup-save').disabled = false;
+  }
+  function setLoginMode(mode) {
+    if (loginButton.disabled || el('setup-save').disabled) return;
+    ++loginOperation; resetSetup(); loginMode = mode;
+    const parent = mode === 'parent';
+    el('code-fields').hidden = !parent; el('email-fields').hidden = parent;
+    el('parent-code').disabled = !parent; el('parent-code').required = parent;
+    el('email').disabled = parent; el('email').required = !parent;
+    el('login-parent').setAttribute('aria-pressed', String(parent));
+    el('login-email').setAttribute('aria-pressed', String(!parent));
+    el('password-label').textContent = parent ? 'Şifre veya geçici giriş anahtarı' : 'Şifre';
+    el('password').value = '';
+    el('login-help').textContent = parent ? 'İlk girişte öğretmeninizin verdiği YENI- ile başlayan geçici anahtarı kullanın. Şifrenizi unuttuysanız öğretmeninizden yeni anahtar isteyin.' : 'Öğretmen hesabınızla giriş yapın. Henüz veli kodu verilmeyen mevcut veli hesapları da e-posta ile giriş yapabilir.';
+    status('Giriş yapabilirsiniz.');
+  }
+  el('login-parent').addEventListener('click', () => setLoginMode('parent'));
+  el('login-email').addEventListener('click', () => setLoginMode('email'));
+  el('setup-cancel').addEventListener('click', () => {
+    if (el('setup-save').disabled) return;
+    ++loginOperation; resetSetup(); status('Giriş yapabilirsiniz.');
+  });
   let profileRequest = 0;
   let teacherUid = null;
   let listRequest = 0;
@@ -807,7 +835,12 @@
   }
   function errorText(error) {
     const code = error?.code || '';
-    if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email'].includes(code)) return 'E-posta veya şifre hatalı. Bilgilerinizi kontrol edin.';
+    if (code === 'parent/invalid-code') return 'Veli kodunu 6 haneli bir sayı olarak yazın.';
+    if (['parent/invalid-key', 'parent/key-account-mismatch', 'auth/invalid-action-code', 'auth/expired-action-code'].includes(code)) return 'Geçici anahtar geçersiz, kullanılmış veya süresi dolmuş. Veli kodunu kontrol edin; gerekirse öğretmeninizden yeni anahtar isteyin.';
+    if (code === 'parent/weak-password') return 'Şifreniz 10–128 karakter olmalı; harf ve rakam içermelidir. Geçici anahtarı şifre olarak kullanmayın.';
+    if (code === 'parent/unknown-code') return 'Veli kodu bulunamadı veya henüz hazır değil. Kodu kontrol edin; gerekirse öğretmeninizle iletişime geçin.';
+    if (code === 'parent/session-reset') return 'Oturumunuz yenilenmeli. Çıkış yapıp yeni şifrenizle veya öğretmeninizin verdiği geçici anahtarla tekrar giriş yapın.';
+    if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email'].includes(code)) return 'Giriş bilgileri hatalı. Kodunuzu veya e-postanızı ve şifrenizi kontrol edin.';
     if (code === 'auth/too-many-requests') return 'Çok fazla giriş denemesi yapıldı. Bir süre sonra yeniden deneyin.';
     if (code === 'auth/user-disabled') return 'Bu hesap devre dışı. Proje yöneticisiyle iletişime geçin.';
     if (code === 'auth/operation-not-allowed') return 'E-posta ve şifreyle giriş henüz etkin değil. Firebase Authentication ayarını kontrol edin.';
@@ -837,6 +870,12 @@
       if (!record.exists()) throw {code: 'profile/missing'};
       const profile = record.data();
       if (!['teacher', 'parent'].includes(profile.role)) throw {code: 'profile/invalid-role'};
+      if (profile.role === 'parent' && profile.authVersion !== undefined) {
+        const token = await api.getIdTokenResult(user, true);
+        if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
+        if (!window.ParentCodeAuth.sessionAllowed(profile, token.claims)) throw {code:'parent/session-reset'};
+      }
+      el('account-email').textContent = profile.userCode ? 'Veli kodu: ' + profile.userCode : (user.email || '');
       const name = typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Kullanıcı';
       el('welcome').textContent = 'Merhaba ' + name + '.';
       el('role').textContent = profile.role === 'teacher' ? 'Öğretmen' : 'Veli';
@@ -866,18 +905,47 @@
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!auth || loginButton.disabled) return;
-    loginButton.disabled = true;
-    loginButton.textContent = 'Giriş yapılıyor…';
+    const operation = ++loginOperation;
+    loginButton.disabled = true; loginButton.textContent = 'Kontrol ediliyor…';
     status('Hesabınız kontrol ediliyor…');
-    const password = el('password').value;
+    const secret = el('password').value;
     try {
-      await api.signInWithEmailAndPassword(auth, el('email').value.trim(), password);
-      el('password').value = '';
+      const code = el('parent-code').value.trim();
+      const email = loginMode === 'parent' ? await window.ParentCodeAuth.resolve(fs, db, code) : el('email').value.trim();
+      if (loginMode === 'parent' && secret.startsWith('YENI-')) {
+        await window.ParentCodeAuth.verify(api, auth, code, secret.trim(), email);
+        if (operation !== loginOperation || auth.currentUser) return;
+        pendingSetup = {code, key:secret.trim(), email};
+        form.hidden = true; el('setup-form').hidden = false;
+        el('new-password').focus(); status('Geçici anahtar doğrulandı. Kendi şifrenizi belirleyin.');
+      } else {
+        await api.signInWithEmailAndPassword(auth, email, secret);
+      }
     } catch (error) {
-      status(errorText(error), 'error');
+      if (operation === loginOperation) status(errorText(error), 'error');
     } finally {
-      loginButton.disabled = false;
-      loginButton.textContent = 'Giriş yap';
+      el('password').value = '';
+      if (operation === loginOperation) {loginButton.disabled = false; loginButton.textContent = 'Giriş yap';}
+    }
+  });
+  el('setup-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!pendingSetup || el('setup-save').disabled) return;
+    const password = el('new-password').value;
+    if (password !== el('repeat-password').value) {status('Yazdığınız şifreler aynı olmalı.', 'error'); return;}
+    const pending = pendingSetup, operation = ++loginOperation;
+    el('setup-save').disabled = true;
+    try {
+      await window.ParentCodeAuth.complete(api, auth, pending.code, pending.key, password, pending.email);
+      if (operation === loginOperation) resetSetup();
+    } catch (error) {
+      if (operation === loginOperation) {
+        // The action may have completed even if subsequent sign-in failed.
+        resetSetup(); status(errorText(error) + ' Şifrenizi kaydettiyseniz yeni şifrenizle normal giriş yapın.', 'error');
+      }
+    } finally {
+      el('new-password').value = ''; el('repeat-password').value = '';
+      el('setup-save').disabled = false;
     }
   });
   el('logout-button').addEventListener('click', async () => {
@@ -907,7 +975,8 @@
       db = fs.getFirestore(app);
       await api.setPersistence(auth, api.browserSessionPersistence);
       api.onAuthStateChanged(auth, (user) => {
-        ++profileRequest;
+        ++profileRequest; ++loginOperation; resetSetup();
+        loginButton.disabled = false; loginButton.textContent = 'Giriş yap';
         clearClasses();
         el('login-view').hidden = Boolean(user);
         el('account-view').hidden = !user;
@@ -919,7 +988,7 @@
         el('toggle-password').setAttribute('aria-pressed', 'false');
         el('welcome').textContent = '';
         el('role').textContent = '';
-        el('account-email').textContent = user?.email || '';
+        el('account-email').textContent = ''; 
         if (user) loadProfile(user);
         else status('Giriş yapabilirsiniz.');
       }, (error) => status(errorText(error), 'error'));
@@ -934,3 +1003,4 @@
   }
   start();
 })();
+
