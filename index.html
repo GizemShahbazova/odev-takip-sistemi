@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
   <title>Ödev Takip Sistemi | Öğretmen ve Veli</title>
-  <link rel="stylesheet" href="./style.css">
-  <script src="./parent-auth.js" defer></script>
-  <script src="./app.js" defer></script>
+  <link rel="stylesheet" href="./style.css?v=btal-20261025">
+  <script src="./parent-auth.js?v=btal-20261025" defer></script>
+  <script src="./app.js?v=btal-20261025" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
-  <header class="site-header"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><div class="header-links"><a href="./materyaller/">Materyaller</a><span class="stage">Sınıfınızın ortak çalışma alanı</span></div></header>
+  <header class="site-header"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><div class="header-links"><a href="./materyaller/">Materyaller</a><button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button><span class="stage">Sınıfınızın ortak çalışma alanı</span></div></header>
   <main id="main-content" tabindex="-1">
     <aside class="sidebar" aria-label="Site menüsü"><p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a><a class="menu-link" href="./materyaller/">Materyaller</a><div class="sidebar-note"><strong>Öğretmen ve veli</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div></aside>
     <section id="intro-view" class="intro" aria-labelledby="intro-title">
@@ -108,18 +108,18 @@
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">
-        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Veli kodunuz ve şifrenizle giriş yapın.</p>
+        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Öğrenci / veli kullanıcı adınız ve şifrenizle giriş yapın.</p>
         <div class="login-tabs" role="group" aria-label="Giriş türü">
           <button id="login-parent" type="button" aria-pressed="true">Veli girişi</button>
           <button id="login-email" type="button" aria-pressed="false">E-posta ile giriş</button>
         </div>
         <form id="login-form">
-          <div id="code-fields"><label for="parent-code">6 haneli veli kodu</label><input id="parent-code" type="text" inputmode="numeric" pattern="[1-9][0-9]{5}" minlength="6" maxlength="6" autocomplete="username" required placeholder="Örneğin: 123456"></div>
+          <div id="code-fields"><label for="parent-code">Kullanıcı adı</label><input id="parent-code" type="text" pattern="([bB][tT][aA][lL])?[1-9][0-9]{5}" minlength="6" maxlength="10" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="btal100001"></div>
           <div id="email-fields" hidden><label for="email">E-posta adresi</label><input id="email" type="email" autocomplete="username" disabled maxlength="254" placeholder="ornek@gmail.com"></div>
-          <label id="password-label" for="password">Şifre veya geçici giriş anahtarı</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="toggle-password" aria-label="Şifreyi göster" aria-pressed="false">Göster</button></div>
+          <label id="password-label" for="password">Şifre</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="toggle-password" aria-label="Şifreyi göster" aria-pressed="false">Göster</button></div>
           <button id="login-button" class="primary" type="submit" disabled>Bağlanıyor…</button>
         </form>
-        <p id="login-help" class="note">İlk girişte öğretmeninizin verdiği YENI- ile başlayan geçici anahtarı kullanın. Sonraki girişlerde kendi şifrenizi yazın. Şifrenizi unuttuysanız öğretmeninizden yeni anahtar isteyin.</p>
+        <p id="login-help" class="note">Öğretmeninizin verdiği başlangıç şifresiyle giriş yapın. Ardından Ayarlar’dan kendi şifrenizi belirleyebilirsiniz. Şifrenizi unuttuysanız öğretmeninizden sıfırlamasını isteyin.</p>
         <form id="setup-form" hidden>
           <h3>Kendi şifrenizi belirleyin</h3>
           <p class="muted">Şifre en az 10 karakter olmalı; harf ve rakam içermelidir.</p>
@@ -131,7 +131,7 @@
       </div>
       <div id="account-view" hidden>
         <p class="eyebrow">HESABINIZ</p><h2 id="welcome">Hesap kontrol ediliyor…</h2><p id="account-email" class="muted"></p>
-        <div id="profile-details" hidden><span id="role" class="badge"></span><p class="success-note">Giriş başarılı. Kullanıcı kaydınız okundu.</p></div>
+        <div id="profile-details" hidden><span id="role" class="badge"></span><p class="success-note">Hesabınız hazır.</p><button id="open-settings" type="button" class="secondary">Ayarlar · Şifre değiştir</button></div>
         <button id="retry-profile" type="button" class="secondary" hidden>Kaydı yeniden kontrol et</button>
         <button id="logout-button" type="button" class="secondary">Çıkış yap</button>
       </div>
@@ -140,6 +140,19 @@
       <noscript><p>Giriş yapmak için tarayıcınızda JavaScript’i etkinleştirin.</p></noscript>
     </section>
   </main>
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <form id="settings-form">
+      <p class="eyebrow">HESABINIZ</p><h2 id="settings-title">Ayarlar</h2>
+      <p id="settings-account" class="muted"></p>
+      <h3>Şifre değiştir</h3>
+      <p id="settings-help" class="muted">Yeni şifreniz 10–128 karakter olmalı; en az bir harf ve bir rakam içermelidir.</p>
+      <label for="settings-current-password">Mevcut şifre</label><input id="settings-current-password" type="password" autocomplete="current-password" required>
+      <label for="settings-new-password">Yeni şifre</label><input id="settings-new-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" aria-describedby="settings-help" required>
+      <label for="settings-repeat-password">Yeni şifreyi tekrar yazın</label><input id="settings-repeat-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
+      <p id="settings-status" role="status" aria-live="polite"></p>
+      <div class="dialog-actions"><button id="settings-close" type="button" class="secondary">Kapat</button><button id="settings-save" type="submit" class="primary">Şifreyi değiştir</button></div>
+    </form>
+  </dialog>
   <dialog id="record-dialog" aria-labelledby="record-title">
     <form id="record-form">
       <h2 id="record-title">Düzenle</h2>

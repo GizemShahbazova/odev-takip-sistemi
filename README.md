@@ -1,12 +1,14 @@
-# Ödev Takip Sistemi
+# Ödev Takip Sistemi — BTAL girişi ve Ayarlar
 
-Öğretmen sınıfları, öğrencileri, ödevleri ve tamamlanma durumlarını yönetir. Veliler yalnızca kendilerine bağlı öğrencileri takip eder.
+Öğretmen sınıfları, öğrencileri, ödevleri ve ödev durumlarını yönetir. Öğrenci/veli hesabı yalnız kendisine bağlı öğrencileri takip eder.
 
-- Veli: altı haneli kod ve şifre. İlk girişte veya şifre unutulunca öğretmenin verdiği geçici anahtarla yeni şifre belirleme.
-- Öğretmen: **E-posta ile giriş** bölümünden mevcut hesabıyla giriş.
-- Materyaller: kelime ve okuma oyunları; puanları hesaba kaydedilmez.
-- Sınıf, öğrenci ve ödev düzenleme/silme özellikleri korunur. Silme kayıtları arşivler.
+- Öğrenci/veli: **btal + altı rakam** biçiminde kullanıcı adı ve şifre; örnek `btal100001`.
+- Yerel yönetim uygulaması başlangıç şifresi üretir. Kullanıcı giriş yaptıktan sonra **Ayarlar → Şifre değiştir** ile mevcut şifresini doğrulayıp kendi şifresini belirleyebilir.
+- Unutulan öğrenci/veli şifresi aynı yerel yönetim uygulamasından sıfırlanır; kullanıcı adı ve çocuk bağlantıları korunur.
+- Öğretmen mevcut e-posta/şifreyle giriş yapar. Ayarlar'dan kendi şifresini değiştirebilir.
+- Önceki sayısal kullanıcı kodları ve tek kullanımlık şifre oluşturma anahtarları desteklenir.
+- Düzenleme/arşivleme, öğretmenin tamamlandı/beklemede/yapılmadı durumları ve Materyaller korunur.
 
-Firebase Authentication ve Cloud Firestore kullanılır. Cloud Functions gerekmez. Veli hesap yönetimi öğretmenin bilgisayarındaki ayrı uygulamada yapılır; hizmet hesabı anahtarı web dosyalarına konulmaz.
+Firebase Authentication ve Cloud Firestore kullanılır; bu güncelleme Cloud Functions gerektirmez. Parola değişikliği Auth'ta yapılır. Yönetim anahtarı siteye veya GitHub'a konulmaz.
 
-`firestore.rules` dosyasını GitHub'a koymak kuralları etkinleştirmez; Firebase Console üzerinden ayrıca yayımlamak gerekir. Otomatik e-posta ve arka planda bildirim gönderimi bu sürüme dahil değildir.
+Firestore kuralları önceki sürümle aynıdır. Excel/toplu kayıt ve otomatik e-posta gönderimi bu sürüme dahil değildir. Oyun puanları hesaba kaydedilmez.

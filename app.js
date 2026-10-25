@@ -22,9 +22,9 @@
     el('email').disabled = parent; el('email').required = !parent;
     el('login-parent').setAttribute('aria-pressed', String(parent));
     el('login-email').setAttribute('aria-pressed', String(!parent));
-    el('password-label').textContent = parent ? 'Şifre veya geçici giriş anahtarı' : 'Şifre';
+    el('password-label').textContent = 'Şifre';
     el('password').value = '';
-    el('login-help').textContent = parent ? 'İlk girişte öğretmeninizin verdiği YENI- ile başlayan geçici anahtarı kullanın. Şifrenizi unuttuysanız öğretmeninizden yeni anahtar isteyin.' : 'Öğretmen hesabınızla giriş yapın. Henüz veli kodu verilmeyen mevcut veli hesapları da e-posta ile giriş yapabilir.';
+    el('login-help').textContent = parent ? 'Başlangıç şifrenizle giriş yapın. Ayarlar’dan kendi şifrenizi belirleyebilirsiniz. Şifrenizi unuttuysanız öğretmeninizden sıfırlamasını isteyin.' : 'Öğretmen hesabınızla giriş yapın. Henüz kullanıcı adı verilmeyen mevcut veli hesapları da e-posta ile giriş yapabilir.';
     status('Giriş yapabilirsiniz.');
   }
   el('login-parent').addEventListener('click', () => setLoginMode('parent'));
@@ -34,6 +34,51 @@
     ++loginOperation; resetSetup(); status('Giriş yapabilirsiniz.');
   });
   let profileRequest = 0;
+  let accountProfile = null, settingsOperation = 0, settingsBusy = false;
+  const settingsPasswordIds = ['settings-current-password', 'settings-new-password', 'settings-repeat-password'];
+  function clearSettingsPasswords() {for (const id of settingsPasswordIds) el(id).value = '';}
+  function settingsMessage(message, kind = '') {
+    el('settings-status').textContent = message; el('settings-status').className = kind;
+  }
+  function setSettingsBusy(value) {
+    settingsBusy = value;
+    for (const id of [...settingsPasswordIds, 'settings-save', 'settings-close']) el(id).disabled = value;
+    el('settings-save').textContent = value ? 'Kaydediliyor…' : 'Şifreyi değiştir';
+  }
+  function closeSettings() {
+    ++settingsOperation; setSettingsBusy(false); clearSettingsPasswords();
+    settingsMessage(''); el('settings-account').textContent = ''; el('settings-dialog').close();
+  }
+  function openSettings() {
+    if (!accountProfile || auth?.currentUser?.uid !== accountProfile.uid) return;
+    closeSettings();
+    el('settings-account').textContent = el('account-email').textContent;
+    el('settings-dialog').showModal(); el('settings-current-password').focus();
+  }
+  el('open-settings').addEventListener('click', openSettings);
+  el('header-settings').addEventListener('click', openSettings);
+  el('settings-close').addEventListener('click', () => {if (!settingsBusy) closeSettings();});
+  el('settings-dialog').addEventListener('cancel', event => {event.preventDefault(); if (!settingsBusy) closeSettings();});
+  el('settings-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (settingsBusy || !accountProfile || auth?.currentUser?.uid !== accountProfile.uid) return;
+    const current = el('settings-current-password').value, password = el('settings-new-password').value;
+    if (password !== el('settings-repeat-password').value) {settingsMessage('Yazdığınız yeni şifreler aynı olmalı.', 'error'); return;}
+    if (!window.ParentCodeAuth.passwordValid(password)) {settingsMessage(errorText({code:'parent/weak-password'}), 'error'); return;}
+    if (current === password) {settingsMessage('Yeni şifreniz mevcut şifrenizden farklı olmalı.', 'error'); return;}
+    const uid = auth.currentUser.uid, session = profileRequest, operation = ++settingsOperation;
+    const isCurrent = () => operation === settingsOperation && session === profileRequest && auth?.currentUser?.uid === uid && accountProfile?.uid === uid;
+    setSettingsBusy(true); clearSettingsPasswords(); settingsMessage('Şifreniz güncelleniyor…');
+    try {
+      await window.ParentCodeAuth.changePassword(api, auth, current, password, isCurrent);
+      if (isCurrent()) settingsMessage('Şifreniz değiştirildi. Bir sonraki girişinizde yeni şifrenizi kullanın.', 'success');
+    } catch (error) {
+      if (isCurrent()) {
+        const message = ['auth/invalid-credential', 'auth/wrong-password', 'auth/invalid-login-credentials'].includes(error.code) ? 'Mevcut şifreniz doğrulanamadı. Kontrol edip yeniden deneyin.' : errorText(error);
+        settingsMessage(message, 'error');
+      }
+    } finally {if (isCurrent()) {setSettingsBusy(false); clearSettingsPasswords();}}
+  });
   let teacherUid = null;
   let listRequest = 0;
   let savingClass = false;
@@ -710,6 +755,7 @@
     el('classes-status').className = kind;
   }
   function clearClasses() {
+    closeSettings(); accountProfile = null; el('header-settings').hidden = true;
     closeRecord();
     clearParent();
     clearStudents();
@@ -835,12 +881,17 @@
   }
   function errorText(error) {
     const code = error?.code || '';
-    if (code === 'parent/invalid-code') return 'Veli kodunu 6 haneli bir sayı olarak yazın.';
+    if (code === 'parent/current-password-required') return 'Mevcut şifrenizi yazın.';
+    if (code === 'parent/same-password') return 'Yeni şifreniz mevcut şifrenizden farklı olmalı.';
+    if (code === 'parent/session-changed') return 'Oturumunuz değişti. Tekrar giriş yapıp Ayarlar’ı açın.';
+    if (code === 'auth/requires-recent-login') return 'Şifrenizi yeniden doğrulamak için mevcut şifrenizi girip tekrar deneyin.';
+    if (['auth/weak-password', 'auth/password-does-not-meet-requirements'].includes(code)) return 'Yeni şifre, hesabın şifre koşullarını karşılamıyor. Daha güçlü bir şifre deneyin.';
+    if (code === 'parent/invalid-code') return 'Kullanıcı adınızı btal100001 biçiminde yazın: btal ve ardından 6 rakam.';
     if (['parent/invalid-key', 'parent/key-account-mismatch', 'auth/invalid-action-code', 'auth/expired-action-code'].includes(code)) return 'Geçici anahtar geçersiz, kullanılmış veya süresi dolmuş. Veli kodunu kontrol edin; gerekirse öğretmeninizden yeni anahtar isteyin.';
     if (code === 'parent/weak-password') return 'Şifreniz 10–128 karakter olmalı; harf ve rakam içermelidir. Geçici anahtarı şifre olarak kullanmayın.';
-    if (code === 'parent/unknown-code') return 'Veli kodu bulunamadı veya henüz hazır değil. Kodu kontrol edin; gerekirse öğretmeninizle iletişime geçin.';
+    if (code === 'parent/unknown-code') return 'Kullanıcı adı bulunamadı veya henüz hazır değil. Kontrol edin; gerekirse öğretmeninizle iletişime geçin.';
     if (code === 'parent/session-reset') return 'Oturumunuz yenilenmeli. Çıkış yapıp yeni şifrenizle veya öğretmeninizin verdiği geçici anahtarla tekrar giriş yapın.';
-    if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email'].includes(code)) return 'Giriş bilgileri hatalı. Kodunuzu veya e-postanızı ve şifrenizi kontrol edin.';
+    if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email'].includes(code)) return 'Giriş bilgileri hatalı. Kullanıcı adınızı veya e-postanızı ve şifrenizi kontrol edin.';
     if (code === 'auth/too-many-requests') return 'Çok fazla giriş denemesi yapıldı. Bir süre sonra yeniden deneyin.';
     if (code === 'auth/user-disabled') return 'Bu hesap devre dışı. Proje yöneticisiyle iletişime geçin.';
     if (code === 'auth/operation-not-allowed') return 'E-posta ve şifreyle giriş henüz etkin değil. Firebase Authentication ayarını kontrol edin.';
@@ -875,11 +926,12 @@
         if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
         if (!window.ParentCodeAuth.sessionAllowed(profile, token.claims)) throw {code:'parent/session-reset'};
       }
-      el('account-email').textContent = profile.userCode ? 'Veli kodu: ' + profile.userCode : (user.email || '');
+      el('account-email').textContent = profile.userCode ? 'Kullanıcı adı: ' + window.ParentCodeAuth.username(profile.userCode) : (user.email || '');
       const name = typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Kullanıcı';
       el('welcome').textContent = 'Merhaba ' + name + '.';
       el('role').textContent = profile.role === 'teacher' ? 'Öğretmen' : 'Veli';
       el('profile-details').hidden = false;
+      accountProfile = {...profile, uid:user.uid}; el('header-settings').hidden = false;
       status('Hesabınız hazır.', 'success');
       if (profile.role === 'teacher') {
         teacherUid = user.uid;
