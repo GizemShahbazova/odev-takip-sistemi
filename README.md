@@ -1,14 +1,17 @@
-# Ödev Takip Sistemi — BTAL girişi ve Ayarlar
+# Ödev Takip Sistemi
 
-Öğretmen sınıfları, öğrencileri, ödevleri ve ödev durumlarını yönetir. Öğrenci/veli hesabı yalnız kendisine bağlı öğrencileri takip eder.
+Gizem’in Firebase Spark ve GitHub Pages üzerinde çalışan ödev takip sitesi.
 
-- Öğrenci/veli: **btal + altı rakam** biçiminde kullanıcı adı ve şifre; örnek `btal100001`.
-- Yerel yönetim uygulaması başlangıç şifresi üretir. Kullanıcı giriş yaptıktan sonra **Ayarlar → Şifre değiştir** ile mevcut şifresini doğrulayıp kendi şifresini belirleyebilir.
-- Unutulan öğrenci/veli şifresi aynı yerel yönetim uygulamasından sıfırlanır; kullanıcı adı ve çocuk bağlantıları korunur.
-- Öğretmen mevcut e-posta/şifreyle giriş yapar. Ayarlar'dan kendi şifresini değiştirebilir.
-- Önceki sayısal kullanıcı kodları ve tek kullanımlık şifre oluşturma anahtarları desteklenir.
-- Düzenleme/arşivleme, öğretmenin tamamlandı/beklemede/yapılmadı durumları ve Materyaller korunur.
+Öğretmen sınıfları, kullanıcı koduyla kayıtlı öğrencileri, ödevleri ve tamamlanma durumlarını yönetir. Veliler BTAL kullanıcı adı ve şifreyle giriş yapar; yalnız hesaplarına bağlanan öğrencilerin ödevlerini okur. Kendi şifresini Ayarlar’dan değiştirebilir. Yönetici sıfırlama ve toplu hesap oluşturma, öğretmenin bilgisayarındaki özel yönetim uygulamasından yapılır.
 
-Firebase Authentication ve Cloud Firestore kullanılır; bu güncelleme Cloud Functions gerektirmez. Parola değişikliği Auth'ta yapılır. Yönetim anahtarı siteye veya GitHub'a konulmaz.
+## Öğrenci kimliği
 
-Firestore kuralları önceki sürümle aynıdır. Excel/toplu kayıt ve otomatik e-posta gönderimi bu sürüme dahil değildir. Oyun puanları hesaba kaydedilmez.
+Öğrenciler ad soyad yerine **btal100002** gibi kullanıcı koduyla gösterilir ve kaydedilir. Aynı kod veli hesabı için de kullanılır. Öğretmen ve veli kodun hangi öğrenciye ait olduğunu kendi kayıtlarından takip eder. Eski isimli kayıtlar ekranda **Kod atanmadı** olarak görünür; öğretmen aynı kayıt üzerinde kullanıcı kodunu düzenleyebilir. Kod düzenleme mevcut ödev sonuçlarını silmez.
+
+Sınıf listesi, takip tablosu, veli kartı, bildirimler ve düzenleme/silme pencerelerinde eski öğrenci isimleri gösterilmez. Yeni Firestore öğrenci yazımları BTAL kod biçiminde olmalıdır. Yeni öğrenci bağlantısı oluşturulurken öğrenci ve veli kodlarının eşleşmesi denetlenir.
+
+## Dosyalar
+
+Depo ana dizinindeki **index.html**, **app.js**, **parent-auth.js** ve **style.css** web uygulamasıdır. **firestore.rules** Firebase Console’da Firestore Database → Rules bölümünden yayımlanır. Materyaller **materyaller/** altındadır.
+
+Özel hizmet hesabı anahtarı, yerel yönetim programı veya başlangıç şifrelerini içeren Excel bu depoya yüklenmez. Erişim yetkileri Firestore Security Rules tarafından uygulanır. Otomatik e-posta veya push bildirimi eklenmedi; mevcut bildirimler site açıldığında veya yenilendiğinde gösterilir.

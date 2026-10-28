@@ -120,14 +120,15 @@ service cloud.firestore {
           && request.resource.data.keys().hasAll(['name', 'createdAt'])
           && request.resource.data.keys().hasOnly(['name', 'createdAt'])
           && request.resource.data.name is string
-          && request.resource.data.name.size() > 0
-          && request.resource.data.name.size() <= 100
+          && request.resource.data.name.matches('btal[1-9][0-9]{5}')
           && request.resource.data.createdAt is timestamp
           && request.resource.data.createdAt == request.time;
         allow update: if ownsClass(classId)
           && resource.data.get('deleted', false) == false
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'deleted'])
-          && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+          && request.resource.data.name is string
+          && (request.resource.data.name.matches('btal[1-9][0-9]{5}')
+            || (request.resource.data.name == resource.data.name && request.resource.data.get('deleted', false) == true))
           && request.resource.data.get('deleted', false) is bool;
         allow delete: if false;
         match /completions/{assignmentId} {

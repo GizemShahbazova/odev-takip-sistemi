@@ -2,6 +2,18 @@
    Erişim yetkileri Firestore Security Rules tarafından uygulanır. */
 (() => {
   const el = (id) => document.getElementById(id);
+  function codeUsername(value) {
+    const match = /^(?:btal)?([1-9][0-9]{5})$/i.exec(String(value ?? '').trim());
+    return match ? 'btal' + match[1] : '';
+  }
+  function studentForDisplay(record) {
+    // A legacy full name must never reach text, form values or accessible labels.
+    return {...record, name:codeUsername(record.name) || 'Kod atanmadı'};
+  }
+  async function studentCodeAvailable(classId, code, exceptId = null) {
+    const records = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students'));
+    return !records.docs.some(record => record.id !== exceptId && record.data().deleted !== true && codeUsername(record.data().name) === code);
+  }
   const form = el('login-form');
   const loginButton = el('login-button');
   let auth, db, api, fs;
@@ -97,6 +109,7 @@
     el('record-save').disabled = false;el('record-cancel').disabled = false;
   }
   function recordActions(kind,item) {
+    if (kind === 'student') item = studentForDisplay(item);
     const actions = document.createElement('div');actions.className = 'record-actions';
     for (const action of ['edit','delete']) {
       const button = document.createElement('button');button.type = 'button';
@@ -108,6 +121,7 @@
     return actions;
   }
   function openRecord(kind,item,action) {
+    if (kind === 'student') item = studentForDisplay(item);
     const uid = teacherUid, session = profileRequest, classId = kind === 'class' ? item.id : selectedClass?.id;
     const version = selectionVersion;
     if (!uid || !sameTeacher(uid,session) || !classId || !knownClasses.has(classId)) return;
@@ -118,9 +132,12 @@
     el('record-fields').hidden = action === 'delete';
     el('record-warning').hidden = action !== 'delete';
     el('record-warning').textContent = '“' + (item.name || item.title) + '” listelerden kaldırılacak.' + (kind === 'class' ? ' Bu sınıfın öğrencileri ve ödevleri de görünmeyecek.' : '') + ' Bağlı geçmiş kayıtları korunur.';
-    el('record-name-label').textContent = kind === 'assignment' ? 'Ödev başlığı' : label + ' adı';
-    el('record-name').value = item.name || item.title;
-    el('record-name').maxLength = {class:60,student:100,assignment:120}[kind];
+    el('record-name-label').textContent = kind === 'student' ? 'Öğrenci kullanıcı kodu' : kind === 'assignment' ? 'Ödev başlığı' : label + ' adı';
+    el('record-name').value = kind === 'student' ? codeUsername(item.name) : item.name || item.title;
+    el('record-name').maxLength = {class:60,student:10,assignment:120}[kind];
+    el('record-name').minLength = kind === 'student' ? 6 : 0;
+    el('record-name').pattern = kind === 'student' ? '([bB][tT][aA][lL])?[1-9][0-9]{5}' : '.*';
+    el('record-name').placeholder = kind === 'student' ? 'btal100002' : '';
     el('record-name').required = action === 'edit';
     el('record-assignment-fields').hidden = kind !== 'assignment' || action !== 'edit';
     el('record-description').value = item.description || '';
@@ -140,7 +157,8 @@
     const {kind,item,action,classId} = context;
     let patch = {deleted:true};
     if (action === 'edit') {
-      const name = el('record-name').value.trim(),limit = {class:60,student:100,assignment:120}[kind];
+      const name = kind === 'student' ? codeUsername(el('record-name').value) : el('record-name').value.trim(),limit = {class:60,student:10,assignment:120}[kind];
+      if (kind === 'student' && !name) {el('record-message').textContent = 'btal ve ardından 6 rakamdan oluşan kullanıcı kodunu yazın. Örnek: btal100002.';return;}
       if (!name || name.length > limit) {el('record-message').textContent = 'Adı 1–' + limit + ' karakter arasında yazın.';return;}
       patch = kind === 'assignment' ? {title:name,description:el('record-description').value.trim(),dueDate:el('record-date').value} : {name};
       if (kind === 'assignment' && (patch.description.length > 2000 || !validDueDate(patch.dueDate))) {el('record-message').textContent = 'Açıklama en fazla 2000 karakter olmalı; geçerli bir teslim günü seçin.';return;}
@@ -149,17 +167,21 @@
     el('record-message').textContent = 'Kaydediliyor…';
     const path = kind === 'class' ? ['classes',item.id] : ['classes',classId,kind === 'student' ? 'students' : 'assignments',item.id];
     try {
+      if (kind === 'student' && action === 'edit') {
+        if (!await studentCodeAvailable(classId,patch.name,item.id)) throw {code:'student/duplicate-code'};
+        if (recordContext !== context || !context.current()) return;
+      }
       await fs.updateDoc(fs.doc(db,...path),patch);
       if (recordContext !== context || !context.current()) return;
       closeRecord();
       if (kind === 'class') {
         if (selectedClass?.id === item.id) backToClasses();
         await loadClasses();classStatus(action === 'delete' ? 'Sınıf listeden kaldırıldı.' : 'Sınıf adı güncellendi.','success');
-      } else if (kind === 'student') {await loadStudents();studentStatus(action === 'delete' ? 'Öğrenci listeden kaldırıldı.' : 'Öğrenci adı güncellendi.','success');}
+      } else if (kind === 'student') {await loadStudents();studentStatus(action === 'delete' ? 'Öğrenci listeden kaldırıldı.' : 'Öğrenci kullanıcı kodu güncellendi.','success');}
       else {await loadAssignments();assignmentStatus(action === 'delete' ? 'Ödev listeden kaldırıldı.' : 'Ödev güncellendi.','success');}
     } catch (error) {
       if (recordContext !== context || !context.current()) return;
-      el('record-message').textContent = 'İşlem kaydedilemedi. Bağlantınızı ve yeni erişim kurallarını kontrol edip tekrar deneyin.';
+      el('record-message').textContent = error.code === 'student/duplicate-code' ? 'Bu kullanıcı kodu bu sınıfta zaten kayıtlı.' : 'İşlem kaydedilemedi. Bağlantınızı ve yeni erişim kurallarını kontrol edip tekrar deneyin.';
       el('record-message').className = 'error';
     } finally {
       if (recordContext === context && context.current()) {savingRecord = false;el('record-save').disabled = false;el('record-cancel').disabled = false;}
@@ -256,7 +278,7 @@
         fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments'))
       ]);
       if (!current()) return;
-      const students = studentRecords.docs.map(r => ({...r.data(), id:r.id})).filter(item => item.deleted !== true);
+      const students = studentRecords.docs.map(r => studentForDisplay({...r.data(), id:r.id})).filter(item => item.deleted !== true);
       const assignments = assignmentRecords.docs.map(r => ({...r.data(), id:r.id})).filter(item => item.deleted !== true);
       students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
       assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
@@ -276,7 +298,7 @@
       caption.textContent = selectedClass.name + ' · Öğrencilere göre ödev durumu';
       table.append(caption);
       const head = document.createElement('thead'), header = document.createElement('tr');
-      const first = document.createElement('th');first.textContent = 'Öğrenci';first.setAttribute('scope','col');header.append(first);
+      const first = document.createElement('th');first.textContent = 'Kullanıcı kodu';first.setAttribute('scope','col');header.append(first);
       for (const assignment of assignments) {
         const cell = document.createElement('th');cell.setAttribute('scope','col');
         const label = document.createElement('span');label.textContent = assignment.title;
@@ -439,7 +461,7 @@
 
         const assignments = assignmentRecords.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
         assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
-        return {classId, className: classRecord.data().name, students: studentRecords.filter(Boolean).map(student => ({...student.record.data(), id: student.studentId, completions: student.completions})), assignments};
+        return {classId, className: classRecord.data().name, students: studentRecords.filter(Boolean).map(student => studentForDisplay({...student.record.data(), id: student.studentId, completions: student.completions})), assignments};
       }));
       if (!sameParent(uid, session, request)) return;
       const cards = [];
@@ -682,7 +704,7 @@
     try {
       const result = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students'));
       if (request !== studentListRequest || !sameClass(uid, session, classId, version)) return;
-      const students = result.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
+      const students = result.docs.map(record => studentForDisplay({...record.data(), id: record.id})).filter(item => item.deleted !== true);
       students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
       el('students-list').replaceChildren();
       students.forEach((student, index) => {
@@ -723,9 +745,9 @@
     const classId = selectedClass?.id;
     const version = selectionVersion;
     if (!classId || !sameClass(uid, session, classId, version) || savingStudent || el('students-view').hidden) return;
-    const name = el('student-name').value.trim();
-    if (!name || name.length > 100) {
-      studentStatus('Öğrencinin adını ve soyadını 1–100 karakter arasında yazın.', 'error');
+    const name = codeUsername(el('student-name').value);
+    if (!name) {
+      studentStatus('btal ve ardından 6 rakamdan oluşan kullanıcı kodunu yazın. Örnek: btal100002.', 'error');
       el('student-name').focus();
       return;
     }
@@ -734,6 +756,8 @@
     el('create-student').textContent = 'Kaydediliyor…';
     studentStatus('Öğrenci kaydediliyor…');
     try {
+      if (!await studentCodeAvailable(classId,name)) throw {code:'student/duplicate-code'};
+      if (!sameClass(uid, session, classId, version)) return;
       await fs.addDoc(fs.collection(db, 'classes', classId, 'students'), {name, createdAt: fs.serverTimestamp()});
       if (!sameClass(uid, session, classId, version)) return;
       el('student-name').value = '';
@@ -741,7 +765,7 @@
       await loadStudents();
     } catch (error) {
       if (!sameClass(uid, session, classId, version)) return;
-      studentStatus(error.code === 'permission-denied' ? 'Öğrenci kaydedilemedi. Yeni öğrenci erişim kurallarının Firebase’de yayımlandığını kontrol edin.' : 'Öğrenci kaydedilemedi. Bağlantınızı kontrol edin; yeniden denemeden önce listeyi yenileyin.', 'error');
+      studentStatus(error.code === 'student/duplicate-code' ? 'Bu kullanıcı kodu bu sınıfta zaten kayıtlı.' : error.code === 'permission-denied' ? 'Öğrenci kaydedilemedi. Yeni öğrenci erişim kurallarının Firebase’de yayımlandığını kontrol edin.' : 'Öğrenci kaydedilemedi. Bağlantınızı kontrol edin; yeniden denemeden önce listeyi yenileyin.', 'error');
     } finally {
       if (sameClass(uid, session, classId, version)) {
         savingStudent = false;
@@ -926,8 +950,9 @@
         if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
         if (!window.ParentCodeAuth.sessionAllowed(profile, token.claims)) throw {code:'parent/session-reset'};
       }
-      el('account-email').textContent = profile.userCode ? 'Kullanıcı adı: ' + window.ParentCodeAuth.username(profile.userCode) : (user.email || '');
-      const name = typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Kullanıcı';
+      const parentCode = codeUsername(profile.userCode);
+      el('account-email').textContent = profile.role === 'parent' ? (parentCode ? 'Kullanıcı adı: ' + parentCode : 'Veli hesabı') : user.email || '';
+      const name = profile.role === 'parent' ? (parentCode || 'Veli hesabı') : typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Öğretmen';
       el('welcome').textContent = 'Merhaba ' + name + '.';
       el('role').textContent = profile.role === 'teacher' ? 'Öğretmen' : 'Veli';
       el('profile-details').hidden = false;

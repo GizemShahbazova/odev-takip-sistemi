@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
   <title>Ödev Takip Sistemi | Öğretmen ve Veli</title>
-  <link rel="stylesheet" href="./style.css?v=btal-20261025">
-  <script src="./parent-auth.js?v=btal-20261025" defer></script>
-  <script src="./app.js?v=btal-20261025" defer></script>
+  <link rel="stylesheet" href="./style.css?v=kodlu-20261025">
+  <script src="./parent-auth.js?v=kodlu-20261025" defer></script>
+  <script src="./app.js?v=kodlu-20261025" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
@@ -42,11 +42,11 @@
       <nav class="class-tabs" aria-label="Sınıf bölümleri"><span aria-current="page">Öğrenciler</span><button id="students-to-assignments" type="button">Ödevler</button><button id="students-to-results" type="button">Takip tablosu</button></nav>
       <p class="eyebrow">SINIF LİSTESİ</p>
       <div class="section-heading"><h1 id="students-title">Öğrenciler</h1><span id="student-count" class="badge">—</span></div>
-      <p class="lead">Bu sınıfa öğrencilerinizi ekleyin ve kayıtlı öğrencileri görüntüleyin.</p>
+      <p class="lead">Öğrencileri kullanıcı kodlarıyla ekleyin ve takip edin.</p>
       <form id="student-form" class="class-form">
-        <label for="student-name">Öğrencinin adı ve soyadı</label>
-        <div class="class-input-row"><input id="student-name" type="text" required maxlength="100" placeholder="Örneğin: Örnek Öğrenci" autocomplete="off" aria-describedby="student-help"><button id="create-student" class="primary" type="submit">Öğrenci ekle</button></div>
-        <p id="student-help" class="note">Ad ve soyadını en fazla 100 karakterle yazın.</p>
+        <label for="student-name">Öğrenci kullanıcı kodu</label>
+        <div class="class-input-row"><input id="student-name" type="text" required minlength="6" maxlength="10" pattern="([bB][tT][aA][lL])?[1-9][0-9]{5}" placeholder="btal100002" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="student-help"><button id="create-student" class="primary" type="submit">Öğrenci ekle</button></div>
+        <p id="student-help" class="note">Öğrenci adı yazmayın. Veli hesabıyla aynı kullanıcı kodunu kullanın. Örnek: btal100002.</p>
       </form>
       <p id="students-status" role="status" aria-live="polite"></p>
       <div class="list-heading"><h2>Kayıtlı öğrenciler</h2><button id="refresh-students" class="secondary" type="button">Yenile</button></div>
