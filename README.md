@@ -1,17 +1,19 @@
 # Ödev Takip Sistemi
 
-Gizem’in Firebase Spark ve GitHub Pages üzerinde çalışan ödev takip sitesi.
+GitHub Pages üzerinde çalışan, Firebase Authentication ve Cloud Firestore kullanan öğretmen/öğrenci uygulaması.
 
-Öğretmen sınıfları, kullanıcı koduyla kayıtlı öğrencileri, ödevleri ve tamamlanma durumlarını yönetir. Veliler BTAL kullanıcı adı ve şifreyle giriş yapar; yalnız hesaplarına bağlanan öğrencilerin ödevlerini okur. Kendi şifresini Ayarlar’dan değiştirebilir. Yönetici sıfırlama ve toplu hesap oluşturma, öğretmenin bilgisayarındaki özel yönetim uygulamasından yapılır.
+- Öğretmen sınıf, kodlu öğrenci kaydı ve ödev oluşturur; durumları günceller.
+- Her BTAL kodu ayrı öğrenci hesabıdır. Hesap bir öğrenci kaydıyla eşleştirilir; öğrenci ekranında seçim listesi yoktur.
+- İsteğe bağlı öğrenci adı yalnız giriş yapılan cihazın tarayıcısında tutulur. student-device.js bu etiketi ağ isteğiyle göndermez. Diğer hesapta ve öğretmen ekranında gösterilmez; Ayarlar’dan kaldırılabilir.
+- Firestore öğrenci name alanı yalnız BTAL kodu kabul eder. Kullanıcı koduyla öğrenci kodu uyuşmadığında okuma reddedilir.
+- Hesaplar ve öğrenci eşleştirmeleri öğretmenin bilgisayarındaki özel yönetim aracıyla yapılır. Özel araç, Excel ve hizmet hesabı anahtarı bu depoya yüklenmez.
+- Materyaller bölümündeki iki oyun korunur. Oyun sonuçları Firebase’e kaydedilmez.
+- Bildirimler sayfa yenilendiğinde görünen durumlar ve yaklaşan teslim tarihleridir; otomatik e-posta/push gönderimi yoktur.
 
-## Öğrenci kimliği
+## Yayın
 
-Öğrenciler ad soyad yerine **btal100002** gibi kullanıcı koduyla gösterilir ve kaydedilir. Aynı kod veli hesabı için de kullanılır. Öğretmen ve veli kodun hangi öğrenciye ait olduğunu kendi kayıtlarından takip eder. Eski isimli kayıtlar ekranda **Kod atanmadı** olarak görünür; öğretmen aynı kayıt üzerinde kullanıcı kodunu düzenleyebilir. Kod düzenleme mevcut ödev sonuçlarını silmez.
+site klasörünün ana dosyaları doğrudan GitHub Pages kök dizininde olmalıdır. student-device.js, parent-auth.js ve app.js birlikte sunulmalıdır. firestore.rules dosyasının içeriği Firebase Console → Firestore Database → Rules bölümünden ayrıca yayınlanır.
 
-Sınıf listesi, takip tablosu, veli kartı, bildirimler ve düzenleme/silme pencerelerinde eski öğrenci isimleri gösterilmez. Yeni Firestore öğrenci yazımları BTAL kod biçiminde olmalıdır. Yeni öğrenci bağlantısı oluşturulurken öğrenci ve veli kodlarının eşleşmesi denetlenir.
+## Yerel isim etiketi
 
-## Dosyalar
-
-Depo ana dizinindeki **index.html**, **app.js**, **parent-auth.js** ve **style.css** web uygulamasıdır. **firestore.rules** Firebase Console’da Firestore Database → Rules bölümünden yayımlanır. Materyaller **materyaller/** altındadır.
-
-Özel hizmet hesabı anahtarı, yerel yönetim programı veya başlangıç şifrelerini içeren Excel bu depoya yüklenmez. Erişim yetkileri Firestore Security Rules tarafından uygulanır. Otomatik e-posta veya push bildirimi eklenmedi; mevcut bildirimler site açıldığında veya yenilendiğinde gösterilir.
+Etiket hesap UID’si ve kullanıcı koduyla ayrılmış yerel tarayıcı kaydıdır. Şifreli depolama değildir; ortak cihazda baş harf tercih edin veya işiniz bitince kaldırın. Site verileri silinirse etiket kaybolur. Hesabın kendisi, şifresi ve ödevleri Firebase’de kalır. Gerçek öğrenci isimlerini kaynak koduna veya örnek verilere yazmayın.

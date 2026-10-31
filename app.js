@@ -36,7 +36,7 @@
     el('login-email').setAttribute('aria-pressed', String(!parent));
     el('password-label').textContent = 'Şifre';
     el('password').value = '';
-    el('login-help').textContent = parent ? 'Başlangıç şifrenizle giriş yapın. Ayarlar’dan kendi şifrenizi belirleyebilirsiniz. Şifrenizi unuttuysanız öğretmeninizden sıfırlamasını isteyin.' : 'Öğretmen hesabınızla giriş yapın. Henüz kullanıcı adı verilmeyen mevcut veli hesapları da e-posta ile giriş yapabilir.';
+    el('login-help').textContent = parent ? 'Öğrencinin başlangıç şifresiyle giriş yapın. Ayarlar’dan kendi şifrenizi belirleyebilirsiniz. Şifrenizi unuttuysanız öğretmeninizden sıfırlamasını isteyin.' : 'Öğretmen e-posta hesabınızla giriş yapın.';
     status('Giriş yapabilirsiniz.');
   }
   el('login-parent').addEventListener('click', () => setLoginMode('parent'));
@@ -47,6 +47,63 @@
   });
   let profileRequest = 0;
   let accountProfile = null, settingsOperation = 0, settingsBusy = false;
+  let studentLabelNodes = [];
+  function greeting(name) {return 'Merhaba ' + name + (/[.!?…]$/.test(name) ? '' : '.');}
+  function currentStudentIdentity() {
+    const uid = auth?.currentUser?.uid, code = codeUsername(accountProfile?.userCode);
+    return uid && accountProfile?.uid === uid && accountProfile.role === 'parent' && code ? {uid, code} : null;
+  }
+  function localStudentName() {
+    const account = currentStudentIdentity();
+    if (!account || !window.StudentDeviceLabel) return '';
+    try {return window.StudentDeviceLabel.read(window.localStorage, account.uid, account.code);} catch {return '';}
+  }
+  function studentScreenName(fallback) {return localStudentName() || fallback;}
+  function bindStudentLabel(node, fallback, suffix = '', attribute = null) {
+    const item = {node, fallback, suffix, attribute}; studentLabelNodes.push(item);
+    paintStudentLabel(item);
+  }
+  function paintStudentLabel(item) {
+    const text = studentScreenName(item.fallback) + item.suffix;
+    if (item.attribute) item.node.setAttribute(item.attribute, text); else item.node.textContent = text;
+  }
+  function refreshStudentName() {
+    const account = currentStudentIdentity();
+    if (!account) return;
+    el('welcome').textContent = greeting(studentScreenName(account.code));
+    for (const item of studentLabelNodes) paintStudentLabel(item);
+  }
+  function deviceNameMessage(message = '', kind = '') {
+    el('device-name-status').textContent = message; el('device-name-status').className = kind;
+  }
+  el('device-name-form').addEventListener('submit', event => {
+    event.preventDefault();
+    const account = currentStudentIdentity();
+    if (!account || settingsBusy) return;
+    try {
+      const label = window.StudentDeviceLabel.write(window.localStorage, account.uid, account.code, el('device-name').value);
+      el('device-name').value = label; refreshStudentName();
+      deviceNameMessage(label ? 'Öğrenci adı yalnız bu cihazda kaydedildi.' : 'Bu cihazdaki ad kaldırıldı. Kullanıcı kodu gösteriliyor.', 'success');
+    } catch (error) {
+      deviceNameMessage(error.message === 'invalid-name' ? 'En fazla 80 karakter yazın; satır sonu veya görünmeyen karakter kullanmayın.' : 'Bu tarayıcıda ad kaydedilemiyor. Kullanıcı kodunuzla devam edebilirsiniz.', 'error');
+    }
+  });
+  el('device-name-clear').addEventListener('click', () => {
+    const account = currentStudentIdentity();
+    if (!account || settingsBusy) return;
+    try {
+      window.StudentDeviceLabel.remove(window.localStorage, account.uid, account.code);
+      el('device-name').value = ''; refreshStudentName();
+      deviceNameMessage('Bu cihazdaki ad kaldırıldı. Kullanıcı kodu gösteriliyor.', 'success');
+    } catch {deviceNameMessage('Bu tarayıcıda ad kaldırılamadı. Tarayıcının site verileri ayarını kontrol edin.', 'error');}
+  });
+  window.addEventListener?.('storage', event => {
+    const account = currentStudentIdentity();
+    if (account && window.StudentDeviceLabel && (!event.key || event.key === window.StudentDeviceLabel.key(account.uid, account.code))) {
+      refreshStudentName();
+      if (el('settings-dialog').open) el('device-name').value = localStudentName();
+    }
+  });
   const settingsPasswordIds = ['settings-current-password', 'settings-new-password', 'settings-repeat-password'];
   function clearSettingsPasswords() {for (const id of settingsPasswordIds) el(id).value = '';}
   function settingsMessage(message, kind = '') {
@@ -54,18 +111,22 @@
   }
   function setSettingsBusy(value) {
     settingsBusy = value;
-    for (const id of [...settingsPasswordIds, 'settings-save', 'settings-close']) el(id).disabled = value;
+    for (const id of [...settingsPasswordIds, 'settings-save', 'settings-close', 'device-name', 'device-name-save', 'device-name-clear']) el(id).disabled = value;
     el('settings-save').textContent = value ? 'Kaydediliyor…' : 'Şifreyi değiştir';
   }
   function closeSettings() {
     ++settingsOperation; setSettingsBusy(false); clearSettingsPasswords();
     settingsMessage(''); el('settings-account').textContent = ''; el('settings-dialog').close();
+    el('device-name').value = ''; el('device-name-form').hidden = true; deviceNameMessage();
   }
   function openSettings() {
     if (!accountProfile || auth?.currentUser?.uid !== accountProfile.uid) return;
     closeSettings();
     el('settings-account').textContent = el('account-email').textContent;
-    el('settings-dialog').showModal(); el('settings-current-password').focus();
+    el('device-name-form').hidden = !currentStudentIdentity();
+    el('device-name').value = localStudentName();
+    el('settings-dialog').showModal();
+    (currentStudentIdentity() ? el('device-name') : el('settings-current-password')).focus();
   }
   el('open-settings').addEventListener('click', openSettings);
   el('header-settings').addEventListener('click', openSettings);
@@ -350,6 +411,7 @@
   let parentListRequest = 0;
   function clearParent() {
     parentUid = null;
+    studentLabelNodes = [];
     ++parentListRequest;
     el('parent-view').hidden = true;
     el('parent-children').replaceChildren();
@@ -380,13 +442,13 @@
   function parentNotice(student, item) {
     const record = student.completions.get(item.id), value = homeworkStatus(record);
     const messages = [];
-    if (record?.status) messages.push(student.name + ' · ' + item.title + ': ' + statusLabel(value));
+    if (record?.status) messages.push(' · ' + item.title + ': ' + statusLabel(value));
     const days = dueInDays(item.dueDate);
     if (value !== 'completed' && days !== null && days >= 0 && days <= 3) {
-      messages.push(student.name + ' · ' + item.title + ': ' + (days === 0 ? 'Son teslim bugün.' : 'Son teslim tarihine ' + days + ' gün kaldı.'));
+      messages.push(' · ' + item.title + ': ' + (days === 0 ? 'Son teslim bugün.' : 'Son teslim tarihine ' + days + ' gün kaldı.'));
     }
     for (const text of messages) {
-      const notice = document.createElement('li');notice.textContent = text;el('parent-notices').append(notice);
+      const notice = document.createElement('li');bindStudentLabel(notice, student.name, text);el('parent-notices').append(notice);
       el('parent-notices-view').hidden = false;
     }
   }
@@ -431,16 +493,24 @@
     el('refresh-parent').disabled = true;
     // Clear previous data immediately so revoked links cannot leave old cards on screen.
     el('parent-children').replaceChildren();
+    studentLabelNodes = [];
     el('parent-notices').replaceChildren();
     el('parent-notices-view').hidden = true;
     el('parent-empty').hidden = true;
     el('parent-count').textContent = '—';
     el('parent-load-status').className = '';
-    el('parent-load-status').textContent = 'Çocuğunuzun ödevleri yükleniyor…';
+    el('parent-load-status').textContent = 'Ödevleriniz yükleniyor…';
     try {
       const links = await fs.getDocsFromServer(fs.collection(db, 'users', uid, 'children'));
       if (!sameParent(uid, session, request)) return;
-      const results = await Promise.allSettled(links.docs.map(async link => {
+      // One account, one student. Never render a child picker or several cards.
+      const activeLinks = links.docs.filter(link => {
+        const ids = link.data().studentIds;
+        if (!Array.isArray(ids) || !validRecordId(link.id) || !ids.every(validRecordId)) throw {code:'student/invalid-link'};
+        return ids.length > 0;
+      });
+      if (activeLinks.length > 1 || activeLinks.some(link => link.data().studentIds.length !== 1)) throw {code:'student/multiple-links'};
+      const results = await Promise.allSettled(activeLinks.map(async link => {
         const classId = link.id;
         const ids = link.data().studentIds;
         if (!validRecordId(classId) || !Array.isArray(ids) || ids.length === 0 || !ids.every(validRecordId)) {
@@ -454,6 +524,8 @@
           Promise.all(studentIds.map(async studentId => {
             const record = await fs.getDocFromServer(fs.doc(db, 'classes', classId, 'students', studentId));
             if (!record.exists() || record.data().deleted === true) return null;
+            const accountCode = codeUsername(accountProfile?.userCode);
+            if (accountCode && codeUsername(record.data().name) !== accountCode) throw {code:'student/code-mismatch'};
             const completedRecords = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students', studentId, 'completions'));
             return {record, studentId, completions: new Map(completedRecords.docs.map(r => [r.id, r.data()]))};
           }))
@@ -474,7 +546,7 @@
           const section = document.createElement('section');
           section.className = 'child-card';
           const heading = document.createElement('h2');
-          heading.textContent = student.name;
+          bindStudentLabel(heading, student.name);
           const subtitle = document.createElement('p');
           subtitle.className = 'child-subtitle';
           subtitle.textContent = className + ' · ' + assignments.length + ' ödev';
@@ -487,23 +559,23 @@
           } else {
             const list = document.createElement('ul');
             list.className = 'assignment-list';
-            list.setAttribute('aria-label', student.name + ' için sınıf ödevleri');
+            bindStudentLabel(list, student.name, ' için sınıf ödevleri', 'aria-label');
             for (const item of assignments) list.append(parentAssignment(item, {uid, session, request, classId, studentId: student.id, studentName: student.name, completions: student.completions}));
             for (const item of assignments) parentNotice(student,item);
             section.append(list);
           }
-          cards.push({section, name: String(student.name)});
+          cards.push({section, name: String(student.name), className});
         }
       }
       cards.sort((a,b) => a.name.localeCompare(b.name, 'tr'));
       for (const card of cards) el('parent-children').append(card.section);
-      el('parent-count').textContent = cards.length + ' öğrenci';
+      el('parent-count').textContent = cards[0]?.className || (failures ? 'Eşleştirmeyi kontrol edin' : 'Eşleştirme bekliyor');
       el('parent-empty').hidden = cards.length !== 0 || failures > 0;
       el('parent-load-status').className = failures ? 'error' : '';
-      el('parent-load-status').textContent = failures ? 'Bazı öğrenci kayıtları yüklenemedi. Yenile düğmesiyle tekrar deneyin; sorun sürerse öğretmeninizle iletişime geçin.' : '';
+      el('parent-load-status').textContent = failures ? 'Öğrenci kaydı yüklenemedi. Yenile düğmesiyle tekrar deneyin; sorun sürerse öğretmeninizden hesap eşleştirmesini kontrol etmesini isteyin.' : '';
     } catch (error) {
       if (!sameParent(uid, session, request)) return;
-      el('parent-load-status').textContent = 'Ödevler yüklenemedi. Bağlantınızı kontrol edip Yenile düğmesiyle tekrar deneyin; sorun sürerse öğretmeninizle iletişime geçin.';
+      el('parent-load-status').textContent = error.code === 'student/multiple-links' ? 'Bu hesap için tek öğrenci kaydı seçilmelidir. Öğretmeninizden öğrenci eşleştirmesini güncellemesini isteyin.' : 'Ödevler yüklenemedi. Bağlantınızı kontrol edip Yenile düğmesiyle tekrar deneyin; sorun sürerse öğretmeninizle iletişime geçin.';
       el('parent-load-status').className = 'error';
     } finally {
       if (sameParent(uid, session, request)) el('refresh-parent').disabled = false;
@@ -951,10 +1023,11 @@
         if (!window.ParentCodeAuth.sessionAllowed(profile, token.claims)) throw {code:'parent/session-reset'};
       }
       const parentCode = codeUsername(profile.userCode);
-      el('account-email').textContent = profile.role === 'parent' ? (parentCode ? 'Kullanıcı adı: ' + parentCode : 'Veli hesabı') : user.email || '';
-      const name = profile.role === 'parent' ? (parentCode || 'Veli hesabı') : typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Öğretmen';
-      el('welcome').textContent = 'Merhaba ' + name + '.';
-      el('role').textContent = profile.role === 'teacher' ? 'Öğretmen' : 'Veli';
+      accountProfile = {...profile, uid:user.uid};
+      el('account-email').textContent = profile.role === 'parent' ? (parentCode ? 'Kullanıcı adı: ' + parentCode : 'Öğrenci hesabı') : user.email || '';
+      const name = profile.role === 'parent' ? studentScreenName(parentCode || 'Öğrenci hesabı') : typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Öğretmen';
+      el('welcome').textContent = greeting(name);
+      el('role').textContent = profile.role === 'teacher' ? 'Öğretmen' : 'Öğrenci';
       el('profile-details').hidden = false;
       accountProfile = {...profile, uid:user.uid}; el('header-settings').hidden = false;
       status('Hesabınız hazır.', 'success');
@@ -968,7 +1041,7 @@
         parentUid = user.uid;
         el('intro-view').hidden = true;
         el('parent-view').hidden = false;
-        el('menu-home').textContent = 'Çocuğumun ödevleri';
+        el('menu-home').textContent = 'Ödevlerim';
         await loadParentChildren();
       }
     } catch (error) {

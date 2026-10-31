@@ -55,7 +55,16 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/classes/$(classId))
         && exists(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds is list
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds.size() > 0;
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds.size() == 1
+        && activeStudent(classId, get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds[0])
+        && studentCodeMatches(classId, get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds[0]);
+    }
+    function studentCodeMatches(classId, studentId) {
+      let profile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return !('userCode' in profile) || (
+        profile.userCode is string
+        && get(/databases/$(database)/documents/classes/$(classId)/students/$(studentId)).data.name == 'btal' + profile.userCode
+      );
     }
     function linkedStudent(classId, studentId) {
       return linkedClass(classId)

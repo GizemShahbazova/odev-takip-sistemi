@@ -4,22 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
-  <title>Ödev Takip Sistemi | Öğretmen ve Veli</title>
-  <link rel="stylesheet" href="./style.css?v=kodlu-20261025">
-  <script src="./parent-auth.js?v=kodlu-20261025" defer></script>
-  <script src="./app.js?v=kodlu-20261025" defer></script>
+  <title>Ödev Takip Sistemi | Öğretmen ve Öğrenci</title>
+  <link rel="stylesheet" href="./style.css?v=ogrenci-20261030">
+  <script src="./parent-auth.js?v=ogrenci-20261030" defer></script>
+  <script src="./student-device.js?v=ogrenci-20261030" defer></script>
+  <script src="./app.js?v=ogrenci-20261030" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
   <header class="site-header"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><div class="header-links"><a href="./materyaller/">Materyaller</a><button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button><span class="stage">Sınıfınızın ortak çalışma alanı</span></div></header>
   <main id="main-content" tabindex="-1">
-    <aside class="sidebar" aria-label="Site menüsü"><p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a><a class="menu-link" href="./materyaller/">Materyaller</a><div class="sidebar-note"><strong>Öğretmen ve veli</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div></aside>
+    <aside class="sidebar" aria-label="Site menüsü"><p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a><a class="menu-link" href="./materyaller/">Materyaller</a><div class="sidebar-note"><strong>Öğretmen ve öğrenci</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div></aside>
     <section id="intro-view" class="intro" aria-labelledby="intro-title">
       <p class="eyebrow">HOŞ GELDİNİZ</p>
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
-      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Öğretmen veya veli hesabınızla giriş alanını kullanabilirsiniz.</p><p>Öğretmenler sınıflarını ve ödevlerini yönetir; veliler kendilerine bağlanan çocuklarının ödevlerini görür.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ve veli ekranları hazır. Öğretmen ödev durumlarını günceller; veli çocuğunun ödevlerini ve güncel durumunu takip eder.</p></div>
+      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Her öğrenciye ayrı kullanıcı kodu ve şifre verilir. Veliler ilgili öğrencinin hesabıyla takip eder.</p><p>Öğretmenler sınıflarını ve ödevlerini yönetir; öğrenci hesabında yalnız o öğrencinin ödevleri görünür.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ödev durumlarını günceller. Her öğrenci hesabı tek öğrenci kaydıyla eşleştirilir; veli bu hesaptan takip edebilir.</p></div>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
       <p class="eyebrow">ÖĞRETMEN PANELİ</p>
@@ -46,14 +47,14 @@
       <form id="student-form" class="class-form">
         <label for="student-name">Öğrenci kullanıcı kodu</label>
         <div class="class-input-row"><input id="student-name" type="text" required minlength="6" maxlength="10" pattern="([bB][tT][aA][lL])?[1-9][0-9]{5}" placeholder="btal100002" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="student-help"><button id="create-student" class="primary" type="submit">Öğrenci ekle</button></div>
-        <p id="student-help" class="note">Öğrenci adı yazmayın. Veli hesabıyla aynı kullanıcı kodunu kullanın. Örnek: btal100002.</p>
+        <p id="student-help" class="note">Öğrenci adı yazmayın. Öğrenci hesabıyla aynı kullanıcı kodunu kullanın. Örnek: btal100002.</p>
       </form>
       <p id="students-status" role="status" aria-live="polite"></p>
       <div class="list-heading"><h2>Kayıtlı öğrenciler</h2><button id="refresh-students" class="secondary" type="button">Yenile</button></div>
       <p id="students-load-status" role="status" aria-live="polite"></p>
       <p id="students-empty" class="empty-state" hidden>Bu sınıfta henüz öğrenci yok. İlk öğrenciyi yukarıdan ekleyebilirsiniz.</p>
       <ul id="students-list" class="classes-list" aria-label="Bu sınıfın öğrencileri"></ul>
-      <p class="note">Bu sınıfın ödevlerini Ödevler bölümünden açabilirsiniz. Veliler yalnızca hesaplarına bağlanan öğrencilerin ödevlerini görebilir.</p>
+      <p class="note">Bu sınıfın ödevlerini Ödevler bölümünden açabilirsiniz. Öğrenci hesabı yalnız aynı kodla eşleştirilen öğrencinin ödevlerini gösterebilir.</p>
     </section>
     <section id="assignments-view" class="intro" aria-labelledby="assignments-title" hidden>
       <button id="assignments-back" type="button" class="back-button">← Sınıflara dön</button>
@@ -76,7 +77,7 @@
       <p id="assignments-load-status" role="status" aria-live="polite"></p>
       <p id="assignments-empty" class="empty-state" hidden>Bu sınıfta henüz ödev yok. İlk ödevi yukarıdan ekleyebilirsiniz.</p>
       <ul id="assignments-list" class="assignment-list" aria-label="Bu sınıfın ödevleri"></ul>
-      <p class="note">Ödevler teslim tarihine göre sıralanır. Veliler bu ödevleri görebilir. Sonuçları Takip tablosu bölümünden görebilirsiniz.</p>
+      <p class="note">Ödevler teslim tarihine göre sıralanır. İlgili öğrenci hesabı bu ödevleri görebilir. Sonuçları Takip tablosu bölümünden görebilirsiniz.</p>
     </section>
     <section id="results-view" class="intro" aria-labelledby="results-title" hidden>
       <button id="results-back" type="button" class="back-button">← Sınıflara dön</button>
@@ -92,12 +93,12 @@
       <div id="results-wrap" class="table-scroll" role="region" aria-label="Sınıf ödev takip tablosu" aria-describedby="results-help" tabindex="0" hidden><table id="results-table"></table></div>
     </section>
     <section id="parent-view" class="intro" aria-labelledby="parent-title" hidden>
-      <p class="eyebrow">VELİ PANELİ</p>
-      <div class="section-heading"><h1 id="parent-title" tabindex="-1">Çocuğumun ödevleri</h1><span id="parent-count" class="badge">—</span></div>
-      <p class="lead">Çocuğunuzun sınıf ödevlerini ve teslim tarihlerini takip edin.</p>
-      <div class="list-heading"><h2>Öğrenci ve ödevler</h2><button id="refresh-parent" class="secondary" type="button">Yenile</button></div>
+      <p class="eyebrow">ÖĞRENCİ PANELİ</p>
+      <div class="section-heading"><h1 id="parent-title" tabindex="-1">Ödevlerim</h1><span id="parent-count" class="badge">—</span></div>
+      <p class="lead">Bu öğrencinin sınıf ödevlerini ve teslim tarihlerini takip edin. Diğer öğrencinin ödevleri için onun hesabıyla giriş yapın.</p>
+      <div class="list-heading"><h2>Sınıf ödevleri</h2><button id="refresh-parent" class="secondary" type="button">Yenile</button></div>
       <p id="parent-load-status" role="status" aria-live="polite"></p>
-      <p id="parent-empty" class="empty-state" hidden>Hesabınıza bağlı aktif öğrenci bulunmuyor. Öğretmeninizle iletişime geçin.</p>
+      <p id="parent-empty" class="empty-state" hidden>Öğrenci hesabınız henüz sınıf kaydıyla eşleştirilmedi. Öğretmeninizle iletişime geçin.</p>
       <section id="parent-notices-view" class="parent-notices" aria-labelledby="parent-notices-title" hidden>
         <h2 id="parent-notices-title">Güncel bildirimler</h2>
         <ul id="parent-notices"></ul>
@@ -108,10 +109,10 @@
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">
-        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Öğrenci / veli kullanıcı adınız ve şifrenizle giriş yapın.</p>
+        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Her öğrenci kendi kullanıcı kodu ve şifresiyle giriş yapar. Veli bu hesap üzerinden ödevleri takip edebilir.</p>
         <div class="login-tabs" role="group" aria-label="Giriş türü">
-          <button id="login-parent" type="button" aria-pressed="true">Veli girişi</button>
-          <button id="login-email" type="button" aria-pressed="false">E-posta ile giriş</button>
+          <button id="login-parent" type="button" aria-pressed="true">Öğrenci girişi</button>
+          <button id="login-email" type="button" aria-pressed="false">Öğretmen girişi</button>
         </div>
         <form id="login-form">
           <div id="code-fields"><label for="parent-code">Kullanıcı adı</label><input id="parent-code" type="text" pattern="([bB][tT][aA][lL])?[1-9][0-9]{5}" minlength="6" maxlength="10" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="btal100001"></div>
@@ -131,7 +132,7 @@
       </div>
       <div id="account-view" hidden>
         <p class="eyebrow">HESABINIZ</p><h2 id="welcome">Hesap kontrol ediliyor…</h2><p id="account-email" class="muted"></p>
-        <div id="profile-details" hidden><span id="role" class="badge"></span><p class="success-note">Hesabınız hazır.</p><button id="open-settings" type="button" class="secondary">Ayarlar · Şifre değiştir</button></div>
+        <div id="profile-details" hidden><span id="role" class="badge"></span><p class="success-note">Hesabınız hazır.</p><button id="open-settings" type="button" class="secondary">Ayarlar</button></div>
         <button id="retry-profile" type="button" class="secondary" hidden>Kaydı yeniden kontrol et</button>
         <button id="logout-button" type="button" class="secondary">Çıkış yap</button>
       </div>
@@ -141,9 +142,17 @@
     </section>
   </main>
   <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <p class="eyebrow">HESABINIZ</p><h2 id="settings-title">Ayarlar</h2>
+    <p id="settings-account" class="muted"></p>
+    <form id="device-name-form" class="device-name-form" hidden>
+      <h3>Öğrenciyi bu cihazda tanıyın</h3>
+      <label for="device-name">Bu cihazda görünen öğrenci adı <span class="optional">(isteğe bağlı)</span></label>
+      <input id="device-name" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="Örneğin: A. Y." aria-describedby="device-name-help">
+      <p id="device-name-help" class="note">Ad, baş harf veya bir hatırlatma etiketi yazabilirsiniz. Yalnız bu cihazdaki tarayıcıda saklanır; site bu adı Firebase’e veya GitHub’a kaydetmez. Başka cihazda yeniden girmeniz gerekir. Ortak cihazda işi bitirince buradan kaldırabilirsiniz.</p>
+      <div class="dialog-actions"><button id="device-name-clear" type="button" class="secondary">Bu cihazdaki adı kaldır</button><button id="device-name-save" type="submit" class="secondary">Bu cihazda kaydet</button></div>
+      <p id="device-name-status" role="status" aria-live="polite"></p>
+    </form>
     <form id="settings-form">
-      <p class="eyebrow">HESABINIZ</p><h2 id="settings-title">Ayarlar</h2>
-      <p id="settings-account" class="muted"></p>
       <h3>Şifre değiştir</h3>
       <p id="settings-help" class="muted">Yeni şifreniz 10–128 karakter olmalı; en az bir harf ve bir rakam içermelidir.</p>
       <label for="settings-current-password">Mevcut şifre</label><input id="settings-current-password" type="password" autocomplete="current-password" required>
