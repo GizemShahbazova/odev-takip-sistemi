@@ -152,7 +152,11 @@
       }
     } finally {if (isCurrent()) {setSettingsBusy(false); clearSettingsPasswords();}}
   });
+  const ADMIN_UID = 'qD30Waxms3Nc0UtpUVTGzFaJPmE3';
   let teacherUid = null;
+  function isAdmin() {
+    return teacherUid === ADMIN_UID && accountProfile?.role === 'teacher' && auth?.currentUser?.uid === ADMIN_UID;
+  }
   let listRequest = 0;
   let savingClass = false;
   let knownClasses = new Map();
@@ -172,7 +176,7 @@
   function recordActions(kind,item) {
     if (kind === 'student') item = studentForDisplay(item);
     const actions = document.createElement('div');actions.className = 'record-actions';
-    for (const action of ['edit','delete']) {
+    for (const action of isAdmin() ? ['edit','delete'] : kind === 'assignment' ? ['delete'] : []) {
       const button = document.createElement('button');button.type = 'button';
       button.className = action === 'delete' ? 'record-delete' : 'class-open';
       button.textContent = action === 'delete' ? 'Sil' : 'Düzenle';
@@ -182,6 +186,7 @@
     return actions;
   }
   function openRecord(kind,item,action) {
+    if (!isAdmin() && (kind !== 'assignment' || action !== 'delete')) return;
     if (kind === 'student') item = studentForDisplay(item);
     const uid = teacherUid, session = profileRequest, classId = kind === 'class' ? item.id : selectedClass?.id;
     const version = selectionVersion;
@@ -311,7 +316,7 @@
     el('refresh-results').disabled = false;
   }
   async function openResults(item) {
-    if (!teacherUid || auth?.currentUser?.uid !== teacherUid || !knownClasses.has(item.id)) return;
+    if (!isAdmin() || !teacherUid || auth?.currentUser?.uid !== teacherUid || !knownClasses.has(item.id)) return;
     clearStudents();
     selectedClass = {id:item.id, name:item.name};
     el('classes-view').hidden = true;
@@ -321,6 +326,7 @@
     await loadResults();
   }
   async function loadResults() {
+    if (!isAdmin()) return;
     const uid = teacherUid, session = profileRequest;
     const classId = selectedClass?.id, version = selectionVersion;
     if (!classId || !sameClass(uid, session, classId, version) || savingResults.size > 0) return;
@@ -501,10 +507,18 @@
     el('parent-load-status').className = '';
     el('parent-load-status').textContent = 'Ödevleriniz yükleniyor…';
     try {
-      const links = await fs.getDocsFromServer(fs.collection(db, 'users', uid, 'children'));
+      const [links, placement] = await Promise.all([
+        fs.getDocsFromServer(fs.collection(db, 'users', uid, 'children')),
+        fs.getDocFromServer(fs.doc(db, 'studentPlacements', uid))
+      ]);
       if (!sameParent(uid, session, request)) return;
-      // One account, one student. Never render a child picker or several cards.
-      const activeLinks = links.docs.filter(link => {
+      // Prefer the current web placement, while preserving valid desktop links.
+      const chosen = placement.data();
+      const preferred = chosen && links.docs.find(link => {
+        const ids = link.data().studentIds;
+        return link.id === chosen.classId && Array.isArray(ids) && ids.length === 1 && ids[0] === chosen.studentId;
+      });
+      const activeLinks = (preferred ? [preferred] : links.docs).filter(link => {
         const ids = link.data().studentIds;
         if (!Array.isArray(ids) || !validRecordId(link.id) || !ids.every(validRecordId)) throw {code:'student/invalid-link'};
         return ids.length > 0;
@@ -616,6 +630,8 @@
     selectedClass = {id: item.id, name: item.name};
     el('classes-view').hidden = true;
     el('assignments-view').hidden = false;
+    el('assignments-to-students').hidden = !isAdmin();
+    el('assignments-to-results').hidden = !isAdmin();
     el('assignments-title').textContent = item.name + ' · Ödevler';
     el('assignments-title').setAttribute('tabindex', '-1');
     el('assignments-title').focus();
@@ -717,11 +733,304 @@
       }
     }
   });
+  let enrollmentRequest = 0, enrollmentBusy = false, enrollmentRows = [];
+  const enrollmentSelected = new Set();
+  function enrollmentStatus(message, kind = '') {
+    el('enrollment-status').textContent = message;
+    el('enrollment-status').className = kind;
+  }
+  function resetEnrollment() {
+    ++enrollmentRequest;
+    enrollmentBusy = false;
+    enrollmentRows = [];
+    enrollmentSelected.clear();
+    el('load-enrollment').disabled = false;
+    el('enrollment-picker').hidden = true;
+    el('enrollment-search').value = '';
+    el('enrollment-search').disabled = false;
+    el('enrollment-add').disabled = true;
+    el('enrollment-codes').replaceChildren();
+    enrollmentStatus('');
+  }
+  function updateEnrollmentButton() {
+    const count = enrollmentSelected.size;
+    el('enrollment-add').disabled = enrollmentBusy || !count;
+    el('enrollment-add').textContent = count ? count + ' öğrenciyi sınıfa ekle' : 'Seçilenleri sınıfa ekle';
+  }
+  function renderEnrollment() {
+    const query = el('enrollment-search').value.trim().toLowerCase();
+    const list = el('enrollment-codes');
+    list.replaceChildren();
+    for (const entry of enrollmentRows.filter(item => item.name.includes(query))) {
+      const row = document.createElement('li');
+      const label = document.createElement('label');
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.checked = enrollmentSelected.has(entry.uid);
+      check.disabled = enrollmentBusy;
+      check.addEventListener('change', () => {
+        if (check.checked) enrollmentSelected.add(entry.uid); else enrollmentSelected.delete(entry.uid);
+        updateEnrollmentButton();
+      });
+      label.append(check, document.createTextNode(entry.name + (entry.studentId ? ' · mevcut sınıf kaydı' : '')));
+      row.append(label);
+      list.append(row);
+    }
+    if (!list.childElementCount) {
+      const empty = document.createElement('li');
+      empty.textContent = query ? 'Aramanıza uyan kod yok.' : 'Bu sınıfa eklenebilecek hazır hesap yok.';
+      list.append(empty);
+    }
+    updateEnrollmentButton();
+  }
+  function enrollmentContext() {
+    const uid = teacherUid, session = profileRequest, version = selectionVersion, classId = selectedClass?.id;
+    return classId && isAdmin() && !el('students-view').hidden
+      ? {uid, classId, current:() => isAdmin() && sameClass(uid, session, classId, version)} : null;
+  }
+  async function readCodeRosters(uid) {
+    const result = await fs.getDocsFromServer(fs.query(fs.collection(db, 'classes'), fs.where('teacherId', '==', uid)));
+    const ids = result.docs.filter(item => item.data().deleted !== true).map(item => item.id);
+    const byCode = new Map();
+    for (let i = 0; i < ids.length; i += 8) {
+      const records = await Promise.all(ids.slice(i, i + 8).map(async classId => [
+        classId, await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students'))
+      ]));
+      for (const [classId, snapshot] of records) for (const doc of snapshot.docs) {
+        const record = doc.data(), name = codeUsername(record.name);
+        if (!name || record.deleted === true) continue;
+        if (!byCode.has(name)) byCode.set(name, []);
+        byCode.get(name).push({classId, studentId:doc.id});
+      }
+    }
+    return byCode;
+  }
+  async function loadEnrollment() {
+    const context = enrollmentContext();
+    if (!context || enrollmentBusy) return;
+    resetEnrollment();
+    const request = enrollmentRequest;
+    const current = () => request === enrollmentRequest && context.current();
+    el('load-enrollment').disabled = true;
+    enrollmentStatus('Hazır öğrenci hesapları yükleniyor…');
+    try {
+      const [directory, profiles, roster] = await Promise.all([
+        fs.getDocsFromServer(fs.collection(db, 'parentCodes')),
+        fs.getDocsFromServer(fs.query(fs.collection(db, 'users'), fs.where('role', '==', 'parent'), fs.where('accessReady', '==', true))),
+        readCodeRosters(context.uid)
+      ]);
+      if (!current()) return;
+      const ready = new Map(profiles.docs.map(item => [item.id, item.data().userCode]));
+      const entries = [];
+      for (const item of directory.docs) {
+        const {uid, managerUid} = item.data(), name = codeUsername(item.id);
+        if (managerUid !== context.uid || !name || ready.get(uid) !== item.id || !validRecordId(uid)) continue;
+        const locations = roster.get(name) || [];
+        if (locations.length > 1 || locations.some(r => r.classId !== context.classId)) continue;
+        entries.push({uid, code:item.id, name, studentId:locations[0]?.studentId || ''});
+      }
+      // Only this class's pre-existing rows need a link lookup while listing.
+      const existing = entries.filter(item => item.studentId);
+      const linked = new Set();
+      for (let i = 0; i < existing.length && current(); i += 12) {
+        await Promise.all(existing.slice(i, i + 12).map(async item => {
+          const link = await fs.getDocFromServer(fs.doc(db, 'users', item.uid, 'children', context.classId));
+          const ids = link.data()?.studentIds;
+          if (Array.isArray(ids) && ids.length === 1 && ids[0] === item.studentId) linked.add(item.uid);
+        }));
+      }
+      if (!current()) return;
+      enrollmentRows = entries.filter(item => !linked.has(item.uid)).sort((a,b) => a.code.localeCompare(b.code));
+      el('enrollment-picker').hidden = false;
+      renderEnrollment();
+      enrollmentStatus(enrollmentRows.length ? enrollmentRows.length + ' hesap seçilebilir.' : 'Hazır ve atanmamış hesap bulunamadı.');
+    } catch (error) {
+      if (!current()) return;
+      enrollmentStatus(error.code === 'permission-denied' ? 'Hesaplar okunamadı. Yönetici yetkisini ve yayımlanan kuralları kontrol edin.' : 'Hesaplar yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.', 'error');
+    } finally {
+      if (current()) el('load-enrollment').disabled = false;
+    }
+  }
+  async function enrollOne(context, entry, roster) {
+    const locations = roster.get(entry.name) || [];
+    if (locations.length > 1 || locations.some(r => r.classId !== context.classId)) throw new Error('Kod başka bir sınıfta veya birden çok kayıtta kullanılıyor.');
+    const students = fs.collection(db, 'classes', context.classId, 'students');
+    const student = fs.doc(students, locations[0]?.studentId || 'hesap-' + entry.code);
+    const replacement = fs.doc(students);
+    const placement = fs.doc(db, 'studentPlacements', entry.uid);
+    const link = fs.doc(db, 'users', entry.uid, 'children', context.classId);
+    const children = await fs.getDocsFromServer(fs.collection(db, 'users', entry.uid, 'children'));
+    const old = children.docs.filter(item => item.id !== context.classId && Array.isArray(item.data().studentIds) && item.data().studentIds.length);
+    if (old.length) {
+      // Archived class links are preserved; active links in another class require a deliberate correction.
+      for (const item of old) {
+        const cls = await fs.getDocFromServer(fs.doc(db, 'classes', item.id));
+        if (cls.exists() && cls.data().deleted !== true) {
+          for (const id of item.data().studentIds.filter(validRecordId)) {
+            const record = await fs.getDocFromServer(fs.doc(db, 'classes', item.id, 'students', id));
+            if (record.exists() && record.data().deleted !== true) throw new Error('Hesap başka bir aktif sınıf kaydına bağlı.');
+          }
+        }
+      }
+    }
+    if (!context.current()) throw new Error('Oturum veya sınıf değişti.');
+    return fs.runTransaction(db, async tx => {
+      if (!context.current()) throw new Error('Oturum veya sınıf değişti.');
+      const [currentStudent, currentLink] = await Promise.all([tx.get(student), tx.get(link), tx.get(placement)]);
+      const record = currentStudent.data();
+      const reuse = currentStudent.exists() && record.deleted !== true;
+      if ((reuse && record.name !== entry.name) || (!reuse && locations.length)) throw new Error('Öğrenci kaydı değişmiş. Listeyi yenileyin.');
+      const oldIds = currentLink.data()?.studentIds;
+      if (reuse && Array.isArray(oldIds) && oldIds.length === 1 && oldIds[0] === student.id) return false;
+      if (currentLink.exists() && (!Array.isArray(oldIds) || !oldIds.every(validRecordId))) throw new Error('Mevcut sınıf bağlantısı doğrulanamadı.');
+      for (const id of oldIds || []) {
+        const oldStudent = id === student.id ? currentStudent : await tx.get(fs.doc(students, id));
+        if (oldStudent.exists() && oldStudent.data().deleted !== true) throw new Error('Hesap bu sınıfta başka bir öğrenci kaydına bağlı.');
+      }
+      const target = !reuse && currentStudent.exists() ? replacement : student;
+      if (!reuse) tx.set(target, {name:entry.name, createdAt:fs.serverTimestamp()});
+      tx.set(placement, {classId:context.classId, studentId:target.id, code:entry.code});
+      tx.set(link, {studentIds:[target.id]});
+      return true;
+    });
+  }
+  el('load-enrollment').addEventListener('click', loadEnrollment);
+  el('enrollment-search').addEventListener('input', renderEnrollment);
+  el('enrollment-add').addEventListener('click', async () => {
+    const context = enrollmentContext();
+    if (!context || enrollmentBusy) return;
+    const request = enrollmentRequest;
+    const current = () => request === enrollmentRequest && context.current();
+    const selected = enrollmentRows.filter(item => enrollmentSelected.has(item.uid));
+    if (!selected.length) return;
+    enrollmentBusy = true;
+    el('load-enrollment').disabled = true;
+    el('enrollment-search').disabled = true;
+    renderEnrollment();
+    let added = 0, skipped = 0;
+    const failed = [];
+    try {
+      const roster = await readCodeRosters(context.uid);
+      for (const item of selected) {
+        if (!current()) return;
+        enrollmentStatus((added + skipped + failed.length + 1) + '/' + selected.length + ' · ' + item.name + ' ekleniyor…');
+        try {
+          if (await enrollOne(context, item, roster)) ++added; else ++skipped;
+          if (!current()) return;
+          enrollmentSelected.delete(item.uid);
+          enrollmentRows = enrollmentRows.filter(row => row.uid !== item.uid);
+        } catch (error) {
+          if (!current()) return;
+          const reason = error.code ? (error.code === 'permission-denied' ? 'Hesap hazır değil, başka bir işlemde veya zaten bağlı.' : 'Bağlantı hatası.') : error.message;
+          failed.push(item.name + ': ' + reason);
+        }
+      }
+      if (!current()) return;
+      await loadStudents();
+      if (!current()) return;
+      enrollmentStatus(added + ' öğrenci eklendi.' + (skipped ? ' ' + skipped + ' öğrenci zaten bağlı.' : '') +
+        (failed.length ? ' Eklenemeyen: ' + failed.join(' ') : ''), failed.length ? 'error' : 'success');
+    } catch (error) {
+      if (current()) enrollmentStatus('Sınıf kayıtları doğrulanamadı. Bağlantınızı kontrol edip tekrar deneyin.', 'error');
+    } finally {
+      if (current()) {
+        enrollmentBusy = false;
+        el('load-enrollment').disabled = false;
+        el('enrollment-search').disabled = false;
+        renderEnrollment();
+      }
+    }
+  });
+
+  let staffContext = null, staffBusy = false;
+  function staffStatus(message, kind = '') {
+    el('staff-status').textContent = message;
+    el('staff-status').className = kind;
+  }
+  function closeStaff() {
+    staffContext = null; staffBusy = false;
+    el('staff-dialog').close();
+    el('staff-list').replaceChildren();
+    el('staff-uid').value = ''; el('staff-name').value = '';
+    el('staff-add').disabled = false;
+    staffStatus('');
+  }
+  function staffCurrent(context) {
+    return context === staffContext && isAdmin() && sameTeacher(context.uid, context.session);
+  }
+  async function listStaff(context) {
+    const q = fs.query(fs.collection(db, 'staffAccess'), fs.where('classIds', 'array-contains', context.classId));
+    const result = await fs.getDocsFromServer(q);
+    if (!staffCurrent(context)) return;
+    const list = el('staff-list'); list.replaceChildren();
+    const staff = result.docs.sort((a,b) => (a.data().name || a.id).localeCompare(b.data().name || b.id, 'tr'));
+    if (!staff.length) {
+      const item = document.createElement('li'); item.textContent = 'Henüz öğretmen atanmadı.'; list.append(item);
+    }
+    for (const item of staff) {
+      const row = document.createElement('li');
+      const label = document.createElement('span');
+      label.textContent = item.data().name ? item.data().name + ' · ' + item.id : item.id;
+      const remove = document.createElement('button');
+      remove.type = 'button'; remove.className = 'record-delete'; remove.textContent = 'Atamayı kaldır';
+      remove.addEventListener('click', () => changeStaff(context, item.id, '', true));
+      row.append(label, remove); list.append(row);
+    }
+  }
+  async function openStaff(item) {
+    if (!isAdmin() || !knownClasses.has(item.id)) return;
+    closeStaff();
+    const context = {uid:teacherUid, session:profileRequest, classId:item.id};
+    staffContext = context;
+    el('staff-title').textContent = item.name + ' · Öğretmenler';
+    el('staff-dialog').showModal();
+    staffStatus('Öğretmenler yükleniyor…');
+    try {
+      await listStaff(context);
+      if (staffCurrent(context) && !staffBusy) staffStatus('');
+    } catch {
+      if (staffCurrent(context)) staffStatus('Öğretmen listesi yüklenemedi.', 'error');
+    }
+  }
+  async function changeStaff(context, uid, name, remove = false) {
+    if (!context || !staffCurrent(context) || staffBusy) return;
+    if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid) || uid === ADMIN_UID) {
+      staffStatus('Firebase’deki öğretmen UID’sini kontrol edin.', 'error'); return;
+    }
+    staffBusy = true; el('staff-add').disabled = true;
+    staffStatus('Atama kaydediliyor…');
+    try {
+      await fs.runTransaction(db, async tx => {
+        if (!staffCurrent(context)) throw new Error('Oturum veya sınıf değişti.');
+        const ref = fs.doc(db, 'staffAccess', uid);
+        const record = (await tx.get(ref)).data();
+        const classIds = new Set(record?.classIds || []);
+        if (remove) classIds.delete(context.classId); else classIds.add(context.classId);
+        tx.set(ref, {name:name || record?.name || '', classIds:[...classIds]});
+      });
+      if (!staffCurrent(context)) return;
+      el('staff-uid').value = ''; el('staff-name').value = '';
+      await listStaff(context);
+      if (staffCurrent(context)) staffStatus(remove ? 'Sınıf yetkisi kaldırıldı.' : 'Öğretmen bu sınıfa atandı.', 'success');
+    } catch (error) {
+      if (staffCurrent(context)) staffStatus(error.code === 'permission-denied' ? 'Atama yapılamadı. Öğrenci hesabına öğretmen yetkisi verilemez.' : 'Atama kaydedilemedi. Bağlantınızı kontrol edip tekrar deneyin.', 'error');
+    } finally {
+      if (staffCurrent(context)) {staffBusy = false; el('staff-add').disabled = false;}
+    }
+  }
+  el('staff-close').addEventListener('click', () => {if (!staffBusy) closeStaff();});
+  el('staff-dialog').addEventListener('cancel', event => {event.preventDefault(); if (!staffBusy) closeStaff();});
+  el('staff-form').addEventListener('submit', event => {
+    event.preventDefault();
+    changeStaff(staffContext, el('staff-uid').value.trim(), el('staff-name').value.trim());
+  });
+
   function studentStatus(message, kind = '') {
     el('students-status').textContent = message;
     el('students-status').className = kind;
   }
   function clearStudents() {
+    resetEnrollment();
     clearResults();
     clearAssignments();
     selectedClass = null;
@@ -745,7 +1054,7 @@
     return sameTeacher(uid, session) && selectedClass?.id === classId && version === selectionVersion;
   }
   async function openStudents(item) {
-    if (!teacherUid || auth?.currentUser?.uid !== teacherUid || !knownClasses.has(item.id)) return;
+    if (!isAdmin() || !teacherUid || auth?.currentUser?.uid !== teacherUid || !knownClasses.has(item.id)) return;
     clearStudents();
     selectedClass = {id: item.id, name: item.name};
     el('classes-view').hidden = true;
@@ -764,6 +1073,7 @@
     }
   }
   async function loadStudents() {
+    if (!isAdmin()) return;
     const uid = teacherUid;
     const session = profileRequest;
     const classId = selectedClass?.id;
@@ -816,7 +1126,7 @@
     const session = profileRequest;
     const classId = selectedClass?.id;
     const version = selectionVersion;
-    if (!classId || !sameClass(uid, session, classId, version) || savingStudent || el('students-view').hidden) return;
+    if (!isAdmin() || !classId || !sameClass(uid, session, classId, version) || savingStudent || el('students-view').hidden) return;
     const name = codeUsername(el('student-name').value);
     if (!name) {
       studentStatus('btal ve ardından 6 rakamdan oluşan kullanıcı kodunu yazın. Örnek: btal100002.', 'error');
@@ -853,6 +1163,9 @@
   function clearClasses() {
     closeSettings(); accountProfile = null; el('header-settings').hidden = true;
     closeRecord();
+    closeStaff();
+    el('class-form').hidden = true;
+    el('admin-class-note').hidden = true;
     clearParent();
     clearStudents();
     knownClasses.clear();
@@ -884,10 +1197,21 @@
     el('classes-load-status').className = '';
     el('classes-load-status').textContent = 'Sınıflarınız yükleniyor…';
     try {
-      const q = fs.query(fs.collection(db, 'classes'), fs.where('teacherId', '==', uid));
-      const result = await fs.getDocsFromServer(q);
+      let records;
+      if (isAdmin()) {
+        const q = fs.query(fs.collection(db, 'classes'), fs.where('teacherId', '==', uid));
+        records = (await fs.getDocsFromServer(q)).docs;
+      } else {
+        const access = await fs.getDocFromServer(fs.doc(db, 'staffAccess', uid));
+        const ids = [...new Set(access.data()?.classIds || [])].filter(validRecordId);
+        const results = await Promise.allSettled(ids.map(id => fs.getDocFromServer(fs.doc(db, 'classes', id))));
+        for (const result of results) {
+          if (result.status === 'rejected' && result.reason?.code !== 'permission-denied') throw result.reason;
+        }
+        records = results.flatMap(result => result.status === 'fulfilled' && result.value.exists() ? [result.value] : []);
+      }
       if (request !== listRequest || !sameTeacher(uid, session)) return;
-      const classes = result.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
+      const classes = records.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
       knownClasses = new Map(classes.map(item => [item.id, item]));
       classes.sort((a, b) => String(a.name).localeCompare(String(b.name), 'tr', {numeric: true}));
       el('classes-list').replaceChildren();
@@ -923,7 +1247,13 @@
         track.type = 'button';track.className = 'class-open';track.textContent = 'Takip tablosu';
         track.setAttribute('aria-label', item.name + ' sınıfının ödev takip tablosu');
         track.addEventListener('click', () => openResults(item));
-        actions.append(open, homework, track,recordActions('class',item));
+        if (isAdmin()) {
+          const staff = document.createElement('button');
+          staff.type = 'button';staff.className = 'class-open';staff.textContent = 'Öğretmenler';
+          staff.setAttribute('aria-label', item.name + ' sınıfının öğretmenleri');
+          staff.addEventListener('click', () => openStaff(item));
+          actions.append(open, homework, track, staff, recordActions('class',item));
+        } else actions.append(homework);
         row.append(symbol, label, actions);
         el('classes-list').append(row);
       }
@@ -943,7 +1273,7 @@
     event.preventDefault();
     const uid = teacherUid;
     const session = profileRequest;
-    if (!uid || !sameTeacher(uid, session) || savingClass) return;
+    if (!isAdmin() || !uid || !sameTeacher(uid, session) || savingClass) return;
     const name = el('class-name').value.trim();
     if (!name || name.length > 60) {
       classStatus('Sınıf adını 1–60 karakter arasında yazın.', 'error');
@@ -1014,9 +1344,14 @@
     try {
       const record = await fs.getDocFromServer(fs.doc(db, 'users', user.uid));
       if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
-      if (!record.exists()) throw {code: 'profile/missing'};
-      const profile = record.data();
-      if (!['teacher', 'parent'].includes(profile.role)) throw {code: 'profile/invalid-role'};
+      let profile = record.data();
+      if ((!profile || profile.role === 'teacher') && user.uid !== ADMIN_UID) {
+        const access = await fs.getDocFromServer(fs.doc(db, 'staffAccess', user.uid));
+        if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
+        if (!access.exists()) throw {code: 'profile/no-class-access'};
+        profile = {role:'teacher', name:access.data().name || profile?.name};
+      }
+      if (!profile || !['teacher', 'parent'].includes(profile.role)) throw {code: 'profile/invalid-role'};
       if (profile.role === 'parent' && profile.authVersion !== undefined) {
         const token = await api.getIdTokenResult(user, true);
         if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
@@ -1027,12 +1362,18 @@
       el('account-email').textContent = profile.role === 'parent' ? (parentCode ? 'Kullanıcı adı: ' + parentCode : 'Öğrenci hesabı') : user.email || '';
       const name = profile.role === 'parent' ? studentScreenName(parentCode || 'Öğrenci hesabı') : typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Öğretmen';
       el('welcome').textContent = greeting(name);
-      el('role').textContent = profile.role === 'teacher' ? 'Öğretmen' : 'Öğrenci';
+      el('role').textContent = profile.role === 'teacher' ? (user.uid === ADMIN_UID ? 'Yönetici' : 'Öğretmen') : 'Öğrenci';
       el('profile-details').hidden = false;
       accountProfile = {...profile, uid:user.uid}; el('header-settings').hidden = false;
       status('Hesabınız hazır.', 'success');
       if (profile.role === 'teacher') {
         teacherUid = user.uid;
+        const admin = isAdmin();
+        el('class-form').hidden = !admin;
+        el('admin-class-note').hidden = !admin;
+        el('classes-kicker').textContent = admin ? 'YÖNETİCİ PANELİ' : 'ÖĞRETMEN PANELİ';
+        el('classes-lead').textContent = admin ? 'Sınıfları, öğrencileri ve öğretmen atamalarını yönetin.' : 'Size verilen sınıflara ödev ekleyebilir ve ödevleri kaldırabilirsiniz.';
+        el('classes-empty').textContent = admin ? 'Henüz sınıf yok. İlk sınıfı yukarıdan oluşturabilirsiniz.' : 'Henüz bir sınıfa atanmadınız. Yöneticinizle iletişime geçin.';
         el('intro-view').hidden = true;
         el('classes-view').hidden = false;
         el('menu-home').textContent = 'Sınıflarım';
@@ -1048,7 +1389,7 @@
       if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
       el('welcome').textContent = 'Giriş yapıldı; profil okunamadı.';
       el('retry-profile').hidden = false;
-      const message = error.code === 'profile/missing' ? 'Bu hesap için kullanıcı kaydı bulunamadı. Firestore’da users koleksiyonu altında, belge kimliği hesabınızın UID’si olacak şekilde kayıt oluşturun.' : error.code === 'profile/invalid-role' ? 'Kullanıcı rolü tanınmadı. Gizem’in kaydındaki role alanı teacher olmalı.' : errorText(error);
+      const message = error.code === 'profile/no-class-access' ? 'Bu hesaba henüz sınıf erişimi verilmedi. Yöneticinizle iletişime geçin.' : error.code === 'profile/invalid-role' ? 'Bu hesabın rolü tanınmadı. Yöneticinizle iletişime geçin.' : errorText(error);
       status(message, 'error');
     }
   }

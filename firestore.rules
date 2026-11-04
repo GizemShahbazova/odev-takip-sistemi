@@ -3,8 +3,34 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isTeacher() {
       return request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+    }
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == 'qD30Waxms3Nc0UtpUVTGzFaJPmE3'
+        && isTeacher();
+    }
+    function canManageHomework(classId) {
+      let staffPath = /databases/$(database)/documents/staffAccess/$(request.auth.uid);
+      return ownsClass(classId) || (
+        activeClass(classId)
+        && get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == 'qD30Waxms3Nc0UtpUVTGzFaJPmE3'
+        && exists(staffPath) && classId in get(staffPath).data.classIds
+        && (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) || isTeacher())
+      );
+    }
+    match /staffAccess/{uid} {
+      allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow list: if isAdmin();
+      allow create, update: if isAdmin()
+        && uid != request.auth.uid && uid.matches('[A-Za-z0-9_-]{1,128}')
+        && (!exists(/databases/$(database)/documents/users/$(uid))
+          || get(/databases/$(database)/documents/users/$(uid)).data.role == 'teacher')
+        && request.resource.data.keys().hasOnly(['name', 'classIds'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.classIds is list
+        && request.resource.data.classIds.size() <= 100;
+      allow delete: if false;
     }
     function activeClass(classId) {
       return exists(/databases/$(database)/documents/classes/$(classId))
@@ -20,7 +46,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/classes/$(classId)/assignments/$(assignmentId)).data.get('deleted', false) == false;
     }
     function ownsClass(classId) {
-      return isTeacher()
+      return isAdmin()
         && activeClass(classId)
         && exists(/databases/$(database)/documents/classes/$(classId))
         && get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == request.auth.uid;
@@ -41,7 +67,59 @@ service cloud.firestore {
       );
     }
     match /parentAccounts/{uid} { allow read, write: if false; }
-    match /parentCodes/{code} { allow read, write: if false; }
+    // Existing code directory contains only account UID and manager UID.
+    match /parentCodes/{code} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    function childPath(uid, classId) {
+      return /databases/$(database)/documents/users/$(uid)/children/$(classId);
+    }
+    function placementPath(uid) {
+      return /databases/$(database)/documents/studentPlacements/$(uid);
+    }
+    function livePlacement(uid, placement) {
+      let cls = get(/databases/$(database)/documents/classes/$(placement.classId)).data;
+      let student = get(/databases/$(database)/documents/classes/$(placement.classId)/students/$(placement.studentId)).data;
+      return cls != null && cls.get('deleted', false) == false
+        && student != null && student.get('deleted', false) == false
+        && get(childPath(uid, placement.classId)).data.get('studentIds', []) == [placement.studentId];
+    }
+    function placementAllowsClass(classId) {
+      let p = placementPath(request.auth.uid);
+      return !exists(p) || get(p).data.classId == classId || !livePlacement(request.auth.uid, get(p).data);
+    }
+    function validPlacement(uid) {
+      let d = request.resource.data;
+      let profile = get(/databases/$(database)/documents/users/$(uid)).data;
+      let code = get(/databases/$(database)/documents/parentCodes/$(d.code)).data;
+      let account = get(/databases/$(database)/documents/parentAccounts/$(uid)).data;
+      let student = getAfter(/databases/$(database)/documents/classes/$(d.classId)/students/$(d.studentId)).data;
+      let cls = get(/databases/$(database)/documents/classes/$(d.classId)).data;
+      return d.keys().hasOnly(['code', 'classId', 'studentId'])
+        && d.code is string && d.code.matches('[1-9][0-9]{5}')
+        && d.classId is string && d.studentId is string
+        && cls.teacherId == request.auth.uid && cls.get('deleted', false) == false
+        && code.uid == uid && code.managerUid == request.auth.uid
+        && profile.role == 'parent' && profile.userCode == d.code && profile.accessReady == true
+        && account.managerUid == request.auth.uid && account.code == d.code && account.get('busyToken', '') == ''
+        && student.get('deleted', false) == false && student.name == 'btal' + d.code
+        && getAfter(childPath(uid, d.classId)).data.studentIds == [d.studentId];
+    }
+    function placementMatches(uid, classId) {
+      let p = getAfter(placementPath(uid)).data;
+      return p.classId == classId && request.resource.data.keys().hasOnly(['studentIds'])
+        && request.resource.data.studentIds == [p.studentId];
+    }
+    match /studentPlacements/{uid} {
+      allow get: if isAdmin() || (isParent() && request.auth.uid == uid);
+      allow list: if isAdmin();
+      allow create: if isAdmin() && validPlacement(uid);
+      allow update: if isAdmin()
+        && (request.resource.data == resource.data || !livePlacement(uid, resource.data))
+        && validPlacement(uid);
+      allow delete: if false;
+    }
     // Public username routing; never contains a UID, real email, name or secret.
     match /parentLogins/{code} {
       allow get: if code.matches('[1-9][0-9]{5}')
@@ -57,6 +135,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds is list
         && get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds.size() == 1
         && activeStudent(classId, get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds[0])
+        && placementAllowsClass(classId)
         && studentCodeMatches(classId, get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds[0]);
     }
     function studentCodeMatches(classId, studentId) {
@@ -71,17 +150,21 @@ service cloud.firestore {
         && studentId in get(/databases/$(database)/documents/users/$(request.auth.uid)/children/$(classId)).data.studentIds;
     }
     match /users/{userId} {
-      allow get: if request.auth != null && request.auth.uid == userId;
-      allow list, create, update, delete: if false;
+      allow get: if (request.auth != null && request.auth.uid == userId)
+        || (isAdmin() && resource.data.role == 'parent' && resource.data.accessReady == true);
+      allow list: if isAdmin() && resource.data.role == 'parent' && resource.data.accessReady == true;
+      allow create, update, delete: if false;
       match /children/{classId} {
-        allow get, list: if isParent() && request.auth.uid == userId;
-        allow create, update, delete: if false;
+        allow get, list: if isAdmin() || (isParent() && request.auth.uid == userId);
+        allow create, update: if isAdmin() && ownsClass(classId) && placementMatches(userId, classId);
+        allow delete: if false;
       }
     }
     match /classes/{classId} {
-      allow get: if (isTeacher() && resource.data.teacherId == request.auth.uid) || linkedClass(classId);
-      allow list: if isTeacher() && resource.data.teacherId == request.auth.uid;
-      allow create: if isTeacher()
+      allow get: if request.auth != null && ((isAdmin() && resource.data.teacherId == request.auth.uid)
+        || canManageHomework(classId) || linkedClass(classId));
+      allow list: if isAdmin() && resource.data.teacherId == request.auth.uid;
+      allow create: if isAdmin()
         && request.resource.data.keys().hasAll(['name', 'teacherId', 'createdAt'])
         && request.resource.data.keys().hasOnly(['name', 'teacherId', 'createdAt'])
         && request.resource.data.teacherId == request.auth.uid
@@ -98,8 +181,8 @@ service cloud.firestore {
         && request.resource.data.get('deleted', false) is bool;
       allow delete: if false;
       match /assignments/{assignmentId} {
-        allow get, list: if ownsClass(classId) || (linkedClass(classId) && activeClass(classId));
-        allow create: if ownsClass(classId)
+        allow get, list: if request.auth != null && (canManageHomework(classId) || (linkedClass(classId) && activeClass(classId)));
+        allow create: if request.auth != null && canManageHomework(classId)
           && request.resource.data.keys().hasAll(['title', 'description', 'dueDate', 'createdAt'])
           && request.resource.data.keys().hasOnly(['title', 'description', 'dueDate', 'createdAt'])
           && request.resource.data.title is string
@@ -111,8 +194,11 @@ service cloud.firestore {
           && request.resource.data.dueDate.matches('20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])')
           && request.resource.data.createdAt is timestamp
           && request.resource.data.createdAt == request.time;
-        allow update: if ownsClass(classId)
+        allow update: if request.auth != null && canManageHomework(classId)
           && resource.data.get('deleted', false) == false
+          && (ownsClass(classId)
+            || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted'])
+              && request.resource.data.deleted == true))
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'description', 'dueDate', 'deleted'])
           && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120
           && request.resource.data.description is string && request.resource.data.description.size() <= 2000

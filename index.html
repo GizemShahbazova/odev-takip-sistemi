@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
   <title>Ödev Takip Sistemi | Öğretmen ve Öğrenci</title>
-  <link rel="stylesheet" href="./style.css?v=ogrenci-20261030">
+  <link rel="stylesheet" href="./style.css?v=roller-20261105">
   <script src="./parent-auth.js?v=ogrenci-20261030" defer></script>
   <script src="./student-device.js?v=ogrenci-20261030" defer></script>
-  <script src="./app.js?v=ogrenci-20261030" defer></script>
+  <script src="./app.js?v=roller-20261105" defer></script>
   <style id="pilot-survey-style">
 .header-links .survey-trigger {
   display: inline-flex;
@@ -244,14 +244,14 @@ dialog.survey-dialog {
       <p class="eyebrow">HOŞ GELDİNİZ</p>
       <h1 id="intro-title">Ödev Takip Sistemi</h1>
       <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
-      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Her öğrenciye ayrı kullanıcı kodu ve şifre verilir. Veliler ilgili öğrencinin hesabıyla takip eder.</p><p>Öğretmenler sınıflarını ve ödevlerini yönetir; öğrenci hesabında yalnız o öğrencinin ödevleri görünür.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Öğretmen ödev durumlarını günceller. Her öğrenci hesabı tek öğrenci kaydıyla eşleştirilir; veli bu hesaptan takip edebilir.</p></div>
+      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Her öğrenciye ayrı kullanıcı kodu ve şifre verilir. Veliler ilgili öğrencinin hesabıyla takip eder.</p><p>Yönetici sınıfları ve öğrenci kayıtlarını düzenler; öğretmenler kendilerine verilen sınıfların ödevlerini yönetir.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Yönetici ödev durumlarını günceller. Her öğrenci hesabı tek öğrenci kaydıyla eşleştirilir; veli bu hesaptan takip edebilir.</p></div>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
-      <p class="eyebrow">ÖĞRETMEN PANELİ</p>
+      <p id="classes-kicker" class="eyebrow">ÖĞRETMEN PANELİ</p>
       <div class="section-heading"><h1 id="classes-title">Sınıflarım</h1><span id="class-count" class="badge">—</span></div>
-      <p class="lead">Sınıflarınızı oluşturun ve tek bir yerden takip edin.</p>
-      <form id="class-form" class="class-form">
+      <p id="classes-lead" class="lead">Size verilen sınıfların ödevlerini yönetin.</p>
+      <form id="class-form" class="class-form" hidden>
         <label for="class-name">Yeni sınıfın adı</label>
         <div class="class-input-row"><input id="class-name" type="text" required maxlength="60" placeholder="Örneğin: 5-A" autocomplete="off" aria-describedby="class-help"><button id="create-class" class="primary" type="submit">Sınıf oluştur</button></div>
         <p id="class-help" class="note">Sınıf adını en fazla 60 karakterle yazın.</p>
@@ -261,19 +261,32 @@ dialog.survey-dialog {
       <p id="classes-load-status" role="status" aria-live="polite"></p>
       <p id="classes-empty" class="empty-state" hidden>Henüz sınıfınız yok. İlk sınıfınızı yukarıdan oluşturabilirsiniz.</p>
       <ul id="classes-list" class="classes-list" aria-label="Sınıflarınız"></ul>
-      <p class="note">Sınıfın yanındaki düğmelerle öğrenci listesini, ödevleri veya takip tablosunu açabilirsiniz.</p>
+      <p id="admin-class-note" class="note" hidden>Sınıfın yanındaki düğmelerden öğrencileri, ödevleri, öğretmenleri ve takip tablosunu açabilirsiniz.</p>
     </section>
     <section id="students-view" class="intro" aria-labelledby="students-title" hidden>
       <button id="back-to-classes" type="button" class="back-button">← Sınıflara dön</button>
       <nav class="class-tabs" aria-label="Sınıf bölümleri"><span aria-current="page">Öğrenciler</span><button id="students-to-assignments" type="button">Ödevler</button><button id="students-to-results" type="button">Takip tablosu</button></nav>
       <p class="eyebrow">SINIF LİSTESİ</p>
       <div class="section-heading"><h1 id="students-title">Öğrenciler</h1><span id="student-count" class="badge">—</span></div>
-      <p class="lead">Öğrencileri kullanıcı kodlarıyla ekleyin ve takip edin.</p>
+      <p class="lead">Hazır öğrenci hesaplarını kodlarıyla seçip bu sınıfa ekleyin.</p>
+      <section id="enrollment-panel" class="enrollment-panel" aria-labelledby="enrollment-title">
+        <div class="list-heading"><h2 id="enrollment-title">Hesap listesinden ekle</h2><button id="load-enrollment" class="secondary" type="button">Hesapları getir</button></div>
+        <p class="note">Birden fazla kod seçebilirsiniz. Öğrenci hesabı bu sınıfa bağlanır; varsa aynı kodlu kayıt korunur.</p>
+        <div id="enrollment-picker" hidden>
+          <label for="enrollment-search">Kullanıcı kodu ara</label>
+          <input id="enrollment-search" type="search" placeholder="Örn. 100002" autocomplete="off">
+          <ul id="enrollment-codes" class="enrollment-codes" aria-label="Seçilebilir öğrenci hesapları"></ul>
+          <button id="enrollment-add" class="primary" type="button" disabled>Seçilenleri sınıfa ekle</button>
+        </div>
+        <p id="enrollment-status" role="status" aria-live="polite"></p>
+      </section>
+      <details class="manual-student"><summary>Hesap açılmadan öğrenci kaydı ekle</summary>
       <form id="student-form" class="class-form">
         <label for="student-name">Öğrenci kullanıcı kodu</label>
         <div class="class-input-row"><input id="student-name" type="text" required minlength="6" maxlength="10" pattern="([bB][tT][aA][lL])?[1-9][0-9]{5}" placeholder="btal100002" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="student-help"><button id="create-student" class="primary" type="submit">Öğrenci ekle</button></div>
         <p id="student-help" class="note">Öğrenci adı yazmayın. Öğrenci hesabıyla aynı kullanıcı kodunu kullanın. Örnek: btal100002.</p>
       </form>
+      </details>
       <p id="students-status" role="status" aria-live="polite"></p>
       <div class="list-heading"><h2>Kayıtlı öğrenciler</h2><button id="refresh-students" class="secondary" type="button">Yenile</button></div>
       <p id="students-load-status" role="status" aria-live="polite"></p>
@@ -283,7 +296,7 @@ dialog.survey-dialog {
     </section>
     <section id="assignments-view" class="intro" aria-labelledby="assignments-title" hidden>
       <button id="assignments-back" type="button" class="back-button">← Sınıflara dön</button>
-      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="assignments-to-students" type="button">Öğrenciler</button><span aria-current="page">Ödevler</span><button id="assignments-to-results" type="button">Takip tablosu</button></nav>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="assignments-to-students" type="button" hidden>Öğrenciler</button><span aria-current="page">Ödevler</span><button id="assignments-to-results" type="button" hidden>Takip tablosu</button></nav>
       <p class="eyebrow">SINIF ÖDEVLERİ</p>
       <div class="section-heading"><h1 id="assignments-title">Ödevler</h1><span id="assignment-count" class="badge">—</span></div>
       <p class="lead">Sınıfınıza ödev ekleyin ve teslim tarihlerini takip edin.</p>
@@ -302,7 +315,7 @@ dialog.survey-dialog {
       <p id="assignments-load-status" role="status" aria-live="polite"></p>
       <p id="assignments-empty" class="empty-state" hidden>Bu sınıfta henüz ödev yok. İlk ödevi yukarıdan ekleyebilirsiniz.</p>
       <ul id="assignments-list" class="assignment-list" aria-label="Bu sınıfın ödevleri"></ul>
-      <p class="note">Ödevler teslim tarihine göre sıralanır. İlgili öğrenci hesabı bu ödevleri görebilir. Sonuçları Takip tablosu bölümünden görebilirsiniz.</p>
+      <p class="note">Ödevler teslim tarihine göre sıralanır. Sınıfa bağlı öğrenci hesapları bu ödevleri görebilir.</p>
     </section>
     <section id="results-view" class="intro" aria-labelledby="results-title" hidden>
       <button id="results-back" type="button" class="back-button">← Sınıflara dön</button>
@@ -330,7 +343,7 @@ dialog.survey-dialog {
         <p class="note">Güncel ödev durumları ve teslim tarihine üç gün veya daha az kalan ödevler.</p>
       </section>
       <div id="parent-children"></div>
-      <p class="note">Ödevler son teslim tarihine göre sıralanır. Ödev durumlarını öğretmeniniz günceller. Güncel durumları ve hatırlatmaları görmek için Yenile düğmesini kullanın.</p>
+      <p class="note">Ödevler son teslim tarihine göre sıralanır. Ödev durumlarını yönetici günceller. Güncel durumları ve hatırlatmaları görmek için Yenile düğmesini kullanın.</p>
     </section>
     <section class="card" aria-label="Hesap girişi">
       <div id="login-view">
@@ -400,6 +413,21 @@ dialog.survey-dialog {
       </div>
       <p id="record-message" role="status" aria-live="polite"></p>
       <div class="dialog-actions"><button id="record-cancel" type="button" class="secondary">Vazgeç</button><button id="record-save" type="submit" class="primary">Kaydet</button></div>
+    </form>
+  </dialog>
+  <dialog id="staff-dialog" aria-labelledby="staff-title">
+    <form id="staff-form">
+      <h2 id="staff-title">Sınıfın öğretmenleri</h2>
+      <p class="muted">Öğretmeni önce Firebase Authentication’da e-postasıyla oluşturun. Oradaki kullanıcı kimliğini (UID) buraya kopyalayın.</p>
+      <label for="staff-uid">Öğretmen UID’si</label>
+      <input id="staff-uid" type="text" maxlength="128" pattern="[A-Za-z0-9_\-]+" required autocomplete="off">
+      <label for="staff-name">Öğretmen adı <span class="optional">(isteğe bağlı)</span></label>
+      <input id="staff-name" type="text" maxlength="80" autocomplete="off">
+      <button id="staff-add" class="primary" type="submit">Öğretmeni sınıfa ata</button>
+      <h3>Bu sınıfa atanan öğretmenler</h3>
+      <ul id="staff-list" class="staff-list"></ul>
+      <p id="staff-status" role="status" aria-live="polite"></p>
+      <div class="dialog-actions"><button id="staff-close" class="secondary" type="button">Kapat</button></div>
     </form>
   </dialog>
   <dialog class="survey-dialog" id="survey-dialog" aria-labelledby="survey-title">
