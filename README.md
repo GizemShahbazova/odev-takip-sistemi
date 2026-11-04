@@ -1,19 +1,14 @@
 # Ödev Takip Sistemi
 
-GitHub Pages üzerinde çalışan, Firebase Authentication ve Cloud Firestore kullanan öğretmen/öğrenci uygulaması.
+GitHub Pages üzerinde çalışan, Firebase Authentication ve Cloud Firestore kullanan öğretmen ve öğrenci uygulaması.
 
-- Öğretmen sınıf, kodlu öğrenci kaydı ve ödev oluşturur; durumları günceller.
-- Her BTAL kodu ayrı öğrenci hesabıdır. Hesap bir öğrenci kaydıyla eşleştirilir; öğrenci ekranında seçim listesi yoktur.
-- İsteğe bağlı öğrenci adı yalnız giriş yapılan cihazın tarayıcısında tutulur. student-device.js bu etiketi ağ isteğiyle göndermez. Diğer hesapta ve öğretmen ekranında gösterilmez; Ayarlar’dan kaldırılabilir.
-- Firestore öğrenci name alanı yalnız BTAL kodu kabul eder. Kullanıcı koduyla öğrenci kodu uyuşmadığında okuma reddedilir.
-- Hesaplar ve öğrenci eşleştirmeleri öğretmenin bilgisayarındaki özel yönetim aracıyla yapılır. Özel araç, Excel ve hizmet hesabı anahtarı bu depoya yüklenmez.
-- Materyaller bölümündeki iki oyun korunur. Oyun sonuçları Firebase’e kaydedilmez.
-- Bildirimler sayfa yenilendiğinde görünen durumlar ve yaklaşan teslim tarihleridir; otomatik e-posta/push gönderimi yoktur.
+- Yönetici sınıf oluşturur, öğretmen atar, hazır öğrenci hesaplarını sınıfa ekler ve ödev durumlarını yönetir.
+- Öğretmen kendisine atanan sınıflarda ödev ekleyebilir ve silebilir.
+- Her BTAL kodu ayrı bir öğrenci hesabıdır. Bir öğrenci yalnız kendisine bağlı sınıf kaydının ödevlerine erişir.
+- Öğrenciler sitede yalnız kullanıcı koduyla görünür. Sınıf ve takip ekranlarında yalnız hazır ve sınıfa bağlı hesaplar listelenir. Ayarlar’dan şifre değiştirilebilir.
+- Windows yönetim aracı giriş hesaplarını topluca açar ve şifre sıfırlar. Yönetici sitede ilgili sınıfın **Öğrenciler → Hesapları getir** bölümünden kodları seçip sınıfa bağlar.
+- Materyaller bölümünde iki oyun ve sitede pilot uygulama anketi vardır. Bildirimler site yenilendiğinde görünen durumlar ve yaklaşan teslim tarihleridir.
 
 ## Yayın
 
-site klasörünün ana dosyaları doğrudan GitHub Pages kök dizininde olmalıdır. student-device.js, parent-auth.js ve app.js birlikte sunulmalıdır. firestore.rules dosyasının içeriği Firebase Console → Firestore Database → Rules bölümünden ayrıca yayınlanır.
-
-## Yerel isim etiketi
-
-Etiket hesap UID’si ve kullanıcı koduyla ayrılmış yerel tarayıcı kaydıdır. Şifreli depolama değildir; ortak cihazda baş harf tercih edin veya işiniz bitince kaldırın. Site verileri silinirse etiket kaybolur. Hesabın kendisi, şifresi ve ödevleri Firebase’de kalır. Gerçek öğrenci isimlerini kaynak koduna veya örnek verilere yazmayın.
+`firestore.rules` dosyasının içeriğini Firebase Console → Firestore Database → Rules bölümünden yayımlayın. Site dosyalarını doğrudan GitHub Pages kaynak dizinine yükleyin. Yönetim aracı, hesap Excel'i ve hizmet hesabı anahtarı GitHub'a yüklenmez.

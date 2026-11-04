@@ -19,7 +19,6 @@ select{font:inherit}.status-select{display:block;width:100%;min-width:135px;min-
 
 /* Hesap ayarları */
 #welcome{overflow-wrap:anywhere}
-.device-name-form{padding:0 0 20px;margin-bottom:20px!important;border-bottom:1px solid #dce1e5}#device-name-status{font-size:13px;line-height:1.8;overflow-wrap:anywhere}#device-name-status.error{color:#a13333}#device-name-status.success{color:#25684b}.device-name-form .dialog-actions{flex-wrap:wrap}.device-name-form .dialog-actions button{min-width:0}@media(max-width:520px){.device-name-form .dialog-actions{flex-direction:column}}
 .header-action{color:#fff;font-size:14px;padding:10px 12px;border:1px solid #a1adb7;border-radius:4px;background:transparent;min-height:40px}.header-action:hover{background:#465c70}#settings-dialog{width:min(510px,calc(100% - 28px))}#settings-dialog h3{font-size:18px;margin:24px 0 12px}#settings-account{margin-top:6px}#settings-status{font-size:13px;line-height:1.8;overflow-wrap:anywhere;min-height:24px}#settings-status.error{color:#a13333}#settings-status.success{color:#25684b}@media(max-width:520px){#settings-dialog{padding:22px}.header-action{font-size:13px}}
 
 /* Class enrollment and teacher access. */
@@ -30,8 +29,6 @@ select{font:inherit}.status-select{display:block;width:100%;min-width:135px;min-
 .enrollment-codes li,.staff-list li{border-bottom:1px solid #dce1e5;padding:5px 0;font-size:13px;overflow-wrap:anywhere}
 .enrollment-codes label{display:flex;gap:10px;align-items:center;min-height:34px;margin:0;cursor:pointer}
 .enrollment-codes input{width:18px;height:18px;min-height:0;margin:0;accent-color:#993e4e;flex:none}
-.manual-student{margin:18px 0 25px}
-.manual-student summary{font-size:13px;color:#344a5e;font-weight:600;cursor:pointer}
 .staff-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
 #staff-dialog h3{margin:24px 0 8px;color:#344a5e;font-size:15px}
 #enrollment-status,#staff-status{font-size:13px;line-height:1.6;overflow-wrap:anywhere}

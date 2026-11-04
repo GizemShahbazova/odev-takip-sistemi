@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
   <title>Ödev Takip Sistemi | Öğretmen ve Öğrenci</title>
-  <link rel="stylesheet" href="./style.css?v=roller-20261105">
+  <link rel="stylesheet" href="./style.css?v=kod-20261105">
   <script src="./parent-auth.js?v=ogrenci-20261030" defer></script>
-  <script src="./student-device.js?v=ogrenci-20261030" defer></script>
-  <script src="./app.js?v=roller-20261105" defer></script>
+  <script src="./student-device.js?v=kod-20261105" defer></script>
+  <script src="./app.js?v=kod-20261105" defer></script>
   <style id="pilot-survey-style">
 .header-links .survey-trigger {
   display: inline-flex;
@@ -280,17 +280,10 @@ dialog.survey-dialog {
         </div>
         <p id="enrollment-status" role="status" aria-live="polite"></p>
       </section>
-      <details class="manual-student"><summary>Hesap açılmadan öğrenci kaydı ekle</summary>
-      <form id="student-form" class="class-form">
-        <label for="student-name">Öğrenci kullanıcı kodu</label>
-        <div class="class-input-row"><input id="student-name" type="text" required minlength="6" maxlength="10" pattern="([bB][tT][aA][lL])?[1-9][0-9]{5}" placeholder="btal100002" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="student-help"><button id="create-student" class="primary" type="submit">Öğrenci ekle</button></div>
-        <p id="student-help" class="note">Öğrenci adı yazmayın. Öğrenci hesabıyla aynı kullanıcı kodunu kullanın. Örnek: btal100002.</p>
-      </form>
-      </details>
       <p id="students-status" role="status" aria-live="polite"></p>
       <div class="list-heading"><h2>Kayıtlı öğrenciler</h2><button id="refresh-students" class="secondary" type="button">Yenile</button></div>
       <p id="students-load-status" role="status" aria-live="polite"></p>
-      <p id="students-empty" class="empty-state" hidden>Bu sınıfta henüz öğrenci yok. İlk öğrenciyi yukarıdan ekleyebilirsiniz.</p>
+      <p id="students-empty" class="empty-state" hidden>Bu sınıfa bağlanmış öğrenci hesabı yok. Hesapları getir düğmesiyle başlayın.</p>
       <ul id="students-list" class="classes-list" aria-label="Bu sınıfın öğrencileri"></ul>
       <p class="note">Bu sınıfın ödevlerini Ödevler bölümünden açabilirsiniz. Öğrenci hesabı yalnız aynı kodla eşleştirilen öğrencinin ödevlerini gösterebilir.</p>
     </section>
@@ -382,14 +375,6 @@ dialog.survey-dialog {
   <dialog id="settings-dialog" aria-labelledby="settings-title">
     <p class="eyebrow">HESABINIZ</p><h2 id="settings-title">Ayarlar</h2>
     <p id="settings-account" class="muted"></p>
-    <form id="device-name-form" class="device-name-form" hidden>
-      <h3>Öğrenciyi bu cihazda tanıyın</h3>
-      <label for="device-name">Bu cihazda görünen öğrenci adı <span class="optional">(isteğe bağlı)</span></label>
-      <input id="device-name" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="Örneğin: A. Y." aria-describedby="device-name-help">
-      <p id="device-name-help" class="note">Ad, baş harf veya bir hatırlatma etiketi yazabilirsiniz. Yalnız bu cihazdaki tarayıcıda saklanır; site bu adı Firebase’e veya GitHub’a kaydetmez. Başka cihazda yeniden girmeniz gerekir. Ortak cihazda işi bitirince buradan kaldırabilirsiniz.</p>
-      <div class="dialog-actions"><button id="device-name-clear" type="button" class="secondary">Bu cihazdaki adı kaldır</button><button id="device-name-save" type="submit" class="secondary">Bu cihazda kaydet</button></div>
-      <p id="device-name-status" role="status" aria-live="polite"></p>
-    </form>
     <form id="settings-form">
       <h3>Şifre değiştir</h3>
       <p id="settings-help" class="muted">Yeni şifreniz 10–128 karakter olmalı; en az bir harf ve bir rakam içermelidir.</p>

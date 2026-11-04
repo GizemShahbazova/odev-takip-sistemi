@@ -46,10 +46,11 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/classes/$(classId)/assignments/$(assignmentId)).data.get('deleted', false) == false;
     }
     function ownsClass(classId) {
-      return isAdmin()
-        && activeClass(classId)
-        && exists(/databases/$(database)/documents/classes/$(classId))
-        && get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == request.auth.uid;
+      return isAdmin() && ownsActiveClass(classId);
+    }
+    function ownsActiveClass(classId) {
+      let cls = get(/databases/$(database)/documents/classes/$(classId)).data;
+      return cls != null && cls.teacherId == request.auth.uid && cls.get('deleted', false) == false;
     }
     function isParent() {
       return request.auth != null
@@ -140,10 +141,18 @@ service cloud.firestore {
     }
     function studentCodeMatches(classId, studentId) {
       let profile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return !('userCode' in profile) || (
-        profile.userCode is string
-        && get(/databases/$(database)/documents/classes/$(classId)/students/$(studentId)).data.name == 'btal' + profile.userCode
-      );
+      return profile.userCode is string && profile.userCode.matches('[1-9][0-9]{5}')
+        && get(/databases/$(database)/documents/classes/$(classId)/students/$(studentId)).data.name == 'btal' + profile.userCode;
+    }
+    function verifiedStudentCreation(classId, studentId, name) {
+      let code = name.replace('^btal', '');
+      let account = get(/databases/$(database)/documents/parentCodes/$(code)).data;
+      let profile = get(/databases/$(database)/documents/users/$(account.uid)).data;
+      let p = getAfter(placementPath(account.uid)).data;
+      return account.managerUid == request.auth.uid
+        && profile.role == 'parent' && profile.userCode == code && profile.accessReady == true
+        && p.classId == classId && p.studentId == studentId && p.code == code
+        && getAfter(childPath(account.uid, classId)).data.studentIds == [studentId];
     }
     function linkedStudent(classId, studentId) {
       return linkedClass(classId)
@@ -217,14 +226,12 @@ service cloud.firestore {
           && request.resource.data.name is string
           && request.resource.data.name.matches('btal[1-9][0-9]{5}')
           && request.resource.data.createdAt is timestamp
-          && request.resource.data.createdAt == request.time;
+          && request.resource.data.createdAt == request.time
+          && verifiedStudentCreation(classId, studentId, request.resource.data.name);
         allow update: if ownsClass(classId)
           && resource.data.get('deleted', false) == false
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'deleted'])
-          && request.resource.data.name is string
-          && (request.resource.data.name.matches('btal[1-9][0-9]{5}')
-            || (request.resource.data.name == resource.data.name && request.resource.data.get('deleted', false) == true))
-          && request.resource.data.get('deleted', false) is bool;
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted'])
+          && request.resource.data.deleted == true;
         allow delete: if false;
         match /completions/{assignmentId} {
           allow get, list: if ownsClass(classId) || (linkedStudent(classId, studentId) && activeStudent(classId, studentId));

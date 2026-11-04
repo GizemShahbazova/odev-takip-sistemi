@@ -6,13 +6,35 @@
     const match = /^(?:btal)?([1-9][0-9]{5})$/i.exec(String(value ?? '').trim());
     return match ? 'btal' + match[1] : '';
   }
-  function studentForDisplay(record) {
-    // A legacy full name must never reach text, form values or accessible labels.
-    return {...record, name:codeUsername(record.name) || 'Kod atanmadı'};
-  }
-  async function studentCodeAvailable(classId, code, exceptId = null) {
-    const records = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students'));
-    return !records.docs.some(record => record.id !== exceptId && record.data().deleted !== true && codeUsername(record.data().name) === code);
+  async function classAccountRows(records, classId, managerUid) {
+    const candidates = records.docs.flatMap(record => {
+      const {name, deleted} = record.data();
+      return deleted !== true && typeof name === 'string' && /^btal[1-9][0-9]{5}$/.test(name)
+        ? [{id:record.id, name}] : [];
+    });
+    const visible = [];
+    for (let i = 0; i < candidates.length; i += 10) {
+      const rows = await Promise.all(candidates.slice(i, i + 10).map(async item => {
+        const code = item.name.slice(4);
+        const directory = (await fs.getDocFromServer(fs.doc(db, 'parentCodes', code))).data();
+        if (!directory || directory.managerUid !== managerUid || !validRecordId(directory.uid)) return null;
+        try {
+          const [profile, link] = await Promise.all([
+            fs.getDocFromServer(fs.doc(db, 'users', directory.uid)),
+            fs.getDocFromServer(fs.doc(db, 'users', directory.uid, 'children', classId))
+          ]);
+          const account = profile.data(), ids = link.data()?.studentIds;
+          return account?.role === 'parent' && account.userCode === code && account.accessReady === true
+            && Array.isArray(ids) && ids.length === 1 && ids[0] === item.id ? item : null;
+        } catch (error) {
+          // The profile is unavailable to the dashboard until the account is ready.
+          if (error.code === 'permission-denied') return null;
+          throw error;
+        }
+      }));
+      visible.push(...rows.filter(Boolean));
+    }
+    return visible;
   }
   const form = el('login-form');
   const loginButton = el('login-button');
@@ -47,63 +69,7 @@
   });
   let profileRequest = 0;
   let accountProfile = null, settingsOperation = 0, settingsBusy = false;
-  let studentLabelNodes = [];
   function greeting(name) {return 'Merhaba ' + name + (/[.!?…]$/.test(name) ? '' : '.');}
-  function currentStudentIdentity() {
-    const uid = auth?.currentUser?.uid, code = codeUsername(accountProfile?.userCode);
-    return uid && accountProfile?.uid === uid && accountProfile.role === 'parent' && code ? {uid, code} : null;
-  }
-  function localStudentName() {
-    const account = currentStudentIdentity();
-    if (!account || !window.StudentDeviceLabel) return '';
-    try {return window.StudentDeviceLabel.read(window.localStorage, account.uid, account.code);} catch {return '';}
-  }
-  function studentScreenName(fallback) {return localStudentName() || fallback;}
-  function bindStudentLabel(node, fallback, suffix = '', attribute = null) {
-    const item = {node, fallback, suffix, attribute}; studentLabelNodes.push(item);
-    paintStudentLabel(item);
-  }
-  function paintStudentLabel(item) {
-    const text = studentScreenName(item.fallback) + item.suffix;
-    if (item.attribute) item.node.setAttribute(item.attribute, text); else item.node.textContent = text;
-  }
-  function refreshStudentName() {
-    const account = currentStudentIdentity();
-    if (!account) return;
-    el('welcome').textContent = greeting(studentScreenName(account.code));
-    for (const item of studentLabelNodes) paintStudentLabel(item);
-  }
-  function deviceNameMessage(message = '', kind = '') {
-    el('device-name-status').textContent = message; el('device-name-status').className = kind;
-  }
-  el('device-name-form').addEventListener('submit', event => {
-    event.preventDefault();
-    const account = currentStudentIdentity();
-    if (!account || settingsBusy) return;
-    try {
-      const label = window.StudentDeviceLabel.write(window.localStorage, account.uid, account.code, el('device-name').value);
-      el('device-name').value = label; refreshStudentName();
-      deviceNameMessage(label ? 'Öğrenci adı yalnız bu cihazda kaydedildi.' : 'Bu cihazdaki ad kaldırıldı. Kullanıcı kodu gösteriliyor.', 'success');
-    } catch (error) {
-      deviceNameMessage(error.message === 'invalid-name' ? 'En fazla 80 karakter yazın; satır sonu veya görünmeyen karakter kullanmayın.' : 'Bu tarayıcıda ad kaydedilemiyor. Kullanıcı kodunuzla devam edebilirsiniz.', 'error');
-    }
-  });
-  el('device-name-clear').addEventListener('click', () => {
-    const account = currentStudentIdentity();
-    if (!account || settingsBusy) return;
-    try {
-      window.StudentDeviceLabel.remove(window.localStorage, account.uid, account.code);
-      el('device-name').value = ''; refreshStudentName();
-      deviceNameMessage('Bu cihazdaki ad kaldırıldı. Kullanıcı kodu gösteriliyor.', 'success');
-    } catch {deviceNameMessage('Bu tarayıcıda ad kaldırılamadı. Tarayıcının site verileri ayarını kontrol edin.', 'error');}
-  });
-  window.addEventListener?.('storage', event => {
-    const account = currentStudentIdentity();
-    if (account && window.StudentDeviceLabel && (!event.key || event.key === window.StudentDeviceLabel.key(account.uid, account.code))) {
-      refreshStudentName();
-      if (el('settings-dialog').open) el('device-name').value = localStudentName();
-    }
-  });
   const settingsPasswordIds = ['settings-current-password', 'settings-new-password', 'settings-repeat-password'];
   function clearSettingsPasswords() {for (const id of settingsPasswordIds) el(id).value = '';}
   function settingsMessage(message, kind = '') {
@@ -111,22 +77,19 @@
   }
   function setSettingsBusy(value) {
     settingsBusy = value;
-    for (const id of [...settingsPasswordIds, 'settings-save', 'settings-close', 'device-name', 'device-name-save', 'device-name-clear']) el(id).disabled = value;
+    for (const id of [...settingsPasswordIds, 'settings-save', 'settings-close']) el(id).disabled = value;
     el('settings-save').textContent = value ? 'Kaydediliyor…' : 'Şifreyi değiştir';
   }
   function closeSettings() {
     ++settingsOperation; setSettingsBusy(false); clearSettingsPasswords();
     settingsMessage(''); el('settings-account').textContent = ''; el('settings-dialog').close();
-    el('device-name').value = ''; el('device-name-form').hidden = true; deviceNameMessage();
   }
   function openSettings() {
     if (!accountProfile || auth?.currentUser?.uid !== accountProfile.uid) return;
     closeSettings();
     el('settings-account').textContent = el('account-email').textContent;
-    el('device-name-form').hidden = !currentStudentIdentity();
-    el('device-name').value = localStudentName();
     el('settings-dialog').showModal();
-    (currentStudentIdentity() ? el('device-name') : el('settings-current-password')).focus();
+    el('settings-current-password').focus();
   }
   el('open-settings').addEventListener('click', openSettings);
   el('header-settings').addEventListener('click', openSettings);
@@ -163,7 +126,6 @@
   let selectedClass = null;
   let selectionVersion = 0;
   let studentListRequest = 0;
-  let savingStudent = false;
   let assignmentListRequest = 0;
   let savingAssignment = false;
   let recordContext = null;
@@ -174,9 +136,8 @@
     el('record-save').disabled = false;el('record-cancel').disabled = false;
   }
   function recordActions(kind,item) {
-    if (kind === 'student') item = studentForDisplay(item);
     const actions = document.createElement('div');actions.className = 'record-actions';
-    for (const action of isAdmin() ? ['edit','delete'] : kind === 'assignment' ? ['delete'] : []) {
+    for (const action of isAdmin() ? (kind === 'student' ? ['delete'] : ['edit','delete']) : kind === 'assignment' ? ['delete'] : []) {
       const button = document.createElement('button');button.type = 'button';
       button.className = action === 'delete' ? 'record-delete' : 'class-open';
       button.textContent = action === 'delete' ? 'Sil' : 'Düzenle';
@@ -186,8 +147,7 @@
     return actions;
   }
   function openRecord(kind,item,action) {
-    if (!isAdmin() && (kind !== 'assignment' || action !== 'delete')) return;
-    if (kind === 'student') item = studentForDisplay(item);
+    if ((!isAdmin() && (kind !== 'assignment' || action !== 'delete')) || (kind === 'student' && action !== 'delete')) return;
     const uid = teacherUid, session = profileRequest, classId = kind === 'class' ? item.id : selectedClass?.id;
     const version = selectionVersion;
     if (!uid || !sameTeacher(uid,session) || !classId || !knownClasses.has(classId)) return;
@@ -198,12 +158,9 @@
     el('record-fields').hidden = action === 'delete';
     el('record-warning').hidden = action !== 'delete';
     el('record-warning').textContent = '“' + (item.name || item.title) + '” listelerden kaldırılacak.' + (kind === 'class' ? ' Bu sınıfın öğrencileri ve ödevleri de görünmeyecek.' : '') + ' Bağlı geçmiş kayıtları korunur.';
-    el('record-name-label').textContent = kind === 'student' ? 'Öğrenci kullanıcı kodu' : kind === 'assignment' ? 'Ödev başlığı' : label + ' adı';
-    el('record-name').value = kind === 'student' ? codeUsername(item.name) : item.name || item.title;
-    el('record-name').maxLength = {class:60,student:10,assignment:120}[kind];
-    el('record-name').minLength = kind === 'student' ? 6 : 0;
-    el('record-name').pattern = kind === 'student' ? '([bB][tT][aA][lL])?[1-9][0-9]{5}' : '.*';
-    el('record-name').placeholder = kind === 'student' ? 'btal100002' : '';
+    el('record-name-label').textContent = kind === 'assignment' ? 'Ödev başlığı' : label + ' adı';
+    el('record-name').value = action === 'edit' ? item.name || item.title : '';
+    el('record-name').maxLength = kind === 'assignment' ? 120 : 60;
     el('record-name').required = action === 'edit';
     el('record-assignment-fields').hidden = kind !== 'assignment' || action !== 'edit';
     el('record-description').value = item.description || '';
@@ -223,8 +180,7 @@
     const {kind,item,action,classId} = context;
     let patch = {deleted:true};
     if (action === 'edit') {
-      const name = kind === 'student' ? codeUsername(el('record-name').value) : el('record-name').value.trim(),limit = {class:60,student:10,assignment:120}[kind];
-      if (kind === 'student' && !name) {el('record-message').textContent = 'btal ve ardından 6 rakamdan oluşan kullanıcı kodunu yazın. Örnek: btal100002.';return;}
+      const name = el('record-name').value.trim(), limit = kind === 'assignment' ? 120 : 60;
       if (!name || name.length > limit) {el('record-message').textContent = 'Adı 1–' + limit + ' karakter arasında yazın.';return;}
       patch = kind === 'assignment' ? {title:name,description:el('record-description').value.trim(),dueDate:el('record-date').value} : {name};
       if (kind === 'assignment' && (patch.description.length > 2000 || !validDueDate(patch.dueDate))) {el('record-message').textContent = 'Açıklama en fazla 2000 karakter olmalı; geçerli bir teslim günü seçin.';return;}
@@ -233,21 +189,17 @@
     el('record-message').textContent = 'Kaydediliyor…';
     const path = kind === 'class' ? ['classes',item.id] : ['classes',classId,kind === 'student' ? 'students' : 'assignments',item.id];
     try {
-      if (kind === 'student' && action === 'edit') {
-        if (!await studentCodeAvailable(classId,patch.name,item.id)) throw {code:'student/duplicate-code'};
-        if (recordContext !== context || !context.current()) return;
-      }
       await fs.updateDoc(fs.doc(db,...path),patch);
       if (recordContext !== context || !context.current()) return;
       closeRecord();
       if (kind === 'class') {
         if (selectedClass?.id === item.id) backToClasses();
         await loadClasses();classStatus(action === 'delete' ? 'Sınıf listeden kaldırıldı.' : 'Sınıf adı güncellendi.','success');
-      } else if (kind === 'student') {await loadStudents();studentStatus(action === 'delete' ? 'Öğrenci listeden kaldırıldı.' : 'Öğrenci kullanıcı kodu güncellendi.','success');}
+      } else if (kind === 'student') {await loadStudents();studentStatus('Öğrenci listeden kaldırıldı.','success');}
       else {await loadAssignments();assignmentStatus(action === 'delete' ? 'Ödev listeden kaldırıldı.' : 'Ödev güncellendi.','success');}
     } catch (error) {
       if (recordContext !== context || !context.current()) return;
-      el('record-message').textContent = error.code === 'student/duplicate-code' ? 'Bu kullanıcı kodu bu sınıfta zaten kayıtlı.' : 'İşlem kaydedilemedi. Bağlantınızı ve yeni erişim kurallarını kontrol edip tekrar deneyin.';
+      el('record-message').textContent = 'İşlem kaydedilemedi. Bağlantınızı ve yeni erişim kurallarını kontrol edip tekrar deneyin.';
       el('record-message').className = 'error';
     } finally {
       if (recordContext === context && context.current()) {savingRecord = false;el('record-save').disabled = false;el('record-cancel').disabled = false;}
@@ -345,7 +297,8 @@
         fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'assignments'))
       ]);
       if (!current()) return;
-      const students = studentRecords.docs.map(r => studentForDisplay({...r.data(), id:r.id})).filter(item => item.deleted !== true);
+      const students = await classAccountRows(studentRecords, classId, uid);
+      if (!current()) return;
       const assignments = assignmentRecords.docs.map(r => ({...r.data(), id:r.id})).filter(item => item.deleted !== true);
       students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
       assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
@@ -417,7 +370,6 @@
   let parentListRequest = 0;
   function clearParent() {
     parentUid = null;
-    studentLabelNodes = [];
     ++parentListRequest;
     el('parent-view').hidden = true;
     el('parent-children').replaceChildren();
@@ -454,7 +406,7 @@
       messages.push(' · ' + item.title + ': ' + (days === 0 ? 'Son teslim bugün.' : 'Son teslim tarihine ' + days + ' gün kaldı.'));
     }
     for (const text of messages) {
-      const notice = document.createElement('li');bindStudentLabel(notice, student.name, text);el('parent-notices').append(notice);
+      const notice = document.createElement('li');notice.textContent = student.name + text;el('parent-notices').append(notice);
       el('parent-notices-view').hidden = false;
     }
   }
@@ -499,7 +451,6 @@
     el('refresh-parent').disabled = true;
     // Clear previous data immediately so revoked links cannot leave old cards on screen.
     el('parent-children').replaceChildren();
-    studentLabelNodes = [];
     el('parent-notices').replaceChildren();
     el('parent-notices-view').hidden = true;
     el('parent-empty').hidden = true;
@@ -539,15 +490,15 @@
             const record = await fs.getDocFromServer(fs.doc(db, 'classes', classId, 'students', studentId));
             if (!record.exists() || record.data().deleted === true) return null;
             const accountCode = codeUsername(accountProfile?.userCode);
-            if (accountCode && codeUsername(record.data().name) !== accountCode) throw {code:'student/code-mismatch'};
+            if (!accountCode || record.data().name !== accountCode) throw {code:'student/code-mismatch'};
             const completedRecords = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students', studentId, 'completions'));
-            return {record, studentId, completions: new Map(completedRecords.docs.map(r => [r.id, r.data()]))};
+            return {name:accountCode, studentId, completions: new Map(completedRecords.docs.map(r => [r.id, r.data()]))};
           }))
         ]);
 
         const assignments = assignmentRecords.docs.map(record => ({...record.data(), id: record.id})).filter(item => item.deleted !== true);
         assignments.sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)) || String(a.title).localeCompare(String(b.title), 'tr'));
-        return {classId, className: classRecord.data().name, students: studentRecords.filter(Boolean).map(student => studentForDisplay({...student.record.data(), id: student.studentId, completions: student.completions})), assignments};
+        return {classId, className: classRecord.data().name, students: studentRecords.filter(Boolean).map(student => ({name:student.name, id:student.studentId, completions:student.completions})), assignments};
       }));
       if (!sameParent(uid, session, request)) return;
       const cards = [];
@@ -560,7 +511,7 @@
           const section = document.createElement('section');
           section.className = 'child-card';
           const heading = document.createElement('h2');
-          bindStudentLabel(heading, student.name);
+          heading.textContent = student.name;
           const subtitle = document.createElement('p');
           subtitle.className = 'child-subtitle';
           subtitle.textContent = className + ' · ' + assignments.length + ' ödev';
@@ -573,7 +524,7 @@
           } else {
             const list = document.createElement('ul');
             list.className = 'assignment-list';
-            bindStudentLabel(list, student.name, ' için sınıf ödevleri', 'aria-label');
+            list.setAttribute('aria-label', student.name + ' için sınıf ödevleri');
             for (const item of assignments) list.append(parentAssignment(item, {uid, session, request, classId, studentId: student.id, studentName: student.name, completions: student.completions}));
             for (const item of assignments) parentNotice(student,item);
             section.append(list);
@@ -1036,15 +987,11 @@
     selectedClass = null;
     ++selectionVersion;
     ++studentListRequest;
-    savingStudent = false;
     el('students-view').hidden = true;
     el('students-title').textContent = 'Öğrenciler';
     el('students-list').replaceChildren();
     el('student-count').textContent = '—';
     el('students-empty').hidden = true;
-    el('student-name').value = '';
-    el('create-student').disabled = false;
-    el('create-student').textContent = 'Öğrenci ekle';
     el('refresh-students').disabled = false;
     el('students-load-status').textContent = '';
     el('students-load-status').className = '';
@@ -1086,7 +1033,8 @@
     try {
       const result = await fs.getDocsFromServer(fs.collection(db, 'classes', classId, 'students'));
       if (request !== studentListRequest || !sameClass(uid, session, classId, version)) return;
-      const students = result.docs.map(record => studentForDisplay({...record.data(), id: record.id})).filter(item => item.deleted !== true);
+      const students = await classAccountRows(result, classId, uid);
+      if (request !== studentListRequest || !sameClass(uid, session, classId, version)) return;
       students.sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
       el('students-list').replaceChildren();
       students.forEach((student, index) => {
@@ -1120,42 +1068,6 @@
     else if (parentUid && auth?.currentUser?.uid === parentUid) {event.preventDefault(); el('parent-title').focus();}
   });
   el('refresh-students').addEventListener('click', loadStudents);
-  el('student-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const uid = teacherUid;
-    const session = profileRequest;
-    const classId = selectedClass?.id;
-    const version = selectionVersion;
-    if (!isAdmin() || !classId || !sameClass(uid, session, classId, version) || savingStudent || el('students-view').hidden) return;
-    const name = codeUsername(el('student-name').value);
-    if (!name) {
-      studentStatus('btal ve ardından 6 rakamdan oluşan kullanıcı kodunu yazın. Örnek: btal100002.', 'error');
-      el('student-name').focus();
-      return;
-    }
-    savingStudent = true;
-    el('create-student').disabled = true;
-    el('create-student').textContent = 'Kaydediliyor…';
-    studentStatus('Öğrenci kaydediliyor…');
-    try {
-      if (!await studentCodeAvailable(classId,name)) throw {code:'student/duplicate-code'};
-      if (!sameClass(uid, session, classId, version)) return;
-      await fs.addDoc(fs.collection(db, 'classes', classId, 'students'), {name, createdAt: fs.serverTimestamp()});
-      if (!sameClass(uid, session, classId, version)) return;
-      el('student-name').value = '';
-      studentStatus('“' + name + '” bu sınıfa eklendi.', 'success');
-      await loadStudents();
-    } catch (error) {
-      if (!sameClass(uid, session, classId, version)) return;
-      studentStatus(error.code === 'student/duplicate-code' ? 'Bu kullanıcı kodu bu sınıfta zaten kayıtlı.' : error.code === 'permission-denied' ? 'Öğrenci kaydedilemedi. Yeni öğrenci erişim kurallarının Firebase’de yayımlandığını kontrol edin.' : 'Öğrenci kaydedilemedi. Bağlantınızı kontrol edin; yeniden denemeden önce listeyi yenileyin.', 'error');
-    } finally {
-      if (sameClass(uid, session, classId, version)) {
-        savingStudent = false;
-        el('create-student').disabled = false;
-        el('create-student').textContent = 'Öğrenci ekle';
-      }
-    }
-  });
   function classStatus(message, kind = '') {
     el('classes-status').textContent = message;
     el('classes-status').className = kind;
@@ -1358,9 +1270,10 @@
         if (!window.ParentCodeAuth.sessionAllowed(profile, token.claims)) throw {code:'parent/session-reset'};
       }
       const parentCode = codeUsername(profile.userCode);
+      if (profile.role === 'parent' && !parentCode) throw {code:'profile/student-code-required'};
       accountProfile = {...profile, uid:user.uid};
       el('account-email').textContent = profile.role === 'parent' ? (parentCode ? 'Kullanıcı adı: ' + parentCode : 'Öğrenci hesabı') : user.email || '';
-      const name = profile.role === 'parent' ? studentScreenName(parentCode || 'Öğrenci hesabı') : typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Öğretmen';
+      const name = profile.role === 'parent' ? parentCode : typeof profile.name === 'string' && profile.name.trim() ? profile.name.trim() : 'Öğretmen';
       el('welcome').textContent = greeting(name);
       el('role').textContent = profile.role === 'teacher' ? (user.uid === ADMIN_UID ? 'Yönetici' : 'Öğretmen') : 'Öğrenci';
       el('profile-details').hidden = false;
@@ -1389,7 +1302,7 @@
       if (request !== profileRequest || auth.currentUser?.uid !== user.uid) return;
       el('welcome').textContent = 'Giriş yapıldı; profil okunamadı.';
       el('retry-profile').hidden = false;
-      const message = error.code === 'profile/no-class-access' ? 'Bu hesaba henüz sınıf erişimi verilmedi. Yöneticinizle iletişime geçin.' : error.code === 'profile/invalid-role' ? 'Bu hesabın rolü tanınmadı. Yöneticinizle iletişime geçin.' : errorText(error);
+      const message = error.code === 'profile/student-code-required' ? 'Bu hesaba henüz öğrenci kodu verilmedi. Yöneticinizle iletişime geçin.' : error.code === 'profile/no-class-access' ? 'Bu hesaba henüz sınıf erişimi verilmedi. Yöneticinizle iletişime geçin.' : error.code === 'profile/invalid-role' ? 'Bu hesabın rolü tanınmadı. Yöneticinizle iletişime geçin.' : errorText(error);
       status(message, 'error');
     }
   }
