@@ -229,108 +229,75 @@ dialog.survey-dialog {
   }
 
   </style>
-  <style id="workshop-navigation-style">
-    .workshop-external-icon { flex: none; }
-    .workshop-nav {
-      position: relative;
-      display: inline-flex;
-      align-items: stretch;
+  <style id="resource-navigation-style">
+    .site-header--resources .header-links {
+      min-width: 0;
+      justify-content: flex-end;
+      gap: 10px;
     }
-    .header-links .workshop-nav-main {
-      display: inline-flex;
+    .resource-menu-link svg { flex: none; }
+    .header-links .resource-menu-link {
+      display: flex;
       align-items: center;
-      border-radius: 4px 0 0 4px;
+      gap: 6px;
+      min-height: 40px;
+      line-height: 1.35;
       white-space: nowrap;
     }
-    .workshop-nav-details { display: flex; }
-    .workshop-nav-details summary {
-      display: grid;
-      place-items: center;
-      height: 100%;
-      min-width: 36px;
-      border: 1px solid #a1adb7;
-      border-inline-start: 0;
-      border-radius: 0 4px 4px 0;
-      list-style: none;
-      color: #fff;
-      cursor: pointer;
-    }
-    .workshop-nav-details summary::-webkit-details-marker { display: none; }
-    .workshop-nav-details summary:hover,
-    .workshop-nav-details[open] summary { background: #465c70; }
-    .workshop-nav-details summary:focus-visible { outline: 3px solid #7ba8cf; outline-offset: 3px; }
-    .workshop-nav-details[open] summary svg { transform: rotate(180deg); }
-    .workshop-nav-panel {
-      position: absolute;
-      z-index: 6;
-      top: calc(100% + 7px);
-      right: 0;
-      width: max-content;
-      min-width: 206px;
-      padding: 4px;
-      border: 1px solid #dce1e5;
-      border-radius: 7px;
-      background: #fff;
-      box-shadow: 0 6px 20px #192b3d30;
-    }
-    .header-links .workshop-nav-panel a,
-    .sidebar .workshop-sidebar-link {
+    .sidebar .resource-menu-link {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      line-height: 1.4;
+      gap: 6px;
+      min-height: 45px;
+      line-height: 1.35;
     }
-    .header-links .workshop-nav-panel a {
-      min-height: 44px;
-      padding: 8px 10px;
-      border: 0;
-      color: #344a5e;
-      font-size: 13px;
-      font-weight: 700;
+    @media (max-width: 1300px) {
+      .site-header--resources .stage { display: none; }
     }
-    .header-links .workshop-nav-panel a:hover { background: #f5edf0; color: #7c2c3b; }
-    .sidebar .workshop-sidebar-link {
-      min-height: 42px;
-      margin: 0 12px 0 22px;
-      padding: 8px 8px 8px 10px;
-      border-inline-start: 2px solid #e6d8dc;
-      border-radius: 0 4px 4px 0;
-      background: #faf5f6;
-      color: #713647;
-      font-size: 12px;
+    @media (max-width: 1100px) {
+      .site-header--resources { flex-wrap: wrap; gap: 14px; }
+      .site-header--resources .header-links { justify-content: flex-start; }
     }
-    .sidebar .workshop-sidebar-link:hover { background: #f5edf0; }
     @media (max-width: 720px) {
-      .workshop-nav-panel { width: 100%; min-width: 0; }
+      .site-header--resources .header-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        width: 100%;
+        gap: 8px;
+      }
+      .header-links .resource-menu-link {
+        justify-content: space-between;
+        min-height: 42px;
+        padding: 8px 10px;
+        white-space: normal;
+      }
+      .site-header--resources .survey-trigger,
+      .site-header--resources .header-action { justify-self: start; align-self: center; }
     }
   </style>
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
-  <header class="site-header"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><div class="header-links"><a class="survey-trigger" id="survey-trigger" href="https://docs.google.com/forms/d/e/1FAIpQLScEfCypnN_5ZjBcDBvQhki4-VmMXNi06tRO21vXUK3biX_haA/viewform" target="_blank" rel="noopener noreferrer">
+  <header class="site-header site-header--resources"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><nav class="header-links" aria-label="Üst menü"><a class="survey-trigger" id="survey-trigger" href="https://docs.google.com/forms/d/e/1FAIpQLScEfCypnN_5ZjBcDBvQhki4-VmMXNi06tRO21vXUK3biX_haA/viewform" target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h6"/>
         </svg>
         Görüş ve öneri
       </a>
-      <div class="workshop-nav">
-        <a class="workshop-nav-main" href="./materyaller/">Öğretmen Atölyesi</a>
-        <details class="workshop-nav-details" id="workshop-nav-details">
-          <summary aria-label="Öğretmen Atölyesi bağlantıları" title="Atölye bağlantıları">
-            <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 5 5 5-5"/></svg>
-          </summary>
-          <div class="workshop-nav-panel">
-            <a href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (MEB, yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg class="workshop-external-icon" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
-          </div>
-        </details>
-      </div>
-      <button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button><span class="stage">Sınıfınızın ortak çalışma alanı</span></div></header>
+      <a class="resource-menu-link" href="./materyaller/"><span>Öğretmen Atölyesi</span></a>
+      <a class="resource-menu-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <a class="resource-menu-link" href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="MEBİ&#x27;de Neler Var? (yeni sekme)"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <a class="resource-menu-link" href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="EBA&#x27;da Neler Var? (yeni sekme)"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button><span class="stage">Sınıfınızın ortak çalışma alanı</span></nav></header>
   <main id="main-content" tabindex="-1">
     <aside class="sidebar" aria-label="Site menüsü">
       <p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a>
-      <a class="menu-link" href="./materyaller/">Öğretmen Atölyesi</a>
-      <a class="menu-link workshop-sidebar-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (MEB, yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg class="workshop-external-icon" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <a class="menu-link resource-menu-link" href="./materyaller/"><span>Öğretmen Atölyesi</span></a>
+      <a class="menu-link resource-menu-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <a class="menu-link resource-menu-link" href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="MEBİ&#x27;de Neler Var? (yeni sekme)"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <a class="menu-link resource-menu-link" href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="EBA&#x27;da Neler Var? (yeni sekme)"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
       <div class="sidebar-note"><strong>Öğretmen ve öğrenci</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div>
     </aside>
     <section id="intro-view" class="intro" aria-labelledby="intro-title">
@@ -597,25 +564,6 @@ dialog.survey-dialog {
     try { if (sessionStorage.getItem(seenKey) === "1") return; } catch {}
     openSurvey();
   })();
-  </script>
-  <script>
-    (() => {
-      const menu = document.getElementById("workshop-nav-details");
-      const trigger = menu.querySelector("summary");
-      document.addEventListener("click", event => {
-        if (menu.open && !menu.contains(event.target)) menu.open = false;
-      });
-      menu.querySelector("a").addEventListener("click", () => {
-        menu.open = false;
-        trigger.focus({ preventScroll: true });
-      });
-      menu.addEventListener("keydown", event => {
-        if (event.key !== "Escape" || !menu.open) return;
-        event.preventDefault();
-        menu.open = false;
-        trigger.focus({ preventScroll: true });
-      });
-    })();
   </script>
 </body>
 </html>
