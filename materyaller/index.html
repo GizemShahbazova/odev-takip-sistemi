@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Öğretmen Atölyesi: ders zümreleri, öğretmen listeleri ve ders kaynakları.">
+  <meta name="description" content="Öğretmen Atölyesi: zümre görselleri, öğretmen listeleri ve ders kaynakları.">
   <title>Öğretmen Atölyesi | Ödev Takip</title>
   <link rel="stylesheet" href="../style.css">
   <style>
@@ -109,12 +109,22 @@
       scroll-margin-top: 16px;
     }
     @supports selector(:has(*)) {
-      .workshop-panel:not(:target):not(#ingilizce),
-      .workshop-panels:has(.workshop-panel:target) #ingilizce:not(:target) { display: none; }
+      .workshop-panels > .workshop-panel:not(:target):not(#ingilizce),
+      .workshop-panels:has(> .workshop-panel:target) > #ingilizce:not(:target) { display: none; }
     }
     .workshop-back { margin: -8px 0 4px; }
     .workshop-back:hover { text-decoration: underline; }
     .workshop-panel h2 { margin-bottom: 14px; }
+    .workshop-art {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      place-items: center;
+      margin: 0 0 16px;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #f8f5f3;
+    }
+    .workshop-art img { display: block; width: auto; height: auto; max-width: 100%; }
     .workshop-teachers {
       padding: 14px 16px;
       border-left: 3px solid #993e4e;
@@ -131,6 +141,72 @@
     .workshop-games .material-icon { width: 44px; height: 44px; font-size: 19px; }
     .workshop-games .material-card .material-description { margin: 10px 0 15px; }
     .workshop-games .note { margin-top: 13px; }
+    html.workshop-dialog-open { overflow: hidden; }
+    .workshop-dialog {
+      --workshop-dialog-padding: clamp(14px, 3vw, 24px);
+      width: min(840px, calc(100% - 32px));
+      max-width: none;
+      max-height: calc(100vh - 32px);
+      max-height: calc(100dvh - 32px);
+      padding: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scroll-padding-block-start: 94px;
+      border: 1px solid var(--workshop-line);
+      border-top: 4px solid #993e4e;
+      border-radius: 12px;
+      background: #fff;
+      color: #323b44;
+      box-shadow: 0 18px 65px #17253455;
+    }
+    .workshop-dialog:not([open]) { display: none; }
+    .workshop-dialog::backdrop { background: rgb(22 32 44 / 67%); }
+    .workshop-dialog .workshop-panel {
+      margin: 0;
+      padding: 0 var(--workshop-dialog-padding) var(--workshop-dialog-padding);
+      border: 0;
+      border-radius: 0;
+    }
+    .workshop-dialog .workshop-back { display: none; }
+    .workshop-dialog .workshop-panel-heading {
+      position: sticky;
+      z-index: 1;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 calc(-1 * var(--workshop-dialog-padding)) 16px;
+      padding: 10px var(--workshop-dialog-padding);
+      border-bottom: 1px solid var(--workshop-line);
+      background: #fff;
+    }
+    .workshop-dialog .workshop-panel-heading h2 {
+      margin: 0;
+      font-size: clamp(17px, 3vw, 23px);
+      line-height: 1.25;
+    }
+    .workshop-dialog .workshop-art img {
+      max-height: 58vh;
+      max-height: min(58dvh, 510px);
+    }
+    .workshop-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      gap: 6px;
+      min-height: 44px;
+      padding: 0 10px;
+      border: 1px solid #dce1e5;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--workshop-navy);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .workshop-close:hover { background: #f5edf0; color: var(--workshop-wine); }
+    .workshop-close span { font-size: 20px; line-height: 1; }
     @media (max-width: 870px) {
       .workshop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -139,6 +215,7 @@
       .workshop-directory { margin: 23px 0; }
       .workshop-grid { grid-template-columns: 1fr; gap: 8px; }
       .workshop-link { min-height: 56px; padding: 8px 12px; }
+      .workshop-dialog { width: calc(100% - 20px); }
     }
   </style>
 </head>
@@ -153,19 +230,24 @@
       <div>
         <p class="eyebrow">ZÜMRELER VE DERS KAYNAKLARI</p>
         <h1 id="workshop-title">Öğretmen Atölyesi</h1>
-        <p class="lead">Öğretmen listesini ve ders kaynaklarını görmek için ilgili zümreyi seçin.</p>
+        <p class="lead">Zümre görselini, öğretmen listesini ve ders kaynaklarını görmek için bir karta tıklayın.</p>
       </div>
-      <a class="workshop-quick" href="#ingilizce">İngilizce oyunları <span aria-hidden="true">→</span></a>
+      <a class="workshop-quick" href="#ingilizce" data-workshop-games>İngilizce oyunları <span aria-hidden="true">→</span></a>
     </section>
     <nav class="workshop-directory" id="zumreler" aria-labelledby="directory-title" tabindex="-1">
       <div class="workshop-heading">
         <h2 id="directory-title">Zümreler</h2>
-        <p class="workshop-count">10 ders zümresi ve Rehberlik</p>
+        <p class="workshop-count">11 ders zümresi ve Rehberlik</p>
       </div>
       <ul class="workshop-grid">
         <li><a class="workshop-link" href="#turkce">
           <span class="workshop-mark" aria-hidden="true">Aa</span>
           <span>Türkçe</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#azerbaycan-dili">
+          <span class="workshop-mark" aria-hidden="true">AZ</span>
+          <span>Azerbaycan Dili</span>
           <span class="workshop-arrow" aria-hidden="true">→</span>
         </a></li>
         <li><a class="workshop-link" href="#matematik">
@@ -223,7 +305,25 @@
     <div class="workshop-panels">
       <section class="workshop-panel" id="turkce" aria-labelledby="turkce-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="turkce-title">Türkçe Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="turkce-title">Türkçe Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-turkce.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Türkçe Zümresi afişi">
+        </figure>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="azerbaycan-dili" aria-labelledby="azerbaycan-dili-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <div class="workshop-panel-heading">
+          <h2 id="azerbaycan-dili-title">Azerbaycan Dili Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-azerbaycan-dili.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Azerbaycan Dili Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -231,7 +331,12 @@
       </section>
       <section class="workshop-panel" id="matematik" aria-labelledby="matematik-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="matematik-title">Matematik Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="matematik-title">Matematik Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-matematik.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Matematik Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -239,13 +344,18 @@
       </section>
       <section class="workshop-panel" id="ingilizce" aria-labelledby="ingilizce-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="ingilizce-title">İngilizce Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="ingilizce-title">İngilizce Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-ingilizce.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — İngilizce Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
         </div>
         <section class="workshop-games" aria-labelledby="games-title">
-          <h3 id="games-title">İngilizce oyunları</h3>
+          <h3 id="games-title" tabindex="-1">İngilizce oyunları</h3>
           <div class="materials-grid">
             <article class="material-card">
               <div class="material-icon" aria-hidden="true">Aa</div>
@@ -267,7 +377,12 @@
       </section>
       <section class="workshop-panel" id="sosyal-bilgiler" aria-labelledby="sosyal-bilgiler-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="sosyal-bilgiler-title">Sosyal Bilgiler Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="sosyal-bilgiler-title">Sosyal Bilgiler Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-sosyal-bilgiler.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Sosyal Bilimler Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -275,7 +390,12 @@
       </section>
       <section class="workshop-panel" id="fen-bilimleri" aria-labelledby="fen-bilimleri-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="fen-bilimleri-title">Fen Bilimleri Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="fen-bilimleri-title">Fen Bilimleri Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-fen-bilimleri.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Fen Bilimleri Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -283,7 +403,12 @@
       </section>
       <section class="workshop-panel" id="din-kulturu" aria-labelledby="din-kulturu-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="din-kulturu-title">Din Kültürü ve Ahlak Bilgisi Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="din-kulturu-title">Din Kültürü ve Ahlak Bilgisi Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-din-kulturu.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Din Kültürü ve Ahlak Bilgisi Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -291,7 +416,12 @@
       </section>
       <section class="workshop-panel" id="beden-egitimi" aria-labelledby="beden-egitimi-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="beden-egitimi-title">Beden Eğitimi Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="beden-egitimi-title">Beden Eğitimi Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-beden-egitimi.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Beden Eğitimi Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -299,7 +429,12 @@
       </section>
       <section class="workshop-panel" id="gorsel-sanatlar" aria-labelledby="gorsel-sanatlar-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="gorsel-sanatlar-title">Görsel Sanatlar Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="gorsel-sanatlar-title">Görsel Sanatlar Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-gorsel-sanatlar.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Resim Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -307,7 +442,12 @@
       </section>
       <section class="workshop-panel" id="muzik" aria-labelledby="muzik-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="muzik-title">Müzik Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="muzik-title">Müzik Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-muzik.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Müzik Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -315,7 +455,12 @@
       </section>
       <section class="workshop-panel" id="bilisim-teknolojileri" aria-labelledby="bilisim-teknolojileri-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="bilisim-teknolojileri-title">Bilişim Teknolojileri ve Yazılım Zümresi</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="bilisim-teknolojileri-title">Bilişim Teknolojileri ve Yazılım Zümresi</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-bilisim-teknolojileri.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Bilişim Teknolojileri ve Yazılım Zümresi afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
@@ -323,14 +468,99 @@
       </section>
       <section class="workshop-panel" id="rehberlik" aria-labelledby="rehberlik-title" tabindex="-1">
         <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
-        <h2 id="rehberlik-title">Rehberlik</h2>
+        <div class="workshop-panel-heading">
+          <h2 id="rehberlik-title">Rehberlik</h2>
+        </div>
+        <figure class="workshop-art">
+          <img src="./zumre-rehberlik.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bakü Türk Ortaokulu — Rehberlik afişi">
+        </figure>
         <div class="workshop-teachers">
           <h3>Rehberlik öğretmenleri</h3>
           <p>Öğretmen listesi daha sonra eklenecek.</p>
         </div>
       </section>
     </div>
+    <dialog class="workshop-dialog" id="zumre-penceresi">
+      <button class="workshop-close" type="button" autofocus><span aria-hidden="true">×</span> Kapat</button>
+    </dialog>
   </main>
   <footer>Ödev Takip Sistemi <span>Öğretmen Atölyesi</span></footer>
+  <script>
+    (() => {
+      const dialog = document.getElementById("zumre-penceresi");
+      if (typeof dialog.showModal !== "function") return;
+
+      const panels = document.querySelector(".workshop-panels");
+      const closeButton = dialog.querySelector(".workshop-close");
+      const links = [...document.querySelectorAll(".workshop-link, .workshop-quick")];
+      let activePanel, placeholder, opener;
+      let beganOutside = false;
+
+      function panelFor(hash) {
+        const panel = document.getElementById(hash.slice(1));
+        return panel?.classList.contains("workshop-panel") ? panel : null;
+      }
+
+      function openPanel(panel, trigger, jumpToGames = false) {
+        if (activePanel) return;
+        activePanel = panel;
+        opener = trigger;
+        placeholder = document.createComment("Zümre içeriği");
+        panel.replaceWith(placeholder);
+        panel.querySelector(".workshop-panel-heading").append(closeButton);
+        dialog.append(panel);
+        dialog.setAttribute("aria-labelledby", panel.getAttribute("aria-labelledby"));
+        dialog.showModal();
+        document.documentElement.classList.add("workshop-dialog-open");
+        dialog.scrollTop = 0;
+
+        if (jumpToGames) {
+          const gamesTitle = panel.querySelector("#games-title");
+          gamesTitle.focus({ preventScroll: true });
+          gamesTitle.scrollIntoView({ block: "start" });
+        }
+      }
+
+      closeButton.addEventListener("click", () => dialog.close());
+      dialog.addEventListener("pointerdown", event => { beganOutside = event.target === dialog; });
+      dialog.addEventListener("click", event => {
+        if (beganOutside && event.target === dialog) dialog.close();
+        beganOutside = false;
+      });
+      dialog.addEventListener("close", () => {
+        dialog.prepend(closeButton);
+        placeholder.replaceWith(activePanel);
+        if (location.hash === "#" + activePanel.id) {
+          history.replaceState(history.state, "", location.pathname + location.search);
+        }
+        activePanel = null;
+        document.documentElement.classList.remove("workshop-dialog-open");
+        opener?.focus({ preventScroll: true });
+        opener = null;
+      });
+
+      for (const link of links) {
+        link.setAttribute("aria-haspopup", "dialog");
+        link.setAttribute("aria-controls", dialog.id);
+        link.addEventListener("click", event => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          const panel = panelFor(link.hash);
+          if (!panel) return;
+          event.preventDefault();
+          openPanel(panel, link, link.hasAttribute("data-workshop-games"));
+        });
+      }
+
+      panels.hidden = true;
+      function openLinkedPanel() {
+        const panel = panelFor(location.hash);
+        if (!panel) return;
+        const trigger = links.find(link => link.classList.contains("workshop-link") && link.hash === location.hash);
+        openPanel(panel, trigger);
+      }
+      window.addEventListener("hashchange", openLinkedPanel);
+      openLinkedPanel();
+    })();
+  </script>
 </body>
 </html>
