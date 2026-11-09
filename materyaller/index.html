@@ -32,7 +32,7 @@
       line-height: 1.1;
     }
     .workshop-hero .lead { margin: 0; max-width: 480px; line-height: 1.65; }
-    .workshop-quick, .workshop-back {
+    .workshop-resource, .workshop-back {
       display: inline-flex;
       min-height: 44px;
       align-items: center;
@@ -41,14 +41,15 @@
       font-weight: 700;
       color: var(--workshop-wine);
     }
-    .workshop-quick {
+    .workshop-external-icon { flex: none; }
+    .workshop-resource {
       flex-shrink: 0;
       padding: 10px 14px;
       border: 1px solid #e8cbd2;
       border-radius: 5px;
       background: #fff;
     }
-    .workshop-quick:hover, .workshop-link--featured:hover { background: #fbf1f3; }
+    .workshop-resource:hover { background: #fbf1f3; }
     .workshop-directory { margin: 30px 0; scroll-margin-top: 16px; }
     .workshop-heading {
       display: flex;
@@ -83,7 +84,6 @@
       line-height: 1.35;
       box-shadow: 0 2px 4px #182d4210;
     }
-    .workshop-link--featured { border-color: #e8cbd2; }
     .workshop-link:is(:hover, :focus-visible) { border-color: #a3b0be; }
     .workshop-thumbnail {
       display: block;
@@ -106,12 +106,6 @@
       min-height: 64px;
       padding: 10px 12px;
       border-top: 1px solid var(--workshop-line);
-    }
-    .workshop-link small {
-      display: block;
-      margin-top: 3px;
-      color: var(--workshop-wine);
-      font-size: 11px;
     }
     .workshop-arrow {
       display: grid;
@@ -293,7 +287,7 @@
         <h1 id="workshop-title">Öğretmen Atölyesi</h1>
         <p class="lead">Afişi büyütmek, öğretmen listesini ve ders kaynaklarını görmek için bir zümre seçin.</p>
       </div>
-      <a class="workshop-quick" href="#ingilizce" data-workshop-games>İngilizce oyunları <span aria-hidden="true">→</span></a>
+      <a class="workshop-resource" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (MEB, yeni sekme)">Maarifin Kalbinde Oyun <svg class="workshop-external-icon" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
     </section>
     <nav class="workshop-directory" id="zumreler" aria-labelledby="directory-title" tabindex="-1">
       <div class="workshop-heading">
@@ -328,12 +322,12 @@
             <span class="workshop-arrow" aria-hidden="true">→</span>
           </span>
         </a></li>
-        <li><a class="workshop-link workshop-link--featured" href="#ingilizce">
+        <li><a class="workshop-link" href="#ingilizce">
           <span class="workshop-thumbnail">
             <img src="./mini-ingilizce.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
           </span>
           <span class="workshop-card-body">
-            <span>İngilizce<small>2 oyun</small></span>
+            <span>İngilizce</span>
             <span class="workshop-arrow" aria-hidden="true">→</span>
           </span>
         </a></li>
@@ -464,7 +458,7 @@
           <p>Öğretmen listesi daha sonra eklenecek.</p>
         </div>
         <section class="workshop-games" aria-labelledby="games-title">
-          <h3 id="games-title" tabindex="-1">İngilizce oyunları</h3>
+          <h3 id="games-title">Oyunlar</h3>
           <div class="materials-grid">
             <article class="material-card">
               <div class="material-icon" aria-hidden="true">Aa</div>
@@ -601,7 +595,7 @@
 
       const panels = document.querySelector(".workshop-panels");
       const closeButton = dialog.querySelector(".workshop-close");
-      const links = [...document.querySelectorAll(".workshop-link, .workshop-quick")];
+      const links = [...document.querySelectorAll(".workshop-link")];
       let activePanel, placeholder, opener;
       let beganOutside = false;
 
@@ -610,7 +604,7 @@
         return panel?.classList.contains("workshop-panel") ? panel : null;
       }
 
-      function openPanel(panel, trigger, jumpToGames = false) {
+      function openPanel(panel, trigger) {
         if (activePanel) return;
         activePanel = panel;
         opener = trigger;
@@ -622,12 +616,6 @@
         dialog.showModal();
         document.documentElement.classList.add("workshop-dialog-open");
         dialog.scrollTop = 0;
-
-        if (jumpToGames) {
-          const gamesTitle = panel.querySelector("#games-title");
-          gamesTitle.focus({ preventScroll: true });
-          gamesTitle.scrollIntoView({ block: "start" });
-        }
       }
 
       closeButton.addEventListener("click", () => dialog.close());
@@ -656,7 +644,7 @@
           const panel = panelFor(link.hash);
           if (!panel) return;
           event.preventDefault();
-          openPanel(panel, link, link.hasAttribute("data-workshop-games"));
+          openPanel(panel, link);
         });
       }
 
