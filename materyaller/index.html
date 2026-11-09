@@ -62,44 +62,68 @@
     .workshop-count { margin: 0; color: var(--workshop-muted); font-size: 13px; }
     .workshop-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
       margin: 0;
       padding: 0;
       list-style: none;
     }
     .workshop-link {
-      display: grid;
-      grid-template-columns: 40px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 12px;
+      display: flex;
+      flex-direction: column;
       height: 100%;
-      min-height: 66px;
-      padding: 12px 14px;
+      min-width: 0;
+      overflow: hidden;
       border: 1px solid var(--workshop-line);
-      border-radius: 6px;
+      border-radius: 9px;
       background: #fff;
       color: var(--workshop-navy);
       font-weight: 700;
       font-size: 15px;
       line-height: 1.35;
+      box-shadow: 0 2px 4px #182d4210;
     }
-    .workshop-link:hover { border-color: #9daebc; background: #f9fafb; }
     .workshop-link--featured { border-color: #e8cbd2; }
-    .workshop-link small { display: block; margin-top: 3px; color: var(--workshop-wine); font-size: 11px; }
-    .workshop-mark {
+    .workshop-link:is(:hover, :focus-visible) { border-color: #a3b0be; }
+    .workshop-thumbnail {
+      display: block;
+      aspect-ratio: 3 / 2;
+      overflow: hidden;
+      background: #f3efed;
+    }
+    .workshop-thumbnail img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .workshop-card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      flex: 1;
+      gap: 8px;
+      min-height: 64px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--workshop-line);
+    }
+    .workshop-link small {
+      display: block;
+      margin-top: 3px;
+      color: var(--workshop-wine);
+      font-size: 11px;
+    }
+    .workshop-arrow {
       display: grid;
       place-items: center;
-      width: 40px;
-      height: 40px;
-      border-radius: 6px;
-      background: #edf2f6;
-      color: var(--workshop-navy);
-      font-size: 14px;
-      font-weight: 700;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f5edf0;
+      color: var(--workshop-wine);
+      font-weight: 400;
+      font-size: 18px;
     }
-    .workshop-link--featured .workshop-mark { color: var(--workshop-wine); background: #f5e8eb; }
-    .workshop-arrow { color: var(--workshop-wine); font-weight: 400; font-size: 18px; }
     .workshop-panel {
       margin: 0 0 18px;
       padding: clamp(18px, 3.5vw, 30px);
@@ -207,14 +231,51 @@
     }
     .workshop-close:hover { background: #f5edf0; color: var(--workshop-wine); }
     .workshop-close span { font-size: 20px; line-height: 1; }
-    @media (max-width: 870px) {
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes workshop-card-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes workshop-dialog-in {
+        from { opacity: 0; transform: translateY(8px) scale(.985); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes workshop-backdrop-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .workshop-grid > li { animation: workshop-card-in 300ms ease-out var(--card-delay, 0ms) both; }
+      .workshop-grid > li:nth-child(4n + 2) { --card-delay: 30ms; }
+      .workshop-grid > li:nth-child(4n + 3) { --card-delay: 60ms; }
+      .workshop-grid > li:nth-child(4n + 4) { --card-delay: 90ms; }
+      .workshop-link { transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease; }
+      .workshop-thumbnail img { transition: transform 240ms ease-out; }
+      .workshop-arrow { transition: transform 180ms ease; }
+      .workshop-link:focus-visible { transform: translateY(-3px); box-shadow: 0 8px 18px #182d4224; }
+      .workshop-link:focus-visible .workshop-thumbnail img { transform: scale(1.03); }
+      .workshop-link:focus-visible .workshop-arrow { transform: translateX(2px); }
+      @media (hover: hover) and (pointer: fine) {
+        .workshop-link:hover { transform: translateY(-3px); box-shadow: 0 8px 18px #182d4224; }
+        .workshop-link:hover .workshop-thumbnail img { transform: scale(1.03); }
+        .workshop-link:hover .workshop-arrow { transform: translateX(2px); }
+      }
+      .workshop-link:active { transform: scale(.985); }
+      .workshop-dialog[open] { animation: workshop-dialog-in 220ms ease-out both; }
+      .workshop-dialog[open]::backdrop { animation: workshop-backdrop-in 180ms ease-out both; }
+    }
+    @media (max-width: 920px) {
+      .workshop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 680px) {
       .workshop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 580px) {
       .workshop-hero { align-items: flex-start; flex-direction: column; gap: 14px; }
       .workshop-directory { margin: 23px 0; }
-      .workshop-grid { grid-template-columns: 1fr; gap: 8px; }
-      .workshop-link { min-height: 56px; padding: 8px 12px; }
+      .workshop-grid { gap: 10px; }
+      .workshop-link { font-size: 14px; }
+      .workshop-card-body { min-height: 57px; padding: 9px 10px; }
+      .workshop-arrow { width: 23px; height: 23px; font-size: 15px; }
       .workshop-dialog { width: calc(100% - 20px); }
     }
   </style>
@@ -230,7 +291,7 @@
       <div>
         <p class="eyebrow">ZÜMRELER VE DERS KAYNAKLARI</p>
         <h1 id="workshop-title">Öğretmen Atölyesi</h1>
-        <p class="lead">Zümre görselini, öğretmen listesini ve ders kaynaklarını görmek için bir karta tıklayın.</p>
+        <p class="lead">Afişi büyütmek, öğretmen listesini ve ders kaynaklarını görmek için bir zümre seçin.</p>
       </div>
       <a class="workshop-quick" href="#ingilizce" data-workshop-games>İngilizce oyunları <span aria-hidden="true">→</span></a>
     </section>
@@ -241,64 +302,112 @@
       </div>
       <ul class="workshop-grid">
         <li><a class="workshop-link" href="#turkce">
-          <span class="workshop-mark" aria-hidden="true">Aa</span>
-          <span>Türkçe</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-turkce.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Türkçe</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#azerbaycan-dili">
-          <span class="workshop-mark" aria-hidden="true">AZ</span>
-          <span>Azerbaycan Dili</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-azerbaycan-dili.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Azerbaycan Dili</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#matematik">
-          <span class="workshop-mark" aria-hidden="true">∑</span>
-          <span>Matematik</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-matematik.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Matematik</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link workshop-link--featured" href="#ingilizce">
-          <span class="workshop-mark" aria-hidden="true">EN</span>
-          <span>İngilizce<small>2 oyun</small></span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-ingilizce.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>İngilizce<small>2 oyun</small></span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#sosyal-bilgiler">
-          <span class="workshop-mark" aria-hidden="true">SB</span>
-          <span>Sosyal Bilgiler</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-sosyal-bilgiler.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Sosyal Bilgiler</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#fen-bilimleri">
-          <span class="workshop-mark" aria-hidden="true">FB</span>
-          <span>Fen Bilimleri</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-fen-bilimleri.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Fen Bilimleri</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#din-kulturu">
-          <span class="workshop-mark" aria-hidden="true">DK</span>
-          <span>Din Kültürü ve Ahlak Bilgisi</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-din-kulturu.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Din Kültürü ve Ahlak Bilgisi</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#beden-egitimi">
-          <span class="workshop-mark" aria-hidden="true">BE</span>
-          <span>Beden Eğitimi</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-beden-egitimi.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Beden Eğitimi</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#gorsel-sanatlar">
-          <span class="workshop-mark" aria-hidden="true">GS</span>
-          <span>Görsel Sanatlar</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-gorsel-sanatlar.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Görsel Sanatlar</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#muzik">
-          <span class="workshop-mark" aria-hidden="true">♪</span>
-          <span>Müzik</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-muzik.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Müzik</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#bilisim-teknolojileri">
-          <span class="workshop-mark" aria-hidden="true">BT</span>
-          <span>Bilişim Teknolojileri ve Yazılım</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-bilisim-teknolojileri.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Bilişim Teknolojileri ve Yazılım</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
         <li><a class="workshop-link" href="#rehberlik">
-          <span class="workshop-mark" aria-hidden="true">R</span>
-          <span>Rehberlik</span>
-          <span class="workshop-arrow" aria-hidden="true">→</span>
+          <span class="workshop-thumbnail">
+            <img src="./mini-rehberlik.webp" width="480" height="320" loading="lazy" decoding="async" alt="">
+          </span>
+          <span class="workshop-card-body">
+            <span>Rehberlik</span>
+            <span class="workshop-arrow" aria-hidden="true">→</span>
+          </span>
         </a></li>
       </ul>
     </nav>
