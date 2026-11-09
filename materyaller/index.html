@@ -14,10 +14,6 @@
       --workshop-muted: #5e6b77;
     }
     .workshop-hero {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
       padding: clamp(20px, 4vw, 36px);
       border: 1px solid var(--workshop-line);
       border-top: 3px solid #993e4e;
@@ -32,7 +28,7 @@
       line-height: 1.1;
     }
     .workshop-hero .lead { margin: 0; max-width: 480px; line-height: 1.65; }
-    .workshop-resource, .workshop-back {
+    .workshop-back {
       display: inline-flex;
       min-height: 44px;
       align-items: center;
@@ -41,15 +37,6 @@
       font-weight: 700;
       color: var(--workshop-wine);
     }
-    .workshop-external-icon { flex: none; }
-    .workshop-resource {
-      flex-shrink: 0;
-      padding: 10px 14px;
-      border: 1px solid #e8cbd2;
-      border-radius: 5px;
-      background: #fff;
-    }
-    .workshop-resource:hover { background: #fbf1f3; }
     .workshop-directory { margin: 30px 0; scroll-margin-top: 16px; }
     .workshop-heading {
       display: flex;
@@ -264,7 +251,6 @@
       .workshop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 580px) {
-      .workshop-hero { align-items: flex-start; flex-direction: column; gap: 14px; }
       .workshop-directory { margin: 23px 0; }
       .workshop-grid { gap: 10px; }
       .workshop-link { font-size: 14px; }
@@ -287,7 +273,6 @@
         <h1 id="workshop-title">Öğretmen Atölyesi</h1>
         <p class="lead">Afişi büyütmek, öğretmen listesini ve ders kaynaklarını görmek için bir zümre seçin.</p>
       </div>
-      <a class="workshop-resource" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (MEB, yeni sekme)">Maarifin Kalbinde Oyun <svg class="workshop-external-icon" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
     </section>
     <nav class="workshop-directory" id="zumreler" aria-labelledby="directory-title" tabindex="-1">
       <div class="workshop-heading">
