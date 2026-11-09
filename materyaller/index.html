@@ -1,10 +1,336 @@
 <!doctype html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="School Life: İngilizce kelime ve okuma oyunları."><title>Materyaller | Ödev Takip</title><link rel="stylesheet" href="../style.css"></head>
-<body><a class="skip-link" href="#main-content">İçeriğe geç</a>
-<header class="site-header"><a href="../" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><div class="header-links"><a href="../">Ödev takibine dön</a><span class="stage">İngilizce öğrenme materyalleri</span></div></header>
-<main id="main-content" class="materials-page" tabindex="-1"><p class="eyebrow">ÖĞREN · OYNA · TEKRAR ET</p><h1>Materyaller</h1><p class="lead">İngilizce kelimeleri pekiştirin ve okuduğunuzu anlama becerinizi geliştirin. Bir oyun seçerek başlayın.</p>
-<div class="materials-grid">
-<article class="material-card"><div class="material-icon" aria-hidden="true">Aa</div><h2>Kelime oyunu</h2><span class="material-kind" lang="en">School Life · Vocabulary Challenge</span><p class="material-description">Okul hayatıyla ilgili İngilizce kelimeleri sorularla tekrar edin. Seviyenizi seçin ve kelime bilginizi sınayın.</p><a class="primary" href="./oyun-1.html" aria-label="Kelime oyununu oyna">Oyna →</a></article>
-<article class="material-card"><div class="material-icon" aria-hidden="true">📖</div><h2>Okuma oyunu</h2><span class="material-kind" lang="en">School Life Reading Quest</span><p class="material-description">İngilizce metinleri okuyun, soruları cevaplayın ve okul hayatıyla ilgili okuma becerilerinizi geliştirin.</p><a class="primary" href="./reading_game.html" aria-label="Okuma oyununu oyna">Oyna →</a></article>
-</div><p class="note">Bu oyunlar alıştırma içindir; oyun puanları ödev takip hesabınıza kaydedilmez.</p></main>
-<footer>Ödev Takip Sistemi <span>Öğrenme materyalleri</span></footer></body></html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Öğretmen Atölyesi: ders zümreleri, öğretmen listeleri ve ders kaynakları.">
+  <title>Öğretmen Atölyesi | Ödev Takip</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .workshop-page {
+      --workshop-navy: #344a5e;
+      --workshop-wine: #7c2c3b;
+      --workshop-line: #dce1e5;
+      --workshop-muted: #5e6b77;
+    }
+    .workshop-hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: clamp(20px, 4vw, 36px);
+      border: 1px solid var(--workshop-line);
+      border-top: 3px solid #993e4e;
+      border-radius: 8px;
+      background: linear-gradient(125deg, #fff 62%, #faf2f4);
+    }
+    .workshop-hero .eyebrow { margin-bottom: 10px; }
+    .workshop-hero h1 {
+      margin-bottom: 10px;
+      font-size: clamp(29px, 5vw, 44px);
+      letter-spacing: -.035em;
+      line-height: 1.1;
+    }
+    .workshop-hero .lead { margin: 0; max-width: 480px; line-height: 1.65; }
+    .workshop-quick, .workshop-back {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--workshop-wine);
+    }
+    .workshop-quick {
+      flex-shrink: 0;
+      padding: 10px 14px;
+      border: 1px solid #e8cbd2;
+      border-radius: 5px;
+      background: #fff;
+    }
+    .workshop-quick:hover, .workshop-link--featured:hover { background: #fbf1f3; }
+    .workshop-directory { margin: 30px 0; scroll-margin-top: 16px; }
+    .workshop-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      margin-bottom: 14px;
+    }
+    .workshop-heading h2 { margin: 0; }
+    .workshop-count { margin: 0; color: var(--workshop-muted); font-size: 13px; }
+    .workshop-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .workshop-link {
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      height: 100%;
+      min-height: 66px;
+      padding: 12px 14px;
+      border: 1px solid var(--workshop-line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--workshop-navy);
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+    .workshop-link:hover { border-color: #9daebc; background: #f9fafb; }
+    .workshop-link--featured { border-color: #e8cbd2; }
+    .workshop-link small { display: block; margin-top: 3px; color: var(--workshop-wine); font-size: 11px; }
+    .workshop-mark {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      background: #edf2f6;
+      color: var(--workshop-navy);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .workshop-link--featured .workshop-mark { color: var(--workshop-wine); background: #f5e8eb; }
+    .workshop-arrow { color: var(--workshop-wine); font-weight: 400; font-size: 18px; }
+    .workshop-panel {
+      margin: 0 0 18px;
+      padding: clamp(18px, 3.5vw, 30px);
+      border: 1px solid var(--workshop-line);
+      border-radius: 8px;
+      background: #fff;
+      scroll-margin-top: 16px;
+    }
+    @supports selector(:has(*)) {
+      .workshop-panel:not(:target):not(#ingilizce),
+      .workshop-panels:has(.workshop-panel:target) #ingilizce:not(:target) { display: none; }
+    }
+    .workshop-back { margin: -8px 0 4px; }
+    .workshop-back:hover { text-decoration: underline; }
+    .workshop-panel h2 { margin-bottom: 14px; }
+    .workshop-teachers {
+      padding: 14px 16px;
+      border-left: 3px solid #993e4e;
+      border-radius: 3px;
+      background: #f7f4f5;
+    }
+    .workshop-teachers h3, .workshop-games h3 { margin: 0; color: var(--workshop-navy); font-size: 16px; }
+    .workshop-teachers p { margin: 5px 0 0; color: var(--workshop-muted); font-size: 14px; line-height: 1.6; }
+    .workshop-games { margin-top: 22px; }
+    .workshop-games h3 { margin-bottom: 12px; }
+    .workshop-games .materials-grid { gap: 14px; }
+    .workshop-games .material-card { padding: 18px; }
+    .workshop-games .material-card h4 { margin: 12px 0 5px; color: var(--workshop-navy); font-size: 18px; }
+    .workshop-games .material-icon { width: 44px; height: 44px; font-size: 19px; }
+    .workshop-games .material-card .material-description { margin: 10px 0 15px; }
+    .workshop-games .note { margin-top: 13px; }
+    @media (max-width: 870px) {
+      .workshop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 580px) {
+      .workshop-hero { align-items: flex-start; flex-direction: column; gap: 14px; }
+      .workshop-directory { margin: 23px 0; }
+      .workshop-grid { grid-template-columns: 1fr; gap: 8px; }
+      .workshop-link { min-height: 56px; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">İçeriğe geç</a>
+  <header class="site-header">
+    <a href="../" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a>
+    <div class="header-links"><a href="../">Ödev takibine dön</a><span class="stage">Zümreler ve ders kaynakları</span></div>
+  </header>
+  <main id="main-content" class="materials-page workshop-page" tabindex="-1">
+    <section class="workshop-hero" aria-labelledby="workshop-title">
+      <div>
+        <p class="eyebrow">ZÜMRELER VE DERS KAYNAKLARI</p>
+        <h1 id="workshop-title">Öğretmen Atölyesi</h1>
+        <p class="lead">Öğretmen listesini ve ders kaynaklarını görmek için ilgili zümreyi seçin.</p>
+      </div>
+      <a class="workshop-quick" href="#ingilizce">İngilizce oyunları <span aria-hidden="true">→</span></a>
+    </section>
+    <nav class="workshop-directory" id="zumreler" aria-labelledby="directory-title" tabindex="-1">
+      <div class="workshop-heading">
+        <h2 id="directory-title">Zümreler</h2>
+        <p class="workshop-count">10 ders zümresi ve Rehberlik</p>
+      </div>
+      <ul class="workshop-grid">
+        <li><a class="workshop-link" href="#turkce">
+          <span class="workshop-mark" aria-hidden="true">Aa</span>
+          <span>Türkçe</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#matematik">
+          <span class="workshop-mark" aria-hidden="true">∑</span>
+          <span>Matematik</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link workshop-link--featured" href="#ingilizce">
+          <span class="workshop-mark" aria-hidden="true">EN</span>
+          <span>İngilizce<small>2 oyun</small></span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#sosyal-bilgiler">
+          <span class="workshop-mark" aria-hidden="true">SB</span>
+          <span>Sosyal Bilgiler</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#fen-bilimleri">
+          <span class="workshop-mark" aria-hidden="true">FB</span>
+          <span>Fen Bilimleri</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#din-kulturu">
+          <span class="workshop-mark" aria-hidden="true">DK</span>
+          <span>Din Kültürü ve Ahlak Bilgisi</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#beden-egitimi">
+          <span class="workshop-mark" aria-hidden="true">BE</span>
+          <span>Beden Eğitimi</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#gorsel-sanatlar">
+          <span class="workshop-mark" aria-hidden="true">GS</span>
+          <span>Görsel Sanatlar</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#muzik">
+          <span class="workshop-mark" aria-hidden="true">♪</span>
+          <span>Müzik</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#bilisim-teknolojileri">
+          <span class="workshop-mark" aria-hidden="true">BT</span>
+          <span>Bilişim Teknolojileri ve Yazılım</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+        <li><a class="workshop-link" href="#rehberlik">
+          <span class="workshop-mark" aria-hidden="true">R</span>
+          <span>Rehberlik</span>
+          <span class="workshop-arrow" aria-hidden="true">→</span>
+        </a></li>
+      </ul>
+    </nav>
+    <div class="workshop-panels">
+      <section class="workshop-panel" id="turkce" aria-labelledby="turkce-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="turkce-title">Türkçe Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="matematik" aria-labelledby="matematik-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="matematik-title">Matematik Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="ingilizce" aria-labelledby="ingilizce-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="ingilizce-title">İngilizce Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+        <section class="workshop-games" aria-labelledby="games-title">
+          <h3 id="games-title">İngilizce oyunları</h3>
+          <div class="materials-grid">
+            <article class="material-card">
+              <div class="material-icon" aria-hidden="true">Aa</div>
+              <h4>Kelime oyunu</h4>
+              <span class="material-kind" lang="en">School Life · Vocabulary Challenge</span>
+              <p class="material-description">Okul hayatıyla ilgili İngilizce kelimeleri sorularla tekrar edin. Seviyenizi seçin ve kelime bilginizi sınayın.</p>
+              <a class="primary" href="./oyun-1.html" aria-label="Kelime oyununu oyna">Oyna →</a>
+            </article>
+            <article class="material-card">
+              <div class="material-icon" aria-hidden="true">📖</div>
+              <h4>Okuma oyunu</h4>
+              <span class="material-kind" lang="en">School Life Reading Quest</span>
+              <p class="material-description">İngilizce metinleri okuyun, soruları cevaplayın ve okul hayatıyla ilgili okuma becerilerinizi geliştirin.</p>
+              <a class="primary" href="./reading_game.html" aria-label="Okuma oyununu oyna">Oyna →</a>
+            </article>
+          </div>
+          <p class="note">Bu oyunlar alıştırma içindir; oyun puanları ödev takip hesabınıza kaydedilmez.</p>
+        </section>
+      </section>
+      <section class="workshop-panel" id="sosyal-bilgiler" aria-labelledby="sosyal-bilgiler-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="sosyal-bilgiler-title">Sosyal Bilgiler Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="fen-bilimleri" aria-labelledby="fen-bilimleri-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="fen-bilimleri-title">Fen Bilimleri Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="din-kulturu" aria-labelledby="din-kulturu-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="din-kulturu-title">Din Kültürü ve Ahlak Bilgisi Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="beden-egitimi" aria-labelledby="beden-egitimi-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="beden-egitimi-title">Beden Eğitimi Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="gorsel-sanatlar" aria-labelledby="gorsel-sanatlar-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="gorsel-sanatlar-title">Görsel Sanatlar Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="muzik" aria-labelledby="muzik-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="muzik-title">Müzik Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="bilisim-teknolojileri" aria-labelledby="bilisim-teknolojileri-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="bilisim-teknolojileri-title">Bilişim Teknolojileri ve Yazılım Zümresi</h2>
+        <div class="workshop-teachers">
+          <h3>Zümre öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+      <section class="workshop-panel" id="rehberlik" aria-labelledby="rehberlik-title" tabindex="-1">
+        <a class="workshop-back" href="#zumreler">← Zümrelere dön</a>
+        <h2 id="rehberlik-title">Rehberlik</h2>
+        <div class="workshop-teachers">
+          <h3>Rehberlik öğretmenleri</h3>
+          <p>Öğretmen listesi daha sonra eklenecek.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>Ödev Takip Sistemi <span>Öğretmen Atölyesi</span></footer>
+</body>
+</html>
