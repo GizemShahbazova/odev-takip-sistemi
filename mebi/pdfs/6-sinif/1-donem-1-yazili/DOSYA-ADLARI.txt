@@ -1,0 +1,10 @@
+﻿MEBİ Kütüphanesi · 6. Sınıf · 1. Dönem 1. Yazılı
+
+PDF dosyalarını bu klasöre aşağıdaki adlarla yükleyin:
+
+din-kulturu-ve-ahlak-bilgisi.pdf
+fen-bilimleri.pdf
+ingilizce.pdf
+matematik.pdf
+sosyal-bilgiler.pdf
+turkce.pdf

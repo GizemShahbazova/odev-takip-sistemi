@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MEBİ Kütüphanesi: 6. sınıf yazılı hazırlık PDF'leri.">
+  <title>MEBİ Kütüphanesi | Ödev Takip</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .library-page {
+      display: block;
+      max-width: 1180px;
+      margin: clamp(20px, 4vw, 44px) auto 48px;
+      padding: 0 clamp(14px, 3vw, 28px);
+    }
+    .library-heading { margin-bottom: 20px; }
+    .library-heading h1 {
+      margin: 0 0 8px;
+      color: #1b2c43;
+      font-size: clamp(25px, 4vw, 32px);
+      line-height: 1.2;
+    }
+    .library-breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: #59677a;
+      font-size: 13px;
+    }
+    .library-breadcrumb li + li::before { content: "·"; margin-right: 8px; }
+    .library-breadcrumb a:hover { text-decoration: underline; }
+    .library-breadcrumb [aria-current] { color: #25354b; font-weight: 700; }
+    .library-board {
+      padding: clamp(14px, 4vw, 36px);
+      border: 1px solid #e2e7ed;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 6px 22px #25354b08;
+    }
+    .library-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .library-tab {
+      min-height: 48px;
+      padding: 10px 15px;
+      border: 1px dashed #d3dce6;
+      border-radius: 10px;
+      background: #fff;
+      color: #26364b;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+      cursor: pointer;
+    }
+    .library-tab:hover { background: #f7fafc; }
+    .library-tab[aria-selected="true"] {
+      border-style: solid;
+      border-color: #bdd7e7;
+      box-shadow: inset 0 -4px #119bd7;
+      background: #f5fbff;
+    }
+    .library-rows { margin: 0; padding: 0; list-style: none; }
+    .library-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px 20px;
+      min-height: 66px;
+      padding: 12px 0;
+      border-bottom: 1px dashed #e4eaf0;
+    }
+    .library-row:last-child { border-bottom: 0; }
+    .library-label {
+      color: #25354b;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .library-actions { display: flex; gap: 8px; flex: none; }
+    .library-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      min-width: 110px;
+      padding: 7px 10px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+    }
+    .library-exam:disabled { background: #f3f5f7; color: #687689; opacity: 1; cursor: default; }
+    .library-pdf-pending, .library-pdf-download { min-width: 120px; }
+    .library-pdf-pending { background: #fff7dc; color: #735b19; }
+    .library-pdf-download { background: #ffcb2e; border-color: #f0b914; color: #382b02; }
+    .library-pdf-download:hover { background: #f6be17; }
+    .library-empty {
+      margin: 0;
+      padding: 22px 12px;
+      border: 1px dashed #dce4ec;
+      border-radius: 8px;
+      background: #f7f9fb;
+      color: #59677a;
+      font-size: 14px;
+      text-align: center;
+    }
+    @media (max-width: 660px) {
+      .library-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .library-tab { padding: 9px 6px; font-size: 13px; }
+      .library-row { flex-direction: column; align-items: stretch; }
+      .library-actions { flex: auto; }
+      .library-action { flex: 1; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">İçeriğe geç</a>
+  <header class="site-header">
+    <a href="../" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a>
+    <nav class="header-links" aria-label="Kütüphane bağlantıları">
+      <a href="../">Ana sayfa</a>
+      <a href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="MEBİ web sitesi (yeni sekme)">MEBİ web sitesi</a>
+    </nav>
+  </header>
+
+  <main id="main-content" class="library-page" tabindex="-1">
+    <div class="library-heading">
+      <h1>Kütüphane</h1>
+      <nav aria-label="Sayfa konumu">
+        <ol class="library-breadcrumb">
+          <li>MEBİ'de Neler Var?</li>
+          <li>Yazılı Soruları</li>
+          <li aria-current="page">6. Sınıf</li>
+        </ol>
+      </nav>
+    </div>
+    <section class="library-board" aria-label="6. sınıf yazılı soruları">
+      <div class="library-tabs" role="tablist" aria-label="Yazılılar">
+        <button class="library-tab" type="button" id="tab-11" role="tab" aria-controls="panel-11" aria-selected="true" data-folder="1-donem-1-yazili">1. Dönem 1. Yazılı</button>
+        <button class="library-tab" type="button" id="tab-12" role="tab" aria-controls="panel-12" aria-selected="false" tabindex="-1" data-folder="1-donem-2-yazili">1. Dönem 2. Yazılı</button>
+        <button class="library-tab" type="button" id="tab-21" role="tab" aria-controls="panel-21" aria-selected="false" tabindex="-1" data-folder="2-donem-1-yazili">2. Dönem 1. Yazılı</button>
+        <button class="library-tab" type="button" id="tab-22" role="tab" aria-controls="panel-22" aria-selected="false" tabindex="-1" data-folder="2-donem-2-yazili">2. Dönem 2. Yazılı</button>
+      </div>
+      <div id="panel-11" role="tabpanel" aria-labelledby="tab-11" tabindex="0"></div>
+      <div id="panel-12" role="tabpanel" aria-labelledby="tab-12" tabindex="0" hidden></div>
+      <div id="panel-21" role="tabpanel" aria-labelledby="tab-21" tabindex="0" hidden></div>
+      <div id="panel-22" role="tabpanel" aria-labelledby="tab-22" tabindex="0" hidden></div>
+      <noscript><p class="library-empty">PDF listesini görmek için JavaScript'i etkinleştirin.</p></noscript>
+    </section>
+  </main>
+
+  <template id="library-row">
+    <li class="library-row">
+      <span class="library-label"></span>
+      <div class="library-actions">
+        <button class="library-action library-exam" type="button" disabled title="Çevrimiçi sınav bağlantısı henüz eklenmedi">Sınava Git</button>
+        <span class="library-action library-pdf-pending">PDF bekleniyor</span>
+        <a class="library-action library-pdf-download" hidden>PDF İndir</a>
+      </div>
+    </li>
+  </template>
+  <script>
+    (() => {
+      const subjects = [
+        ["Din Kültürü ve Ahlak Bilgisi", "din-kulturu-ve-ahlak-bilgisi.pdf"],
+        ["Fen Bilimleri", "fen-bilimleri.pdf"],
+        ["İngilizce", "ingilizce.pdf"],
+        ["Matematik", "matematik.pdf"],
+        ["Sosyal Bilgiler", "sosyal-bilgiler.pdf"],
+        ["Türkçe", "turkce.pdf"]
+      ];
+      const tabs = [...document.querySelectorAll(".library-tab")];
+      const rowTemplate = document.getElementById("library-row");
+      const getPanel = tab => document.getElementById(tab.getAttribute("aria-controls"));
+
+      async function pdfAvailable(path) {
+        if (!["http:", "https:"].includes(location.protocol)) return false;
+        try {
+          const response = await fetch(path, { method: "HEAD", cache: "no-store", redirect: "error" });
+          const type = response.headers.get("content-type") || "";
+          return response.ok && !/^text\/html\b/i.test(type);
+        } catch {
+          return false;
+        }
+      }
+
+      async function loadPanel(tab) {
+        const panel = getPanel(tab);
+        if (panel.dataset.started) return;
+        panel.dataset.started = "true";
+        panel.setAttribute("aria-busy", "true");
+
+        const list = document.createElement("ul");
+        list.className = "library-rows";
+        list.setAttribute("aria-label", "Derslere göre PDF dosyaları");
+        const isFirstExam = tab === tabs[0];
+        const status = document.createElement("p");
+        status.className = "library-empty";
+        status.setAttribute("role", "status");
+        status.textContent = "PDF’ler kontrol ediliyor…";
+        if (isFirstExam) panel.append(list);
+        else panel.append(status);
+
+        const folder = tab.dataset.folder;
+        const rows = subjects.map(([subject, filename]) => {
+          const title = "6. Sınıf " + subject + " – " + tab.textContent;
+          const path = "./pdfs/6-sinif/" + folder + "/" + filename;
+          const row = rowTemplate.content.firstElementChild.cloneNode(true);
+          row.querySelector(".library-label").textContent = title;
+          row.querySelector(".library-exam").setAttribute("aria-label", title + ": Sınava Git");
+          if (isFirstExam) list.append(row);
+          return { title, path, filename, row };
+        });
+
+        const availability = await Promise.all(rows.map(item => pdfAvailable(item.path)));
+        rows.forEach((item, i) => {
+          if (!availability[i]) return;
+          const link = item.row.querySelector(".library-pdf-download");
+          link.href = item.path;
+          link.download = "6-sinif-" + folder + "-" + item.filename;
+          link.setAttribute("aria-label", item.title + " PDF indir");
+          item.row.querySelector(".library-pdf-pending").hidden = true;
+          link.hidden = false;
+          if (!isFirstExam) list.append(item.row);
+        });
+        if (!isFirstExam) {
+          if (availability.some(Boolean)) status.replaceWith(list);
+          else status.textContent = "Bu yazılı için henüz PDF eklenmedi.";
+        }
+        panel.removeAttribute("aria-busy");
+      }
+
+      function selectTab(current, focus = false) {
+        for (const tab of tabs) {
+          const selected = tab === current;
+          tab.setAttribute("aria-selected", String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          getPanel(tab).hidden = !selected;
+        }
+        if (focus) current.focus();
+        loadPanel(current);
+      }
+
+      tabs.forEach((tab, i) => {
+        tab.addEventListener("click", () => selectTab(tab));
+        tab.addEventListener("keydown", event => {
+          const positions = { ArrowLeft: (i + tabs.length - 1) % tabs.length, ArrowRight: (i + 1) % tabs.length, Home: 0, End: tabs.length - 1 };
+          if (!Object.hasOwn(positions, event.key)) return;
+          event.preventDefault();
+          selectTab(tabs[positions[event.key]], true);
+        });
+      });
+      selectTab(tabs[0]);
+    })();
+  </script>
+</body>
+</html>
