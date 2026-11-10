@@ -1,267 +1,658 @@
 <!doctype html>
+<!-- Anket yayını -->
 <html lang="tr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="MEBİ Kütüphanesi: 6. sınıf yazılı hazırlık PDF'leri.">
-  <title>MEBİ Kütüphanesi | Ödev Takip</title>
-  <link rel="stylesheet" href="../style.css">
-  <style>
-    .library-page {
-      display: block;
-      max-width: 1180px;
-      margin: clamp(20px, 4vw, 44px) auto 48px;
-      padding: 0 clamp(14px, 3vw, 28px);
-    }
-    .library-heading { margin-bottom: 20px; }
-    .library-heading h1 {
-      margin: 0 0 8px;
-      color: #1b2c43;
-      font-size: clamp(25px, 4vw, 32px);
-      line-height: 1.2;
-    }
-    .library-breadcrumb {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 8px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      color: #59677a;
-      font-size: 13px;
-    }
-    .library-breadcrumb li + li::before { content: "·"; margin-right: 8px; }
-    .library-breadcrumb a:hover { text-decoration: underline; }
-    .library-breadcrumb [aria-current] { color: #25354b; font-weight: 700; }
-    .library-board {
-      padding: clamp(14px, 4vw, 36px);
-      border: 1px solid #e2e7ed;
-      border-radius: 14px;
-      background: #fff;
-      box-shadow: 0 6px 22px #25354b08;
-    }
-    .library-tabs {
-      display: flex;
-      flex-wrap: wrap;
+  <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
+  <title>Ödev Takip Sistemi | Öğretmen ve Öğrenci</title>
+  <link rel="stylesheet" href="./style.css?v=kod-20261105">
+  <script src="./parent-auth.js?v=ogrenci-20261030" defer></script>
+  <script src="./student-device.js?v=kod-20261105" defer></script>
+  <script src="./app.js?v=kod-20261105" defer></script>
+  <style id="pilot-survey-style">
+.header-links .survey-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 13px;
+  border: 1px solid #e8cbd1;
+  border-radius: 999px;
+  background: #fff5f5;
+  color: #893950;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.header-links .survey-trigger:hover {
+  background: #fce9ed;
+}
+
+body.survey-open {
+  overflow: hidden;
+}
+
+dialog.survey-dialog {
+  --paper: #fff;
+  --ink: #243b52;
+  max-height: calc(100vh - 28px);
+  width: min(640px, calc(100% - 28px));
+  max-height: calc(100dvh - 28px);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 25px;
+  background: var(--paper);
+}
+
+.survey-panel {
+  max-height: calc(100vh - 30px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 30px);
+}
+
+.survey-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 114px;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 24px 42px 23px 27px;
+  background: linear-gradient(115deg, #fff3e5, #fbe9ee);
+}
+
+.survey-kicker {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #fffaf3;
+  color: #893950;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.25px;
+}
+
+#survey-title {
+  margin: 0;
+  font-size: clamp(20px, 4vw, 28px);
+  line-height: 1.16;
+  letter-spacing: -.45px;
+}
+
+#survey-title span {
+  display: block;
+  margin-top: 6px;
+  color: #804758;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.survey-art {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.survey-close {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #e8d4da;
+  border-radius: 50%;
+  background: #fffaf8;
+  color: var(--ink);
+}
+
+.survey-copy {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 19px 27px 20px;
+  color: #344d68;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.survey-copy p { margin: 0; }
+
+.survey-copy p + p {
+  margin-top: 10px;
+}
+
+.survey-copy strong {
+  color: var(--ink);
+}
+
+.survey-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 14px 27px 17px;
+  border-top: 1px solid #f0e3e6;
+  background: #fff9f5;
+}
+
+.survey-link,
+.survey-later {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.survey-link {
+  background: #a83755;
+  color: #fff;
+  text-decoration: none;
+}
+
+.survey-link:hover {
+  background: #8d2944;
+}
+
+.survey-later {
+  border: 1px solid #e7dce0;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.survey-later:hover,
+.survey-close:hover {
+  background: #fce9ed;
+}
+
+@media (max-width: 480px) {
+  .header-links .survey-trigger {
+    gap: 5px;
+    padding: 8px 9px;
+    font-size: 11px;
+  }
+
+  .survey-intro {
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: 6px;
+    padding: 19px 37px 16px 17px;
+  }
+
+  #survey-title span {
+    font-size: 12px;
+  }
+
+  .survey-close {
+    top: 7px;
+    right: 7px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .survey-copy {
+    padding: 14px 17px 15px;
+    font-size: 13px;
+  }
+
+  .survey-actions {
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 10px 17px 12px;
+  }
+
+  .survey-link,
+  .survey-later {
+    flex: 1 0 100%;
+  }
+}
+  .header-links .survey-trigger:focus-visible,
+  #survey-dialog :is(button, a, [tabindex]):focus-visible {
+    outline: 2px solid #25456b;
+    outline-offset: 3px;
+  }
+  #survey-title:focus-visible { outline-offset: 5px; }
+  @media (max-height: 420px) {
+    dialog.survey-dialog { overflow: auto; }
+    .survey-panel { display: block; max-height: none; }
+  }
+
+  </style>
+  <style id="resource-navigation-style">
+    .site-header--resources .header-links {
+      min-width: 0;
+      justify-content: flex-end;
       gap: 10px;
-      margin: 0 0 18px;
     }
-    .library-tab {
-      min-height: 48px;
-      padding: 10px 15px;
-      border: 1px dashed #d3dce6;
-      border-radius: 10px;
-      background: #fff;
-      color: #26364b;
-      font: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.3;
-      cursor: pointer;
+    .resource-menu-link svg { flex: none; }
+    .header-links .resource-menu-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 40px;
+      line-height: 1.35;
+      white-space: nowrap;
     }
-    .library-tab:hover { background: #f7fafc; }
-    .library-tab[aria-selected="true"] {
-      border-style: solid;
-      border-color: #bdd7e7;
-      box-shadow: inset 0 -4px #119bd7;
-      background: #f5fbff;
-    }
-    .library-rows { margin: 0; padding: 0; list-style: none; }
-    .library-row {
+    .sidebar .resource-menu-link {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px 20px;
-      min-height: 66px;
-      padding: 12px 0;
-      border-bottom: 1px dashed #e4eaf0;
-    }
-    .library-row:last-child { border-bottom: 0; }
-    .library-label {
-      color: #25354b;
-      font-size: 15px;
-      font-weight: 700;
-      line-height: 1.45;
-    }
-    .library-actions { display: flex; gap: 8px; flex: none; }
-    .library-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 42px;
-      min-width: 110px;
-      padding: 7px 10px;
-      border: 1px solid transparent;
-      border-radius: 6px;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
+      gap: 6px;
+      min-height: 45px;
       line-height: 1.35;
-      text-align: center;
     }
-    .library-exam:disabled { background: #f3f5f7; color: #687689; opacity: 1; cursor: default; }
-    .library-pdf-pending, .library-pdf-download { min-width: 120px; }
-    .library-pdf-pending { background: #fff7dc; color: #735b19; }
-    .library-pdf-download { background: #ffcb2e; border-color: #f0b914; color: #382b02; }
-    .library-pdf-download:hover { background: #f6be17; }
-    .library-empty {
-      margin: 0;
-      padding: 22px 12px;
-      border: 1px dashed #dce4ec;
-      border-radius: 8px;
-      background: #f7f9fb;
-      color: #59677a;
+    .mebi-menu { position: relative; min-width: 0; }
+    .mebi-menu > summary { list-style: none; cursor: pointer; }
+    .mebi-menu > summary::-webkit-details-marker { display: none; }
+    .mebi-menu > summary:focus-visible { outline: 3px solid #7ba8cf; outline-offset: 2px; }
+    .mebi-menu[open] > summary svg { transform: rotate(180deg); }
+    .header-links .mebi-menu-trigger {
+      height: 100%;
+      padding: 10px 12px;
+      border: 1px solid #a1adb7;
+      border-radius: 4px;
+      color: #fff;
       font-size: 14px;
-      text-align: center;
     }
-    @media (max-width: 660px) {
-      .library-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-      .library-tab { padding: 9px 6px; font-size: 13px; }
-      .library-row { flex-direction: column; align-items: stretch; }
-      .library-actions { flex: auto; }
-      .library-action { flex: 1; min-width: 0; }
+    .header-links .mebi-menu-trigger:hover,
+    .header-links .mebi-menu[open] > summary { background: #465c70; }
+    .mebi-menu-links a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      min-height: 42px;
+      padding: 8px 10px;
+      border-radius: 4px;
+      color: #344a5e;
+      font-size: 13px;
+    }
+    .mebi-menu-links a svg { flex: none; }
+    .header-links .mebi-menu-links {
+      position: absolute;
+      z-index: 6;
+      top: calc(100% + 7px);
+      left: 0;
+      width: 100%;
+      min-width: 146px;
+      padding: 4px;
+      border: 1px solid #dce1e5;
+      border-radius: 7px;
+      background: #fff;
+      box-shadow: 0 6px 20px #192b3d30;
+    }
+    .header-links .mebi-menu-links a { border: 0; color: #344a5e; }
+    .header-links .mebi-menu-links a:hover, .sidebar .mebi-menu-links a:hover {
+      background: #f5edf0;
+      color: #7c2c3b;
+    }
+    .sidebar .mebi-menu[open] > summary { background: #f0f3f6; }
+    .sidebar .mebi-menu-links {
+      margin: 0 12px 4px 18px;
+      padding-left: 8px;
+      border-left: 2px solid #dce1e5;
+    }
+    @media (max-width: 1300px) {
+      .site-header--resources .stage { display: none; }
+    }
+    @media (max-width: 1100px) {
+      .site-header--resources { flex-wrap: wrap; gap: 14px; }
+      .site-header--resources .header-links { justify-content: flex-start; }
+    }
+    @media (max-width: 720px) {
+      .site-header--resources .header-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        width: 100%;
+        gap: 8px;
+      }
+      .header-links .resource-menu-link {
+        justify-content: space-between;
+        min-height: 42px;
+        padding: 8px 10px;
+        white-space: normal;
+      }
+      .header-links .mebi-menu-trigger { font-size: 13px; }
+      .header-links .mebi-menu-links { min-width: 0; }
+      .site-header--resources .survey-trigger,
+      .site-header--resources .header-action { justify-self: start; align-self: center; }
     }
   </style>
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
-  <header class="site-header">
-    <a href="../" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a>
-    <nav class="header-links" aria-label="Kütüphane bağlantıları">
-      <a href="../">Ana sayfa</a>
-      <a href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="MEBİ web sitesi (yeni sekme)">MEBİ web sitesi</a>
-    </nav>
-  </header>
-
-  <main id="main-content" class="library-page" tabindex="-1">
-    <div class="library-heading">
-      <h1>Kütüphane</h1>
-      <nav aria-label="Sayfa konumu">
-        <ol class="library-breadcrumb">
-          <li>MEBİ'de Neler Var?</li>
-          <li>Yazılı Soruları</li>
-          <li aria-current="page">6. Sınıf</li>
-        </ol>
-      </nav>
-    </div>
-    <section class="library-board" aria-label="6. sınıf yazılı soruları">
-      <div class="library-tabs" role="tablist" aria-label="Yazılılar">
-        <button class="library-tab" type="button" id="tab-11" role="tab" aria-controls="panel-11" aria-selected="true" data-folder="1-donem-1-yazili">1. Dönem 1. Yazılı</button>
-        <button class="library-tab" type="button" id="tab-12" role="tab" aria-controls="panel-12" aria-selected="false" tabindex="-1" data-folder="1-donem-2-yazili">1. Dönem 2. Yazılı</button>
-        <button class="library-tab" type="button" id="tab-21" role="tab" aria-controls="panel-21" aria-selected="false" tabindex="-1" data-folder="2-donem-1-yazili">2. Dönem 1. Yazılı</button>
-        <button class="library-tab" type="button" id="tab-22" role="tab" aria-controls="panel-22" aria-selected="false" tabindex="-1" data-folder="2-donem-2-yazili">2. Dönem 2. Yazılı</button>
+  <header class="site-header site-header--resources"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><nav class="header-links" aria-label="Üst menü"><a class="survey-trigger" id="survey-trigger" href="https://docs.google.com/forms/d/e/1FAIpQLScEfCypnN_5ZjBcDBvQhki4-VmMXNi06tRO21vXUK3biX_haA/viewform" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h6"/>
+        </svg>
+        Görüş ve öneri
+      </a>
+      <a class="resource-menu-link" href="./materyaller/"><span>Öğretmen Atölyesi</span></a>
+      <a class="resource-menu-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <details class="mebi-menu">
+        <summary class="resource-menu-link mebi-menu-trigger"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
+        <div class="mebi-menu-links">
+          <a href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="Web sitesi (MEBİ, yeni sekme)">Web sitesi <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+          <a href="./mebi/">Kütüphane</a>
+        </div>
+      </details>
+      <a class="resource-menu-link" href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="EBA&#x27;da Neler Var? (yeni sekme)"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button><span class="stage">Sınıfınızın ortak çalışma alanı</span></nav></header>
+  <main id="main-content" tabindex="-1">
+    <aside class="sidebar" aria-label="Site menüsü">
+      <p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a>
+      <a class="menu-link resource-menu-link" href="./materyaller/"><span>Öğretmen Atölyesi</span></a>
+      <a class="menu-link resource-menu-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <details class="mebi-menu">
+        <summary class="menu-link resource-menu-link mebi-menu-trigger"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
+        <div class="mebi-menu-links">
+          <a href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="Web sitesi (MEBİ, yeni sekme)">Web sitesi <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+          <a href="./mebi/">Kütüphane</a>
+        </div>
+      </details>
+      <a class="menu-link resource-menu-link" href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="EBA&#x27;da Neler Var? (yeni sekme)"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <div class="sidebar-note"><strong>Öğretmen ve öğrenci</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div>
+    </aside>
+    <section id="intro-view" class="intro" aria-labelledby="intro-title">
+      <p class="eyebrow">HOŞ GELDİNİZ</p>
+      <h1 id="intro-title">Ödev Takip Sistemi</h1>
+      <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
+      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Her öğrenciye ayrı kullanıcı kodu ve şifre verilir. Veliler ilgili öğrencinin hesabıyla takip eder.</p><p>Yönetici sınıfları ve öğrenci kayıtlarını düzenler; öğretmenler kendilerine verilen sınıfların ödevlerini yönetir.</p></div>
+      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Yönetici ödev durumlarını günceller. Her öğrenci hesabı tek öğrenci kaydıyla eşleştirilir; veli bu hesaptan takip edebilir.</p></div>
+    </section>
+    <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
+      <p id="classes-kicker" class="eyebrow">ÖĞRETMEN PANELİ</p>
+      <div class="section-heading"><h1 id="classes-title">Sınıflarım</h1><span id="class-count" class="badge">—</span></div>
+      <p id="classes-lead" class="lead">Size verilen sınıfların ödevlerini yönetin.</p>
+      <form id="class-form" class="class-form" hidden>
+        <label for="class-name">Yeni sınıfın adı</label>
+        <div class="class-input-row"><input id="class-name" type="text" required maxlength="60" placeholder="Örneğin: 5-A" autocomplete="off" aria-describedby="class-help"><button id="create-class" class="primary" type="submit">Sınıf oluştur</button></div>
+        <p id="class-help" class="note">Sınıf adını en fazla 60 karakterle yazın.</p>
+      </form>
+      <p id="classes-status" role="status" aria-live="polite"></p>
+      <div class="list-heading"><h2>Kayıtlı sınıflar</h2><button id="refresh-classes" class="secondary" type="button">Yenile</button></div>
+      <p id="classes-load-status" role="status" aria-live="polite"></p>
+      <p id="classes-empty" class="empty-state" hidden>Henüz sınıfınız yok. İlk sınıfınızı yukarıdan oluşturabilirsiniz.</p>
+      <ul id="classes-list" class="classes-list" aria-label="Sınıflarınız"></ul>
+      <p id="admin-class-note" class="note" hidden>Sınıfın yanındaki düğmelerden öğrencileri, ödevleri, öğretmenleri ve takip tablosunu açabilirsiniz.</p>
+    </section>
+    <section id="students-view" class="intro" aria-labelledby="students-title" hidden>
+      <button id="back-to-classes" type="button" class="back-button">← Sınıflara dön</button>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><span aria-current="page">Öğrenciler</span><button id="students-to-assignments" type="button">Ödevler</button><button id="students-to-results" type="button">Takip tablosu</button></nav>
+      <p class="eyebrow">SINIF LİSTESİ</p>
+      <div class="section-heading"><h1 id="students-title">Öğrenciler</h1><span id="student-count" class="badge">—</span></div>
+      <p class="lead">Hazır öğrenci hesaplarını kodlarıyla seçip bu sınıfa ekleyin.</p>
+      <section id="enrollment-panel" class="enrollment-panel" aria-labelledby="enrollment-title">
+        <div class="list-heading"><h2 id="enrollment-title">Hesap listesinden ekle</h2><button id="load-enrollment" class="secondary" type="button">Hesapları getir</button></div>
+        <p class="note">Birden fazla kod seçebilirsiniz. Öğrenci hesabı bu sınıfa bağlanır; varsa aynı kodlu kayıt korunur.</p>
+        <div id="enrollment-picker" hidden>
+          <label for="enrollment-search">Kullanıcı kodu ara</label>
+          <input id="enrollment-search" type="search" placeholder="Örn. 100002" autocomplete="off">
+          <ul id="enrollment-codes" class="enrollment-codes" aria-label="Seçilebilir öğrenci hesapları"></ul>
+          <button id="enrollment-add" class="primary" type="button" disabled>Seçilenleri sınıfa ekle</button>
+        </div>
+        <p id="enrollment-status" role="status" aria-live="polite"></p>
+      </section>
+      <p id="students-status" role="status" aria-live="polite"></p>
+      <div class="list-heading"><h2>Kayıtlı öğrenciler</h2><button id="refresh-students" class="secondary" type="button">Yenile</button></div>
+      <p id="students-load-status" role="status" aria-live="polite"></p>
+      <p id="students-empty" class="empty-state" hidden>Bu sınıfa bağlanmış öğrenci hesabı yok. Hesapları getir düğmesiyle başlayın.</p>
+      <ul id="students-list" class="classes-list" aria-label="Bu sınıfın öğrencileri"></ul>
+      <p class="note">Bu sınıfın ödevlerini Ödevler bölümünden açabilirsiniz. Öğrenci hesabı yalnız aynı kodla eşleştirilen öğrencinin ödevlerini gösterebilir.</p>
+    </section>
+    <section id="assignments-view" class="intro" aria-labelledby="assignments-title" hidden>
+      <button id="assignments-back" type="button" class="back-button">← Sınıflara dön</button>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="assignments-to-students" type="button" hidden>Öğrenciler</button><span aria-current="page">Ödevler</span><button id="assignments-to-results" type="button" hidden>Takip tablosu</button></nav>
+      <p class="eyebrow">SINIF ÖDEVLERİ</p>
+      <div class="section-heading"><h1 id="assignments-title">Ödevler</h1><span id="assignment-count" class="badge">—</span></div>
+      <p class="lead">Sınıfınıza ödev ekleyin ve teslim tarihlerini takip edin.</p>
+      <form id="assignment-form" class="class-form">
+        <label for="assignment-name">Ödev başlığı</label>
+        <input id="assignment-name" type="text" required maxlength="120" placeholder="Örneğin: Unit 1 kelime çalışması" autocomplete="off">
+        <label for="assignment-description">Açıklama <span class="optional">(isteğe bağlı)</span></label>
+        <textarea id="assignment-description" rows="4" maxlength="2000" placeholder="Öğrencilerden ne yapmalarını istiyorsunuz?"></textarea>
+        <label for="assignment-due-date">Son teslim tarihi</label>
+        <input id="assignment-due-date" type="date" required min="2000-01-01" max="2099-12-31" aria-describedby="assignment-help">
+        <p id="assignment-help" class="note">Bir teslim günü seçin. Başlık en fazla 120, açıklama 2000 karakter olabilir.</p>
+        <button id="create-assignment" class="primary" type="submit">Ödev ekle</button>
+      </form>
+      <p id="assignments-status" role="status" aria-live="polite"></p>
+      <div class="list-heading"><h2>Kayıtlı ödevler</h2><button id="refresh-assignments" class="secondary" type="button">Yenile</button></div>
+      <p id="assignments-load-status" role="status" aria-live="polite"></p>
+      <p id="assignments-empty" class="empty-state" hidden>Bu sınıfta henüz ödev yok. İlk ödevi yukarıdan ekleyebilirsiniz.</p>
+      <ul id="assignments-list" class="assignment-list" aria-label="Bu sınıfın ödevleri"></ul>
+      <p class="note">Ödevler teslim tarihine göre sıralanır. Sınıfa bağlı öğrenci hesapları bu ödevleri görebilir.</p>
+    </section>
+    <section id="results-view" class="intro" aria-labelledby="results-title" hidden>
+      <button id="results-back" type="button" class="back-button">← Sınıflara dön</button>
+      <nav class="class-tabs" aria-label="Sınıf bölümleri"><button id="results-to-students" type="button">Öğrenciler</button><button id="results-to-assignments" type="button">Ödevler</button><span aria-current="page">Takip tablosu</span></nav>
+      <p class="eyebrow">ÖDEV TAMAMLANMA DURUMU</p>
+      <h1 id="results-title" tabindex="-1">Takip tablosu</h1>
+      <p class="lead">Her öğrenci için ödev durumunu seçin: Beklemede, Tamamlandı veya Yapılmadı.</p>
+      <div class="list-heading"><h2>Sınıf sonuçları</h2><button id="refresh-results" class="secondary" type="button">Yenile</button></div>
+      <p id="results-summary" class="results-summary"></p>
+      <p id="results-load-status" role="status" aria-live="polite"></p>
+      <p id="results-empty" class="empty-state" hidden></p>
+      <p id="results-help" class="note">Durum değişikliği seçim yaptığınızda kaydedilir. Beklemede: henüz sonuçlandırılmamış. Yapılmadı: öğretmen ödevin yapılmadığını belirtmiş. Güncel sonuçlar için Yenile’ye basın. Geniş tabloları sağa kaydırabilirsiniz.</p>
+      <div id="results-wrap" class="table-scroll" role="region" aria-label="Sınıf ödev takip tablosu" aria-describedby="results-help" tabindex="0" hidden><table id="results-table"></table></div>
+    </section>
+    <section id="parent-view" class="intro" aria-labelledby="parent-title" hidden>
+      <p class="eyebrow">ÖĞRENCİ PANELİ</p>
+      <div class="section-heading"><h1 id="parent-title" tabindex="-1">Ödevlerim</h1><span id="parent-count" class="badge">—</span></div>
+      <p class="lead">Bu öğrencinin sınıf ödevlerini ve teslim tarihlerini takip edin. Diğer öğrencinin ödevleri için onun hesabıyla giriş yapın.</p>
+      <div class="list-heading"><h2>Sınıf ödevleri</h2><button id="refresh-parent" class="secondary" type="button">Yenile</button></div>
+      <p id="parent-load-status" role="status" aria-live="polite"></p>
+      <p id="parent-empty" class="empty-state" hidden>Öğrenci hesabınız henüz sınıf kaydıyla eşleştirilmedi. Öğretmeninizle iletişime geçin.</p>
+      <section id="parent-notices-view" class="parent-notices" aria-labelledby="parent-notices-title" hidden>
+        <h2 id="parent-notices-title">Güncel bildirimler</h2>
+        <ul id="parent-notices"></ul>
+        <p class="note">Güncel ödev durumları ve teslim tarihine üç gün veya daha az kalan ödevler.</p>
+      </section>
+      <div id="parent-children"></div>
+      <p class="note">Ödevler son teslim tarihine göre sıralanır. Ödev durumlarını yönetici günceller. Güncel durumları ve hatırlatmaları görmek için Yenile düğmesini kullanın.</p>
+    </section>
+    <section class="card" aria-label="Hesap girişi">
+      <div id="login-view">
+        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Her öğrenci kendi kullanıcı kodu ve şifresiyle giriş yapar. Veli bu hesap üzerinden ödevleri takip edebilir.</p>
+        <div class="login-tabs" role="group" aria-label="Giriş türü">
+          <button id="login-parent" type="button" aria-pressed="true">Öğrenci girişi</button>
+          <button id="login-email" type="button" aria-pressed="false">Öğretmen girişi</button>
+        </div>
+        <form id="login-form">
+          <div id="code-fields"><label for="parent-code">Kullanıcı adı</label><input id="parent-code" type="text" pattern="([bB][tT][aA][lL])?[1-9][0-9]{5}" minlength="6" maxlength="10" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="btal100001"></div>
+          <div id="email-fields" hidden><label for="email">E-posta adresi</label><input id="email" type="email" autocomplete="username" disabled maxlength="254" placeholder="ornek@gmail.com"></div>
+          <label id="password-label" for="password">Şifre</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="toggle-password" aria-label="Şifreyi göster" aria-pressed="false">Göster</button></div>
+          <button id="login-button" class="primary" type="submit" disabled>Bağlanıyor…</button>
+        </form>
+        <p id="login-help" class="note">Öğretmeninizin verdiği başlangıç şifresiyle giriş yapın. Ardından Ayarlar’dan kendi şifrenizi belirleyebilirsiniz. Şifrenizi unuttuysanız öğretmeninizden sıfırlamasını isteyin.</p>
+        <form id="setup-form" hidden>
+          <h3>Kendi şifrenizi belirleyin</h3>
+          <p class="muted">Şifre en az 10 karakter olmalı; harf ve rakam içermelidir.</p>
+          <label for="new-password">Yeni şifre</label><input id="new-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
+          <label for="repeat-password">Yeni şifreyi tekrar yazın</label><input id="repeat-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
+          <button id="setup-save" class="primary" type="submit">Şifremi oluştur ve giriş yap</button>
+          <button id="setup-cancel" class="secondary" type="button">Vazgeç</button>
+        </form>
       </div>
-      <div id="panel-11" role="tabpanel" aria-labelledby="tab-11" tabindex="0"></div>
-      <div id="panel-12" role="tabpanel" aria-labelledby="tab-12" tabindex="0" hidden></div>
-      <div id="panel-21" role="tabpanel" aria-labelledby="tab-21" tabindex="0" hidden></div>
-      <div id="panel-22" role="tabpanel" aria-labelledby="tab-22" tabindex="0" hidden></div>
-      <noscript><p class="library-empty">PDF listesini görmek için JavaScript'i etkinleştirin.</p></noscript>
+      <div id="account-view" hidden>
+        <p class="eyebrow">HESABINIZ</p><h2 id="welcome">Hesap kontrol ediliyor…</h2><p id="account-email" class="muted"></p>
+        <div id="profile-details" hidden><span id="role" class="badge"></span><p class="success-note">Hesabınız hazır.</p><button id="open-settings" type="button" class="secondary">Ayarlar</button></div>
+        <button id="retry-profile" type="button" class="secondary" hidden>Kaydı yeniden kontrol et</button>
+        <button id="logout-button" type="button" class="secondary">Çıkış yap</button>
+      </div>
+      <p id="status" role="status" aria-live="polite">Firebase bağlantısı hazırlanıyor…</p>
+      <button id="reload-button" type="button" class="secondary" hidden>Sayfayı yeniden yükle</button>
+      <noscript><p>Giriş yapmak için tarayıcınızda JavaScript’i etkinleştirin.</p></noscript>
     </section>
   </main>
-
-  <template id="library-row">
-    <li class="library-row">
-      <span class="library-label"></span>
-      <div class="library-actions">
-        <button class="library-action library-exam" type="button" disabled title="Çevrimiçi sınav bağlantısı henüz eklenmedi">Sınava Git</button>
-        <span class="library-action library-pdf-pending">PDF bekleniyor</span>
-        <a class="library-action library-pdf-download" hidden>PDF İndir</a>
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <p class="eyebrow">HESABINIZ</p><h2 id="settings-title">Ayarlar</h2>
+    <p id="settings-account" class="muted"></p>
+    <form id="settings-form">
+      <h3>Şifre değiştir</h3>
+      <p id="settings-help" class="muted">Yeni şifreniz 10–128 karakter olmalı; en az bir harf ve bir rakam içermelidir.</p>
+      <label for="settings-current-password">Mevcut şifre</label><input id="settings-current-password" type="password" autocomplete="current-password" required>
+      <label for="settings-new-password">Yeni şifre</label><input id="settings-new-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" aria-describedby="settings-help" required>
+      <label for="settings-repeat-password">Yeni şifreyi tekrar yazın</label><input id="settings-repeat-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
+      <p id="settings-status" role="status" aria-live="polite"></p>
+      <div class="dialog-actions"><button id="settings-close" type="button" class="secondary">Kapat</button><button id="settings-save" type="submit" class="primary">Şifreyi değiştir</button></div>
+    </form>
+  </dialog>
+  <dialog id="record-dialog" aria-labelledby="record-title">
+    <form id="record-form">
+      <h2 id="record-title">Düzenle</h2>
+      <p id="record-warning" class="delete-warning" hidden></p>
+      <div id="record-fields">
+        <label id="record-name-label" for="record-name">Ad</label><input id="record-name" type="text" required autocomplete="off">
+        <div id="record-assignment-fields" hidden>
+          <label for="record-description">Açıklama</label><textarea id="record-description" rows="4" maxlength="2000"></textarea>
+          <label for="record-date">Son teslim tarihi</label><input id="record-date" type="date" min="2000-01-01" max="2099-12-31">
+        </div>
       </div>
-    </li>
-  </template>
+      <p id="record-message" role="status" aria-live="polite"></p>
+      <div class="dialog-actions"><button id="record-cancel" type="button" class="secondary">Vazgeç</button><button id="record-save" type="submit" class="primary">Kaydet</button></div>
+    </form>
+  </dialog>
+  <dialog id="staff-dialog" aria-labelledby="staff-title">
+    <form id="staff-form">
+      <h2 id="staff-title">Sınıfın öğretmenleri</h2>
+      <p class="muted">Öğretmeni önce Firebase Authentication’da e-postasıyla oluşturun. Oradaki kullanıcı kimliğini (UID) buraya kopyalayın.</p>
+      <label for="staff-uid">Öğretmen UID’si</label>
+      <input id="staff-uid" type="text" maxlength="128" pattern="[A-Za-z0-9_\-]+" required autocomplete="off">
+      <label for="staff-name">Öğretmen adı <span class="optional">(isteğe bağlı)</span></label>
+      <input id="staff-name" type="text" maxlength="80" autocomplete="off">
+      <button id="staff-add" class="primary" type="submit">Öğretmeni sınıfa ata</button>
+      <h3>Bu sınıfa atanan öğretmenler</h3>
+      <ul id="staff-list" class="staff-list"></ul>
+      <p id="staff-status" role="status" aria-live="polite"></p>
+      <div class="dialog-actions"><button id="staff-close" class="secondary" type="button">Kapat</button></div>
+    </form>
+  </dialog>
+  <dialog class="survey-dialog" id="survey-dialog" aria-labelledby="survey-title">
+    <form class="survey-panel" method="dialog">
+      <button class="survey-close" type="submit" aria-label="Duyuruyu kapat">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="m6 6 12 12M18 6 6 18"/>
+        </svg>
+      </button>
+      <div class="survey-intro">
+        <div>
+          <span class="survey-kicker">DUYURU</span>
+          <h2 id="survey-title" tabindex="-1">Ödev Takip Sistemi <span>Pilot Uygulama Bilgilendirmesi</span></h2>
+        </div>
+        <svg class="survey-art" viewBox="0 0 152 112" aria-hidden="true" focusable="false">
+          <ellipse cx="73" cy="59" rx="61" ry="43" fill="#ffdce1"/>
+          <path d="M24 38v12m-6-6h12m103 33v14m-7-7h14M30 88v8m-4-4h8" fill="none" stroke="#d88f9b" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="121" cy="24" r="5" fill="#ebbd65"/>
+          <circle cx="119" cy="96" r="3" fill="#d88f9b"/>
+          <g transform="rotate(-9 66 58)">
+            <rect x="40" y="19" width="57" height="79" rx="11" fill="#d09b9e" opacity=".22"/>
+            <rect x="37" y="15" width="57" height="79" rx="11" fill="#fffdf8" stroke="#25456b" stroke-width="2.5"/>
+            <rect x="51" y="10" width="29" height="12" rx="5" fill="#f6c675" stroke="#25456b" stroke-width="2.5"/>
+            <path d="m48 38 4 4 7-8m-11 20 4 4 7-8m-11 20 4 4 7-8" fill="none" stroke="#4b8c74" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M65 39h17M65 55h17M65 71h17" stroke="#b5c5d5" stroke-width="3.6" stroke-linecap="round"/>
+          </g>
+          <path d="M92 48h37a8 8 0 0 1 8 8v14a8 8 0 0 1-8 8h-15l-11 9v-9H92a8 8 0 0 1-8-8V56a8 8 0 0 1 8-8Z" fill="#c34a63" stroke="#fffdf8" stroke-width="3"/>
+          <path d="M96 59h29m-29 9h21" stroke="#fffdf8" stroke-width="2.7" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="survey-copy" tabindex="0" role="region" aria-label="Bilgilendirme metni">
+        <p><strong>Değerli Kullanıcılarımız,</strong></p>
+        <p>Ödev Takip Sistemi pilot uygulama aşamasındadır. Bu süreçte sistemin işleyişi değerlendirilecek, gerekli iyileştirmeler yapıldıktan sonra uygulama okulumuzun tamamının kullanımına açılacaktır.</p>
+        <p>Ödev Takip Sistemimiz içinde yer alan etkinlikler öğretmenlerimiz tarafından hazırlanmakta veya EBA, MEBİ, DİLİM uygulamalarından alınmaktadır.</p>
+        <p>Sistemin geliştirilmesine katkıda bulunmanız bizim için önemlidir. Bu nedenle uygulamaya ilişkin görüş, öneri ve değerlendirmelerinizi paylaşabileceğiniz kısa bir geri bildirim anketi hazırlanmıştır.</p>
+        <p>Katkılarınız için teşekkür ederiz.</p>
+      </div>
+      <div class="survey-actions">
+        <a class="survey-link" id="survey-link" href="https://docs.google.com/forms/d/e/1FAIpQLScEfCypnN_5ZjBcDBvQhki4-VmMXNi06tRO21vXUK3biX_haA/viewform" target="_blank" rel="noopener noreferrer">
+          Görüş ve Öneri Anketine Katıl
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 18 18 6M8 6h10v10"/>
+          </svg>
+        </a>
+        <button class="survey-later" type="submit">Daha sonra</button>
+      </div>
+    </form>
+  </dialog>
+  <footer>Ödev Takip Sistemi <span>Öğretmen · Öğrenci · Veli</span></footer>
+  <script>
+  (() => {
+    const dialog = document.getElementById("survey-dialog");
+    const trigger = document.getElementById("survey-trigger");
+    if (typeof dialog.showModal !== "function") return;
+
+    const title = document.getElementById("survey-title");
+    const link = document.getElementById("survey-link");
+    const copy = dialog.querySelector(".survey-copy");
+    const seenKey = "odev-takip-pilot-survey-seen-v1";
+    let previousFocus;
+
+    function openSurvey() {
+      if (dialog.open) return true;
+      previousFocus = document.activeElement;
+      try { dialog.showModal(); } catch { return false; }
+      document.body.classList.add("survey-open");
+      copy.scrollTop = 0;
+      title.focus({ preventScroll: true });
+      try { sessionStorage.setItem(seenKey, "1"); } catch {}
+      return true;
+    }
+
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.setAttribute("aria-controls", "survey-dialog");
+    trigger.addEventListener("click", event => {
+      if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      if (openSurvey()) event.preventDefault();
+    });
+    link.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("close", () => {
+      if (dialog.open) return;
+      document.body.classList.remove("survey-open");
+      const focusTarget = previousFocus instanceof HTMLElement
+        && previousFocus !== document.body && previousFocus.isConnected
+        ? previousFocus : trigger;
+      focusTarget.focus({ preventScroll: true });
+    });
+
+    try { if (sessionStorage.getItem(seenKey) === "1") return; } catch {}
+    openSurvey();
+  })();
+  </script>
   <script>
     (() => {
-      const subjects = [
-        ["Din Kültürü ve Ahlak Bilgisi", "din-kulturu-ve-ahlak-bilgisi.pdf"],
-        ["Fen Bilimleri", "fen-bilimleri.pdf"],
-        ["İngilizce", "ingilizce.pdf"],
-        ["Matematik", "matematik.pdf"],
-        ["Sosyal Bilgiler", "sosyal-bilgiler.pdf"],
-        ["Türkçe", "turkce.pdf"]
-      ];
-      const tabs = [...document.querySelectorAll(".library-tab")];
-      const rowTemplate = document.getElementById("library-row");
-      const getPanel = tab => document.getElementById(tab.getAttribute("aria-controls"));
-
-      async function pdfAvailable(path) {
-        if (!["http:", "https:"].includes(location.protocol)) return false;
-        try {
-          const response = await fetch(path, { method: "HEAD", cache: "no-store", redirect: "error" });
-          const type = response.headers.get("content-type") || "";
-          return response.ok && !/^text\/html\b/i.test(type);
-        } catch {
-          return false;
+      const menus = [...document.querySelectorAll(".mebi-menu")];
+      document.addEventListener("click", event => {
+        for (const menu of menus) {
+          if (menu.open && !menu.contains(event.target)) menu.open = false;
         }
-      }
-
-      async function loadPanel(tab) {
-        const panel = getPanel(tab);
-        if (panel.dataset.started) return;
-        panel.dataset.started = "true";
-        panel.setAttribute("aria-busy", "true");
-
-        const list = document.createElement("ul");
-        list.className = "library-rows";
-        list.setAttribute("aria-label", "Derslere göre PDF dosyaları");
-        const isFirstExam = tab === tabs[0];
-        const status = document.createElement("p");
-        status.className = "library-empty";
-        status.setAttribute("role", "status");
-        status.textContent = "PDF’ler kontrol ediliyor…";
-        if (isFirstExam) panel.append(list);
-        else panel.append(status);
-
-        const folder = tab.dataset.folder;
-        const rows = subjects.map(([subject, filename]) => {
-          const title = "6. Sınıf " + subject + " – " + tab.textContent;
-          const path = "./pdfs/6-sinif/" + folder + "/" + filename;
-          const row = rowTemplate.content.firstElementChild.cloneNode(true);
-          row.querySelector(".library-label").textContent = title;
-          row.querySelector(".library-exam").setAttribute("aria-label", title + ": Sınava Git");
-          if (isFirstExam) list.append(row);
-          return { title, path, filename, row };
-        });
-
-        const availability = await Promise.all(rows.map(item => pdfAvailable(item.path)));
-        rows.forEach((item, i) => {
-          if (!availability[i]) return;
-          const link = item.row.querySelector(".library-pdf-download");
-          link.href = item.path;
-          link.download = "6-sinif-" + folder + "-" + item.filename;
-          link.setAttribute("aria-label", item.title + " PDF indir");
-          item.row.querySelector(".library-pdf-pending").hidden = true;
-          link.hidden = false;
-          if (!isFirstExam) list.append(item.row);
-        });
-        if (!isFirstExam) {
-          if (availability.some(Boolean)) status.replaceWith(list);
-          else status.textContent = "Bu yazılı için henüz PDF eklenmedi.";
-        }
-        panel.removeAttribute("aria-busy");
-      }
-
-      function selectTab(current, focus = false) {
-        for (const tab of tabs) {
-          const selected = tab === current;
-          tab.setAttribute("aria-selected", String(selected));
-          tab.tabIndex = selected ? 0 : -1;
-          getPanel(tab).hidden = !selected;
-        }
-        if (focus) current.focus();
-        loadPanel(current);
-      }
-
-      tabs.forEach((tab, i) => {
-        tab.addEventListener("click", () => selectTab(tab));
-        tab.addEventListener("keydown", event => {
-          const positions = { ArrowLeft: (i + tabs.length - 1) % tabs.length, ArrowRight: (i + 1) % tabs.length, Home: 0, End: tabs.length - 1 };
-          if (!Object.hasOwn(positions, event.key)) return;
-          event.preventDefault();
-          selectTab(tabs[positions[event.key]], true);
-        });
       });
-      selectTab(tabs[0]);
+      for (const menu of menus) {
+        const trigger = menu.querySelector("summary");
+        const close = () => {
+          menu.open = false;
+          trigger.focus({ preventScroll: true });
+        };
+        menu.querySelector('a[target="_blank"]').addEventListener("click", close);
+        menu.addEventListener("keydown", event => {
+          if (event.key !== "Escape" || !menu.open) return;
+          event.preventDefault();
+          close();
+        });
+      }
     })();
   </script>
 </body>
 </html>
+
