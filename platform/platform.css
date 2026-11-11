@@ -121,11 +121,118 @@ body:has(.platform-home) {
   transform: rotate(31deg);
   opacity: .7;
 }
-.platform-hero-art img {
-  display: block;
+.platform-mascot {
+  position: relative;
   width: min(100%, 252px);
-  height: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--school-wine);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.platform-mascot:focus-visible {
+  outline: 2px solid var(--school-wine);
+  outline-offset: 5px;
+}
+.mascot-stage {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 276 / 266;
+}
+.mascot-idle,
+.mascot-greeting {
+  position: relative;
+  grid-area: 1 / 1;
+  width: 100%;
   mix-blend-mode: multiply;
+  transition: opacity 140ms ease;
+}
+.mascot-idle img { display: block; width: 100%; height: auto; }
+.mascot-eye {
+  position: absolute;
+  left: 40.55%;
+  top: 33.5%;
+  width: 12.5%;
+  height: 12.8%;
+  overflow: hidden;
+  border-radius: 49% 53% 49% 48%;
+  background: radial-gradient(ellipse at 44% 36%, #fffdf6 55%, #f8ddcf 100%);
+  opacity: 0;
+}
+.platform-mascot.is-tracking .mascot-eye { opacity: 1; }
+.mascot-pupil {
+  position: absolute;
+  top: 55%;
+  left: 45%;
+  width: 75%;
+  height: 86%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 67% 28%, #fffaf3 0 11%, transparent 13%),
+    radial-gradient(circle at 48% 14%, #fff9ee 0 4%, transparent 6%),
+    radial-gradient(ellipse at 53% 43%, #2b1520 54%, #54323c 78%, #39212a 100%);
+  transform: translate(calc(-50% + var(--gaze-x, 0px)), calc(-50% + var(--gaze-y, 0px)));
+  transition: transform 85ms ease-out;
+}
+.mascot-greeting {
+  aspect-ratio: 296 / 246;
+  opacity: 0;
+  /* Cloth outlines on NAR6, measured relative to the image. */
+  --az-cloth: 60% 23.6%, 63% 24.2%, 66% 23.5%, 71% 21.4%, 75.5% 20.5%,
+    78.7% 21.5%, 79.4% 33.7%, 79.2% 39.6%, 76.7% 39.9%, 74.4% 38.9%,
+    71.2% 40%, 68% 41.7%, 64.9% 42.2%, 63.2% 39.9%, 61.7% 36.5%,
+    60.6% 31.4%, 60% 23.6%;
+  --tr-cloth: 82.8% 24.9%, 85.9% 24.8%, 88.5% 26.2%, 91.7% 29.2%,
+    95.3% 31.2%, 99.6% 31.3%, 99.7% 33.5%, 96% 44.8%, 95.2% 46.7%,
+    92.5% 47%, 89.3% 45.3%, 85.9% 42.6%, 83.7% 40.5%, 79.9% 40.4%,
+    80.1% 37.3%, 81.6% 31.5%, 82.8% 24.9%;
+}
+.mascot-greeting img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mascot-flag { display: none; }
+.platform-mascot.can-greet:is(.is-hovered, .is-greeting) .mascot-idle { opacity: 0; }
+.platform-mascot.can-greet:is(.is-hovered, .is-greeting) .mascot-greeting { opacity: 1; }
+.mascot-hint { display: none; }
+
+@supports (clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%)) {
+  @media (prefers-reduced-motion: no-preference) {
+    .mascot-greeting-base {
+      clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+        var(--az-cloth), 0 0, var(--tr-cloth), 0 0);
+    }
+    .mascot-flag { display: block; }
+    .mascot-flag--az { clip-path: polygon(var(--az-cloth)); transform-origin: 60.3% 31%; }
+    .mascot-flag--tr { clip-path: polygon(var(--tr-cloth)); transform-origin: 81.9% 32%; }
+    .platform-mascot.can-greet:is(.is-hovered, .is-greeting) .mascot-flag {
+      animation: mascot-flag-wave 860ms ease-in-out infinite alternate;
+    }
+    .platform-mascot.can-greet:is(.is-hovered, .is-greeting) .mascot-flag--tr {
+      animation-duration: 720ms;
+      animation-direction: alternate-reverse;
+    }
+  }
+}
+@keyframes mascot-flag-wave {
+  from { transform: rotate(-5deg) scaleX(.97); }
+  to { transform: rotate(5deg) scaleX(1.015); }
+}
+@media (hover: none) {
+  .mascot-hint {
+    position: absolute;
+    inset: auto 0 -15px;
+    display: block;
+    color: var(--school-wine);
+    font-size: 11px;
+    font-weight: 700;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot-idle, .mascot-greeting, .mascot-pupil { transition: none; }
+  .platform-mascot.is-tracking .mascot-eye { opacity: 0; }
 }
 
 .platform-resources { padding-top: 24px; scroll-margin-top: 16px; }

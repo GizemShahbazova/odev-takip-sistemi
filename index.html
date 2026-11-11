@@ -10,6 +10,7 @@
   <script src="./parent-auth.js?v=ogrenci-20261030" defer></script>
   <script src="./student-device.js?v=kod-20261105" defer></script>
   <script src="./app.js?v=atolye-tymm-20261112" defer></script>
+  <script src="./platform/maskot.js?v=1" defer></script>
   <style id="pilot-survey-style">
 .header-links .survey-trigger {
   display: inline-flex;
@@ -330,7 +331,7 @@ dialog.survey-dialog {
       .site-header--resources .header-action { justify-self: start; align-self: center; }
     }
   </style>
-  <link rel="stylesheet" href="./platform/platform.css?v=3">
+  <link rel="stylesheet" href="./platform/platform.css?v=4">
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
@@ -393,7 +394,22 @@ dialog.survey-dialog {
           <p>Öğrenciler, veliler ve öğretmenler için ortak dijital çalışma alanı.</p>
           <a class="platform-cta" href="#platform-kaynaklar">Platformu keşfet <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
         </div>
-        <div class="platform-hero-art"><img src="./platform/nar-karsilama.png" width="276" height="266" alt=""></div>
+        <div class="platform-hero-art">
+          <button class="platform-mascot" type="button" aria-label="Nar maskotuyla selamlaş">
+            <span class="mascot-stage" aria-hidden="true">
+              <span class="mascot-idle">
+                <img src="./platform/nar-karsilama.png" width="276" height="266" alt="">
+                <span class="mascot-eye"><span class="mascot-pupil"></span></span>
+              </span>
+              <span class="mascot-greeting">
+                <img class="mascot-greeting-base" src="./platform/nar-bayrak.png" width="296" height="246" alt="" decoding="async">
+                <img class="mascot-flag mascot-flag--az" src="./platform/nar-bayrak.png" width="296" height="246" alt="" decoding="async">
+                <img class="mascot-flag mascot-flag--tr" src="./platform/nar-bayrak.png" width="296" height="246" alt="" decoding="async">
+              </span>
+            </span>
+            <span class="mascot-hint" aria-hidden="true">Selam ver</span>
+          </button>
+        </div>
       </div>
       <section id="platform-kaynaklar" class="platform-resources" aria-labelledby="platform-resources-title">
         <div class="platform-resources-heading">
