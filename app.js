@@ -2,6 +2,13 @@
    Erişim yetkileri Firestore Security Rules tarafından uygulanır. */
 (() => {
   const el = (id) => document.getElementById(id);
+  const pageParams = new URLSearchParams(location.search);
+  const homeworkPage = pageParams.get('bolum') === 'odev';
+  const activeMenu = el(homeworkPage ? 'menu-homework' : 'menu-home');
+  activeMenu.classList.add('menu-active');
+  activeMenu.setAttribute('aria-current', 'page');
+  el('platform-home').hidden = homeworkPage;
+  el('intro-view').hidden = !homeworkPage;
   function codeUsername(value) {
     const match = /^(?:btal)?([1-9][0-9]{5})$/i.exec(String(value ?? '').trim());
     return match ? 'btal' + match[1] : '';
@@ -1063,7 +1070,8 @@
     }
   }
   el('back-to-classes').addEventListener('click', backToClasses);
-  el('menu-home').addEventListener('click', (event) => {
+  el('menu-homework').addEventListener('click', (event) => {
+    if (!homeworkPage || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     if (teacherUid && auth?.currentUser?.uid === teacherUid) {event.preventDefault(); backToClasses();}
     else if (parentUid && auth?.currentUser?.uid === parentUid) {event.preventDefault(); el('parent-title').focus();}
   });
@@ -1085,8 +1093,7 @@
     ++listRequest;
     savingClass = false;
     el('classes-view').hidden = true;
-    el('intro-view').hidden = false;
-    el('menu-home').textContent = 'Ana sayfa';
+    el('intro-view').hidden = !homeworkPage;
     el('classes-list').replaceChildren();
     el('class-count').textContent = '—';
     el('classes-empty').hidden = true;
@@ -1279,6 +1286,7 @@
       el('profile-details').hidden = false;
       accountProfile = {...profile, uid:user.uid}; el('header-settings').hidden = false;
       status('Hesabınız hazır.', 'success');
+      if (!homeworkPage) return;
       if (profile.role === 'teacher') {
         teacherUid = user.uid;
         const admin = isAdmin();
@@ -1289,13 +1297,11 @@
         el('classes-empty').textContent = admin ? 'Henüz sınıf yok. İlk sınıfı yukarıdan oluşturabilirsiniz.' : 'Henüz bir sınıfa atanmadınız. Yöneticinizle iletişime geçin.';
         el('intro-view').hidden = true;
         el('classes-view').hidden = false;
-        el('menu-home').textContent = 'Sınıflarım';
         await loadClasses();
       } else {
         parentUid = user.uid;
         el('intro-view').hidden = true;
         el('parent-view').hidden = false;
-        el('menu-home').textContent = 'Ödevlerim';
         await loadParentChildren();
       }
     } catch (error) {
@@ -1383,6 +1389,7 @@
         loginButton.disabled = false; loginButton.textContent = 'Giriş yap';
         clearClasses();
         el('login-view').hidden = Boolean(user);
+        el('quick-login').hidden = Boolean(user);
         el('account-view').hidden = !user;
         el('profile-details').hidden = true;
         el('password').value = '';
@@ -1407,4 +1414,3 @@
   }
   start();
 })();
-

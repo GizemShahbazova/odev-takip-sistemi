@@ -4,12 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Gizem’in ödev takip sistemi — sınıflar, öğrenciler ve ödevler.">
-  <title>Ödev Takip Sistemi | Öğretmen ve Öğrenci</title>
+  <meta name="description" content="Bakü Türk Ortaokulu dijital eğitim platformu. Ödev takibi, MEBİ ve EBA kütüphaneleri, öğretmen atölyesi ve oyunlar.">
+  <title>Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu</title>
   <link rel="stylesheet" href="./style.css?v=kod-20261105">
   <script src="./parent-auth.js?v=ogrenci-20261030" defer></script>
   <script src="./student-device.js?v=kod-20261105" defer></script>
-  <script src="./app.js?v=kod-20261105" defer></script>
+  <script src="./app.js?v=ana-sayfa-20261112" defer></script>
   <style id="pilot-survey-style">
 .header-links .survey-trigger {
   display: inline-flex;
@@ -330,10 +330,16 @@ dialog.survey-dialog {
       .site-header--resources .header-action { justify-self: start; align-self: center; }
     }
   </style>
+  <link rel="stylesheet" href="./platform/platform.css?v=2">
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
-  <header class="site-header site-header--resources"><a href="./" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a><nav class="header-links" aria-label="Üst menü"><a class="survey-trigger" id="survey-trigger" href="https://docs.google.com/forms/d/e/1FAIpQLScEfCypnN_5ZjBcDBvQhki4-VmMXNi06tRO21vXUK3biX_haA/viewform" target="_blank" rel="noopener noreferrer">
+  <header class="site-header site-header--resources"><a href="./" class="brand platform-brand" aria-label="Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu">
+      <span class="brand-icon platform-mark" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2.6-2-5.5-2.4-9-1.5v13c3.5-.9 6.4-.5 9 1.5 2.6-2 5.5-2.4 9-1.5v-13c-3.5-.9-6.4-.5-9 1.5v13"/><path d="M6 9h2m-2 3h2m8-3h2m-2 3h2"/></svg>
+      </span>
+      <span class="platform-brand-copy"><strong>Bakü Türk Ortaokulu</strong><span>Okul Tabanlı Dijital Eğitim Platformu</span></span>
+    </a><nav class="header-links" aria-label="Üst menü"><a class="survey-trigger" id="survey-trigger" href="https://docs.google.com/forms/d/e/1FAIpQLScEfCypnN_5ZjBcDBvQhki4-VmMXNi06tRO21vXUK3biX_haA/viewform" target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h6"/>
         </svg>
@@ -355,10 +361,12 @@ dialog.survey-dialog {
           <a href="./eba/kutuphane.html">Kütüphane</a>
         </div>
       </details>
-      <button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button><span class="stage">Sınıfınızın ortak çalışma alanı</span></nav></header>
+      <a id="quick-login" class="platform-signin" href="#hesap">Giriş yap</a><button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button></nav></header>
   <main id="main-content" tabindex="-1">
     <aside class="sidebar" aria-label="Site menüsü">
-      <p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a>
+      <p class="menu-heading">GEZİNME</p>
+      <a id="menu-home" class="menu-link" href="./">Ana sayfa</a>
+      <a id="menu-homework" class="menu-link" href="./?bolum=odev">Ödev Takip</a>
       <a class="menu-link resource-menu-link" href="./materyaller/"><span>Öğretmen Atölyesi</span></a>
       <a class="menu-link resource-menu-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
       <details class="resource-menu" data-resource="mebi">
@@ -375,14 +383,59 @@ dialog.survey-dialog {
           <a href="./eba/kutuphane.html">Kütüphane</a>
         </div>
       </details>
-      <div class="sidebar-note"><strong>Öğretmen ve öğrenci</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div>
+      
     </aside>
-    <section id="intro-view" class="intro" aria-labelledby="intro-title">
-      <p class="eyebrow">HOŞ GELDİNİZ</p>
-      <h1 id="intro-title">Ödev Takip Sistemi</h1>
-      <p class="lead">Sınıfınızın ödevlerini ve öğrencilerinizin ilerlemesini takip edeceğiniz ortak alan.</p>
-      <div class="info-block"><h2>Hesabınıza giriş yapın</h2><p>Her öğrenciye ayrı kullanıcı kodu ve şifre verilir. Veliler ilgili öğrencinin hesabıyla takip eder.</p><p>Yönetici sınıfları ve öğrenci kayıtlarını düzenler; öğretmenler kendilerine verilen sınıfların ödevlerini yönetir.</p></div>
-      <div class="announcement"><h2>İlk sürüm hakkında</h2><p>Yönetici ödev durumlarını günceller. Her öğrenci hesabı tek öğrenci kaydıyla eşleştirilir; veli bu hesaptan takip edebilir.</p></div>
+    <section id="platform-home" class="platform-home" aria-labelledby="platform-title">
+      <div class="platform-hero">
+        <div class="platform-hero-copy">
+          <h1 id="platform-title">Ödevler, kitaplar<br class="hero-break"> ve oyunlar</h1>
+          <p>Öğrenciler, veliler ve öğretmenler için ortak dijital çalışma alanı.</p>
+          <a class="platform-cta" href="#platform-kaynaklar">Platformu keşfet <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+        </div>
+        <div class="platform-hero-art"><img src="./platform/nar-karsilama.png" width="276" height="266" alt=""></div>
+      </div>
+      <section id="platform-kaynaklar" class="platform-resources" aria-labelledby="platform-resources-title">
+        <div class="platform-resources-heading">
+          <h2 id="platform-resources-title">Bu platformda neler var?</h2>
+        </div>
+        <div class="platform-tiles">
+          <a class="platform-tile platform-tile--odev" href="./?bolum=odev">
+            <div class="platform-tile-copy"><h3>Ödev Takip</h3><p>Verilen ödevleri, teslim tarihlerini ve ödev durumunu takip edin.</p></div>
+            <span class="platform-tile-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+            <img src="./platform/nar-odev.png" width="100" height="100" alt="" decoding="async">
+          </a>
+          <a class="platform-tile platform-tile--kitap" href="./mebi/">
+            <div class="platform-tile-copy"><h3>MEBİ Kütüphanesi</h3><p>6. sınıf örnek yazılı sorularına ve derslere göre hazırlık PDF’lerine ulaşın.</p></div>
+            <span class="platform-tile-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+            <img src="./platform/nar-kitap.png" width="100" height="100" alt="" decoding="async">
+          </a>
+          <a class="platform-tile platform-tile--dijital" href="./eba/kutuphane.html">
+            <div class="platform-tile-copy"><h3>EBA Kütüphanesi</h3><p>Bilim, teknoloji, eğlence ve oyun konulu kitap ve dergileri keşfedin.</p></div>
+            <span class="platform-tile-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+            <img src="./platform/nar-dijital.png" width="100" height="100" alt="" decoding="async">
+          </a>
+          <a class="platform-tile platform-tile--atolye" href="./materyaller/">
+            <div class="platform-tile-copy"><h3>Öğretmen Atölyesi</h3><p>Zümrelerin afişlerini, ders kaynaklarını ve etkileşimli İngilizce oyunlarını açın.</p></div>
+            <span class="platform-tile-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+            <img src="./platform/nar-atolye.png" width="100" height="100" alt="" decoding="async">
+          </a>
+        </div>
+        <a class="platform-external" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer">
+          <span><strong>Maarifin Kalbinde Oyun</strong><small>MEB’in oyun ve etkinlik önerileri</small></span>
+          <svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l8-8M5 4h7v7"/></svg>
+        </a>
+      </section>
+    </section>
+    <section id="intro-view" class="intro homework-intro" aria-labelledby="intro-title" hidden>
+      <h1 id="intro-title">Ödev Takip</h1>
+      <p class="lead">Okul hesabınızla giriş yaparak sınıf ödevlerini ve teslim tarihlerini görüntüleyin.</p>
+      <div class="info-block">
+        <h2>Öğrenciler ve veliler</h2>
+        <p>Öğrencinin kullanıcı adı ve şifresiyle giriş yapıp ödev durumunu ve bildirimleri takip edebilirsiniz.</p>
+        <h2>Öğretmenler</h2>
+        <p>Öğretmen hesabınızla size atanan sınıfların ödevlerini yönetebilirsiniz.</p>
+      </div>
+      <a class="platform-cta" href="#hesap">Hesabınıza giriş yapın <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
     </section>
     <section id="classes-view" class="intro" aria-labelledby="classes-title" hidden>
       <p id="classes-kicker" class="eyebrow">ÖĞRETMEN PANELİ</p>
@@ -475,9 +528,9 @@ dialog.survey-dialog {
       <div id="parent-children"></div>
       <p class="note">Ödevler son teslim tarihine göre sıralanır. Ödev durumlarını yönetici günceller. Güncel durumları ve hatırlatmaları görmek için Yenile düğmesini kullanın.</p>
     </section>
-    <section class="card" aria-label="Hesap girişi">
+    <section id="hesap" class="card platform-account" tabindex="-1" aria-label="Okul hesabı">
       <div id="login-view">
-        <p class="eyebrow">HESAP GİRİŞİ</p><h2>Giriş yap</h2><p class="muted">Her öğrenci kendi kullanıcı kodu ve şifresiyle giriş yapar. Veli bu hesap üzerinden ödevleri takip edebilir.</p>
+        <p class="eyebrow">OKUL HESABI</p><h2>Giriş yap</h2><p id="login-purpose" class="muted">Ödev Takip’i kullanmak için okul hesabınızla giriş yapın.</p>
         <div class="login-tabs" role="group" aria-label="Giriş türü">
           <button id="login-parent" type="button" aria-pressed="true">Öğrenci girişi</button>
           <button id="login-email" type="button" aria-pressed="false">Öğretmen girişi</button>
@@ -598,7 +651,7 @@ dialog.survey-dialog {
       </div>
     </form>
   </dialog>
-  <footer>Ödev Takip Sistemi <span>Öğretmen · Öğrenci · Veli</span></footer>
+  <footer>Bakü Türk Ortaokulu <span>Okul Tabanlı Dijital Eğitim Platformu</span></footer>
   <script>
   (() => {
     const dialog = document.getElementById("survey-dialog");
@@ -638,6 +691,7 @@ dialog.survey-dialog {
       focusTarget.focus({ preventScroll: true });
     });
 
+    if (new URL(location.href).searchParams.size || location.hash === "#hesap") return;
     try { if (sessionStorage.getItem(seenKey) === "1") return; } catch {}
     openSurvey();
   })();
@@ -667,4 +721,3 @@ dialog.survey-dialog {
   </script>
 </body>
 </html>
-
