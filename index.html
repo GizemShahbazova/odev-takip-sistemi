@@ -4,12 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Bakü Türk Ortaokulu dijital eğitim platformu. Ödev takibi, MEBİ ve EBA kütüphaneleri, öğretmen atölyesi ve oyunlar.">
+  <meta name="description" content="Bakü Türk Ortaokulu dijital eğitim platformu. Ödev takibi, MEBİ ve EBA kütüphaneleri, TYMM ders kitapları, öğretmen atölyesi ve oyunlar.">
   <title>Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu</title>
   <link rel="stylesheet" href="./style.css?v=kod-20261105">
   <script src="./parent-auth.js?v=ogrenci-20261030" defer></script>
   <script src="./student-device.js?v=kod-20261105" defer></script>
-  <script src="./app.js?v=ana-sayfa-20261112" defer></script>
+  <script src="./app.js?v=atolye-tymm-20261112" defer></script>
   <style id="pilot-survey-style">
 .header-links .survey-trigger {
   display: inline-flex;
@@ -330,15 +330,15 @@ dialog.survey-dialog {
       .site-header--resources .header-action { justify-self: start; align-self: center; }
     }
   </style>
-  <link rel="stylesheet" href="./platform/platform.css?v=2">
+  <link rel="stylesheet" href="./platform/platform.css?v=3">
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
-  <header class="site-header site-header--resources"><a href="./" class="brand platform-brand" aria-label="Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu">
+  <header class="site-header site-header--platform site-header--resources"><a id="site-brand" href="./" class="brand platform-brand" aria-label="Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu">
       <span class="brand-icon platform-mark" aria-hidden="true">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2.6-2-5.5-2.4-9-1.5v13c3.5-.9 6.4-.5 9 1.5 2.6-2 5.5-2.4 9-1.5v-13c-3.5-.9-6.4-.5-9 1.5v13"/><path d="M6 9h2m-2 3h2m8-3h2m-2 3h2"/></svg>
       </span>
-      <span class="platform-brand-copy"><strong>Bakü Türk Ortaokulu</strong><span>Okul Tabanlı Dijital Eğitim Platformu</span></span>
+      <span class="platform-brand-copy"><strong id="site-brand-name">Bakü Türk Ortaokulu</strong><span id="site-brand-subtitle">Okul Tabanlı Dijital Eğitim Platformu</span></span>
     </a><nav class="header-links" aria-label="Üst menü"><a class="survey-trigger" id="survey-trigger" href="https://docs.google.com/forms/d/e/1FAIpQLScEfCypnN_5ZjBcDBvQhki4-VmMXNi06tRO21vXUK3biX_haA/viewform" target="_blank" rel="noopener noreferrer">
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h6"/>
@@ -361,6 +361,7 @@ dialog.survey-dialog {
           <a href="./eba/kutuphane.html">Kütüphane</a>
         </div>
       </details>
+      <a class="resource-menu-link" href="https://tymm.meb.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="TYMM Ders Kitapları (yeni sekme)"><span>TYMM Ders Kitapları</span><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
       <a id="quick-login" class="platform-signin" href="#hesap">Giriş yap</a><button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button></nav></header>
   <main id="main-content" tabindex="-1">
     <aside class="sidebar" aria-label="Site menüsü">
@@ -383,7 +384,7 @@ dialog.survey-dialog {
           <a href="./eba/kutuphane.html">Kütüphane</a>
         </div>
       </details>
-      
+      <a class="menu-link resource-menu-link" href="https://tymm.meb.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="TYMM Ders Kitapları (yeni sekme)"><span>TYMM Ders Kitapları</span><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
     </aside>
     <section id="platform-home" class="platform-home" aria-labelledby="platform-title">
       <div class="platform-hero">
@@ -420,10 +421,16 @@ dialog.survey-dialog {
             <img src="./platform/nar-atolye.png" width="100" height="100" alt="" decoding="async">
           </a>
         </div>
-        <a class="platform-external" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer">
-          <span><strong>Maarifin Kalbinde Oyun</strong><small>MEB’in oyun ve etkinlik önerileri</small></span>
-          <svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l8-8M5 4h7v7"/></svg>
-        </a>
+        <div class="platform-external-links">
+          <a class="platform-external" href="https://tymm.meb.gov.tr/" target="_blank" rel="noopener noreferrer">
+            <span><strong>TYMM Ders Kitapları</strong><small>Türkiye Yüzyılı Maarif Modeli</small></span>
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg>
+          </a>
+          <a class="platform-external" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer">
+            <span><strong>Maarifin Kalbinde Oyun</strong><small>MEB’in oyun ve etkinlik önerileri</small></span>
+            <svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l8-8M5 4h7v7"/></svg>
+          </a>
+        </div>
       </section>
     </section>
     <section id="intro-view" class="intro homework-intro" aria-labelledby="intro-title" hidden>
@@ -615,7 +622,7 @@ dialog.survey-dialog {
       <div class="survey-intro">
         <div>
           <span class="survey-kicker">DUYURU</span>
-          <h2 id="survey-title" tabindex="-1">Ödev Takip Sistemi <span>Pilot Uygulama Bilgilendirmesi</span></h2>
+          <h2 id="survey-title" tabindex="-1">Pilot Uygulama Bilgilendirmesi <span id="survey-site-name">Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu</span></h2>
         </div>
         <svg class="survey-art" viewBox="0 0 152 112" aria-hidden="true" focusable="false">
           <ellipse cx="73" cy="59" rx="61" ry="43" fill="#ffdce1"/>
@@ -635,8 +642,8 @@ dialog.survey-dialog {
       </div>
       <div class="survey-copy" tabindex="0" role="region" aria-label="Bilgilendirme metni">
         <p><strong>Değerli Kullanıcılarımız,</strong></p>
-        <p>Ödev Takip Sistemi pilot uygulama aşamasındadır. Bu süreçte sistemin işleyişi değerlendirilecek, gerekli iyileştirmeler yapıldıktan sonra uygulama okulumuzun tamamının kullanımına açılacaktır.</p>
-        <p>Ödev Takip Sistemimiz içinde yer alan etkinlikler öğretmenlerimiz tarafından hazırlanmakta veya EBA, MEBİ, DİLİM uygulamalarından alınmaktadır.</p>
+        <p>Platformumuz pilot uygulama aşamasındadır. Bu süreçte sistemin işleyişi değerlendirilecek, gerekli iyileştirmeler yapıldıktan sonra uygulama okulumuzun tamamının kullanımına açılacaktır.</p>
+        <p>Platformdaki etkinlikler öğretmenlerimiz tarafından hazırlanmakta veya EBA, MEBİ, DİLİM uygulamalarından alınmaktadır.</p>
         <p>Sistemin geliştirilmesine katkıda bulunmanız bizim için önemlidir. Bu nedenle uygulamaya ilişkin görüş, öneri ve değerlendirmelerinizi paylaşabileceğiniz kısa bir geri bildirim anketi hazırlanmıştır.</p>
         <p>Katkılarınız için teşekkür ederiz.</p>
       </div>
@@ -651,7 +658,7 @@ dialog.survey-dialog {
       </div>
     </form>
   </dialog>
-  <footer>Bakü Türk Ortaokulu <span>Okul Tabanlı Dijital Eğitim Platformu</span></footer>
+  <footer id="site-footer">Bakü Türk Ortaokulu <span>Okul Tabanlı Dijital Eğitim Platformu</span></footer>
   <script>
   (() => {
     const dialog = document.getElementById("survey-dialog");

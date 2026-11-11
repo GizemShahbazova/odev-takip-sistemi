@@ -4,6 +4,14 @@
   const el = (id) => document.getElementById(id);
   const pageParams = new URLSearchParams(location.search);
   const homeworkPage = pageParams.get('bolum') === 'odev';
+  if (homeworkPage && el('site-brand')) {
+    document.title = 'Ödev Takip';
+    el('site-brand').setAttribute('aria-label', 'Ödev Takip');
+    el('site-brand-name').textContent = 'Ödev Takip';
+    el('site-brand-subtitle').hidden = true;
+    el('site-footer').textContent = 'Ödev Takip';
+    el('survey-site-name').textContent = 'Ödev Takip';
+  }
   const activeMenu = el(homeworkPage ? 'menu-homework' : 'menu-home');
   activeMenu.classList.add('menu-active');
   activeMenu.setAttribute('aria-current', 'page');

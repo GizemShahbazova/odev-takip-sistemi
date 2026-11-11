@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Öğretmen Atölyesi: zümre görselleri, öğretmen listeleri ve ders kaynakları.">
-  <title>Öğretmen Atölyesi | Ödev Takip</title>
+  <title>Öğretmen Atölyesi | Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .workshop-page {
@@ -138,6 +138,49 @@
     }
     .workshop-teachers h3, .workshop-games h3 { margin: 0; color: var(--workshop-navy); font-size: 16px; }
     .workshop-teachers p { margin: 5px 0 0; color: var(--workshop-muted); font-size: 14px; line-height: 1.6; }
+    .workshop-teacher-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+      gap: 8px;
+      list-style: none;
+      margin: 10px 0 0;
+      padding: 0;
+    }
+    .workshop-teacher-trigger {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 8px 11px;
+      border: 1px solid #dce4ea;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--workshop-navy);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .workshop-teacher-trigger:hover { border-color: #b9808b; }
+    .workshop-teacher-trigger:focus-visible { outline: 2px solid #2c5275; outline-offset: 2px; }
+    summary.workshop-teacher-trigger { cursor: pointer; list-style: none; }
+    summary.workshop-teacher-trigger::-webkit-details-marker { display: none; }
+    summary.workshop-teacher-trigger::after {
+      content: "";
+      flex: none;
+      width: 6px;
+      height: 6px;
+      margin: -3px 2px 0 0;
+      border-right: 2px solid #932d43;
+      border-bottom: 2px solid #932d43;
+      transform: rotate(45deg);
+    }
+    details[open] > summary.workshop-teacher-trigger::after { transform: rotate(225deg); margin-top: 3px; }
+    .workshop-teacher-trigger svg { flex: none; color: #932d43; }
+    .workshop-teacher-list details p { margin: 5px 10px 2px; }
+    @media (max-width: 520px) {
+      .workshop-teacher-list { grid-template-columns: 1fr; }
+    }
     .workshop-games { margin-top: 22px; }
     .workshop-games h3 { margin-bottom: 12px; }
     .workshop-games .materials-grid { gap: 14px; }
@@ -259,12 +302,18 @@
       .workshop-dialog { width: calc(100% - 20px); }
     }
   </style>
+  <link rel="stylesheet" href="../platform/platform.css?v=3">
 </head>
 <body>
   <a class="skip-link" href="#main-content">İçeriğe geç</a>
-  <header class="site-header">
-    <a href="../" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a>
-    <div class="header-links"><a href="../">Ödev takibine dön</a><span class="stage">Zümreler ve ders kaynakları</span></div>
+  <header class="site-header site-header--platform">
+    <a href="../" class="brand platform-brand" aria-label="Bakü Türk Ortaokulu Okul Tabanlı Dijital Eğitim Platformu">
+      <span class="brand-icon platform-mark" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2.6-2-5.5-2.4-9-1.5v13c3.5-.9 6.4-.5 9 1.5 2.6-2 5.5-2.4 9-1.5v-13c-3.5-.9-6.4-.5-9 1.5v13"/><path d="M6 9h2m-2 3h2m8-3h2m-2 3h2"/></svg>
+      </span>
+      <span class="platform-brand-copy"><strong>Bakü Türk Ortaokulu</strong><span>Okul Tabanlı Dijital Eğitim Platformu</span></span>
+    </a>
+    <div class="header-links"><a href="../">Ana sayfa</a><span class="stage">Zümreler ve ders kaynakları</span></div>
   </header>
   <main id="main-content" class="materials-page workshop-page" tabindex="-1">
     <section class="workshop-hero" aria-labelledby="workshop-title">
@@ -440,7 +489,31 @@
         </figure>
         <div class="workshop-teachers">
           <h3>Zümre öğretmenleri</h3>
-          <p>Öğretmen listesi daha sonra eklenecek.</p>
+          <ul class="workshop-teacher-list">
+            <li>
+              <details>
+                <summary class="workshop-teacher-trigger">Gülşen Zengin</summary>
+                <p>Öğretmen sayfasının bağlantısı henüz eklenmedi.</p>
+              </details>
+            </li>
+            <li>
+              <details>
+                <summary class="workshop-teacher-trigger">Melek Gedik</summary>
+                <p>Öğretmen sayfasının bağlantısı henüz eklenmedi.</p>
+              </details>
+            </li>
+            <li>
+              <details>
+                <summary class="workshop-teacher-trigger">Nevra Akorhan Memiş</summary>
+                <p>Öğretmen sayfasının bağlantısı henüz eklenmedi.</p>
+              </details>
+            </li>
+            <li>
+              <a class="workshop-teacher-trigger" href="https://gizemshahbazova.github.io/Ingilizce/" target="_blank" rel="noopener noreferrer">
+                Zeynep Gizem Şahbaz <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg>
+              </a>
+            </li>
+          </ul>
         </div>
         <section class="workshop-games" aria-labelledby="games-title">
           <h3 id="games-title">Oyunlar</h3>
@@ -572,7 +645,7 @@
       <button class="workshop-close" type="button" autofocus><span aria-hidden="true">×</span> Kapat</button>
     </dialog>
   </main>
-  <footer>Ödev Takip Sistemi <span>Öğretmen Atölyesi</span></footer>
+  <footer>Bakü Türk Ortaokulu <span>Okul Tabanlı Dijital Eğitim Platformu</span></footer>
   <script>
     (() => {
       const dialog = document.getElementById("zumre-penceresi");
