@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="EBA Kütüphanesi: bilim, teknoloji, eğlence ve oyun PDF'leri.">
+  <title>EBA Kütüphanesi | Ödev Takip</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .eba-library {
+      --eba-ink: #213348;
+      --eba-muted: #56687b;
+      --eba-line: #dce5ec;
+      --eba-accent: #166a66;
+      --eba-soft: #eaf6f3;
+      display: block;
+      max-width: 1180px;
+      margin: clamp(18px, 4vw, 42px) auto 48px;
+      padding: 0 clamp(14px, 3vw, 30px);
+      color: var(--eba-ink);
+    }
+    .eba-library [hidden] { display: none !important; }
+    .eba-breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 0 0 12px;
+      color: var(--eba-muted);
+      font-size: 13px;
+    }
+    .eba-breadcrumb a:hover { text-decoration: underline; }
+    .eba-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      padding: clamp(18px, 4vw, 32px);
+      border: 1px solid #d1e4e1;
+      border-top: 3px solid #287b75;
+      border-radius: 13px;
+      background: linear-gradient(110deg, #fff 30%, #f1f9f6 68%, #e1f2ed 100%);
+    }
+    .eba-kicker { margin: 0 0 7px; color: #12635f; font-size: 11px; font-weight: 750; letter-spacing: 1.2px; }
+    .eba-hero h1 { margin: 0; color: var(--eba-ink); font-size: clamp(26px, 4.5vw, 37px); line-height: 1.2; }
+    .eba-intro { max-width: 520px; margin: 10px 0 0; color: var(--eba-muted); font-size: 15px; line-height: 1.55; }
+    .eba-total {
+      min-width: 113px;
+      padding: 10px 16px;
+      border: 1px solid #c4ded8;
+      border-radius: 10px;
+      background: #ffffffbb;
+      color: var(--eba-accent);
+      text-align: center;
+    }
+    .eba-total strong { display: block; font-size: 30px; line-height: 1.15; }
+    .eba-total span { color: var(--eba-muted); font-size: 12px; }
+    .eba-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .eba-tab {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 69px;
+      padding: 10px 14px;
+      border: 1px solid var(--eba-line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--eba-ink);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .eba-tab:hover { border-color: #80b3aa; }
+    .eba-tab[aria-selected="true"] { border-color: #4e9c93; background: #f4fbf8; box-shadow: inset 0 -3px #2b8a80; }
+    .eba-tab-icon {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      flex: none;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--eba-soft);
+      color: var(--eba-accent);
+    }
+    .eba-tab[data-category="eglence-ve-oyun"] .eba-tab-icon { background: #f7edf2; color: #823a5e; }
+    .eba-tab-text { min-width: 0; }
+    .eba-tab-text strong { display: block; font-size: 15px; line-height: 1.25; }
+    .eba-tab-text small { display: block; margin-top: 4px; color: var(--eba-muted); font-size: 12px; }
+    .eba-board { padding: clamp(13px, 3vw, 23px); border: 1px solid var(--eba-line); border-radius: 13px; background: #fff; }
+    .eba-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .eba-toolbar h2 { margin: 0; color: var(--eba-ink); font-size: clamp(19px, 3vw, 23px); }
+    .eba-result-count { margin: 4px 0 0; color: var(--eba-muted); font-size: 13px; }
+    .eba-search { display: flex; flex-direction: column; gap: 5px; min-width: min(100%, 236px); color: var(--eba-muted); font-size: 12px; font-weight: 700; }
+    .eba-search input {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid #c8d6e0;
+      border-radius: 7px;
+      background: #fbfcfd;
+      color: var(--eba-ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 400;
+    }
+    .eba-tab:focus-visible, .eba-search input:focus-visible, .eba-download:focus-visible, .eba-page-button:focus-visible {
+      outline: 3px solid #7ba8cf;
+      outline-offset: 2px;
+    }
+    .eba-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 0; padding: 0; list-style: none; }
+    .eba-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 72px;
+      padding: 10px;
+      border: 1px solid #e2e9ef;
+      border-radius: 9px;
+      background: #fcfdfe;
+    }
+    .eba-file { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .eba-file-icon {
+      display: grid;
+      flex: none;
+      width: 33px;
+      height: 39px;
+      place-items: center;
+      border: 1px solid #d7e5eb;
+      border-radius: 6px;
+      background: #eef4f7;
+      color: #466175;
+      font-size: 9px;
+      font-weight: 750;
+      letter-spacing: .25px;
+    }
+    .eba-file h3 { margin: 0; color: var(--eba-ink); font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+    .eba-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      flex: none;
+      min-height: 36px;
+      min-width: 111px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .eba-waiting { background: #f0f3f6; color: #526479; }
+    .eba-ready { background: #e1f3ed; color: #125b4d; }
+    .eba-ready:hover { background: #cdeae0; }
+    .eba-empty { margin: 0; padding: 22px 12px; border: 1px dashed var(--eba-line); border-radius: 8px; color: var(--eba-muted); text-align: center; }
+    .eba-pages { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 14px; }
+    .eba-page-position { color: var(--eba-muted); font-size: 13px; }
+    .eba-page-actions { display: flex; gap: 7px; }
+    .eba-page-button { min-height: 38px; padding: 6px 10px; border: 1px solid #d2dfe7; border-radius: 6px; background: #fff; color: var(--eba-ink); font: inherit; font-size: 13px; cursor: pointer; }
+    .eba-page-button:hover:not(:disabled) { background: var(--eba-soft); }
+    .eba-page-button:disabled { opacity: .55; cursor: default; }
+    @media (max-width: 830px) { .eba-list { grid-template-columns: 1fr; } }
+    @media (max-width: 540px) {
+      .eba-hero { grid-template-columns: 1fr; }
+      .eba-total { display: none; }
+      .eba-tabs { gap: 7px; }
+      .eba-tab { align-items: flex-start; gap: 6px; flex-direction: column; min-height: 93px; padding: 8px; }
+      .eba-tab-icon { width: 27px; height: 27px; }
+      .eba-tab-icon svg { width: 17px; height: 17px; }
+      .eba-tab-text strong { font-size: 13px; }
+      .eba-search { width: 100%; }
+      .eba-item { display: grid; gap: 6px; }
+      .eba-download { justify-self: end; min-height: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">İçeriğe geç</a>
+  <header class="site-header">
+    <a href="../" class="brand"><span class="brand-icon" aria-hidden="true">✓</span> Ödev Takip</a>
+    <nav class="header-links" aria-label="EBA kütüphane bağlantıları">
+      <a href="../">Ana sayfa</a>
+      <a href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="EBA web sitesi (yeni sekme)">EBA web sitesi</a>
+    </nav>
+  </header>
+  <main id="main-content" class="eba-library" tabindex="-1">
+    <nav class="eba-breadcrumb" aria-label="Sayfa konumu">
+      <a href="../">Ana sayfa</a><span aria-hidden="true">›</span><span aria-current="page">EBA Kütüphanesi</span>
+    </nav>
+    <section class="eba-hero" aria-labelledby="eba-title">
+      <div>
+        <p class="eba-kicker">EBA’DA NELER VAR?</p>
+        <h1 id="eba-title">EBA Kütüphanesi</h1>
+        <p class="eba-intro">Dergilere, etkinlik kitaplarına, öykülere ve oyunlara göz at. Bir kategori seç veya başlığıyla ara.</p>
+      </div>
+      <div class="eba-total"><strong id="eba-total">51</strong><span>PDF başlığı</span></div>
+    </section>
+    <div class="eba-tabs" role="tablist" aria-label="Kütüphane kategorileri">
+      <button class="eba-tab" type="button" id="eba-tab-bilim" role="tab" aria-controls="eba-panel-bilim" aria-selected="true" data-category="bilim-ve-teknoloji">
+        <span class="eba-tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3m6-3v3M9 18v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3m-10-3h2m-1-1v2"/></svg></span>
+        <span class="eba-tab-text"><strong>Bilim ve Teknoloji</strong><small data-count>22 başlık</small></span>
+      </button>
+      <button class="eba-tab" type="button" id="eba-tab-eglence" role="tab" aria-controls="eba-panel-eglence" aria-selected="false" tabindex="-1" data-category="eglence-ve-oyun">
+        <span class="eba-tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1zm0 0v14M6 9h3m-3 3h3m6-3h3m-3 3h3"/></svg></span>
+        <span class="eba-tab-text"><strong>Eğlence ve Oyun</strong><small data-count>29 başlık</small></span>
+      </button>
+    </div>
+    <section class="eba-board" aria-label="PDF kataloğu">
+      <div class="eba-toolbar" id="eba-toolbar">
+        <div>
+          <h2 id="eba-category" tabindex="-1">Bilim ve Teknoloji</h2>
+          <p class="eba-result-count" id="eba-result-count" role="status"></p>
+        </div>
+        <label class="eba-search">Başlığa göre ara
+          <input id="eba-query" type="search" autocomplete="off" placeholder="Örn. bilim, Karagöz">
+        </label>
+      </div>
+      <section id="eba-panel-bilim" role="tabpanel" aria-labelledby="eba-tab-bilim" tabindex="0">
+        <ul class="eba-list" aria-label="Bilim ve Teknoloji PDF başlıkları"></ul>
+      </section>
+      <section id="eba-panel-eglence" role="tabpanel" aria-labelledby="eba-tab-eglence" tabindex="0" hidden>
+        <ul class="eba-list" aria-label="Eğlence ve Oyun PDF başlıkları"></ul>
+      </section>
+      <p id="eba-empty" class="eba-empty" hidden>Aramana uygun başlık bulunamadı.</p>
+      <nav id="eba-pages" class="eba-pages" aria-label="Katalog sayfaları" hidden>
+        <span class="eba-page-position" id="eba-page-position"></span>
+        <div class="eba-page-actions">
+          <button class="eba-page-button" id="eba-prev" type="button">Önceki</button>
+          <button class="eba-page-button" id="eba-next" type="button">Sonraki</button>
+        </div>
+      </nav>
+      <noscript><p class="eba-empty">PDF listesini görmek için JavaScript’i etkinleştirin.</p></noscript>
+    </section>
+  </main>
+  <template id="eba-item-template">
+    <li class="eba-item">
+      <div class="eba-file">
+        <span class="eba-file-icon" aria-hidden="true">PDF</span>
+        <h3></h3>
+      </div>
+      <span class="eba-download eba-waiting">PDF bekleniyor</span>
+      <a class="eba-download eba-ready" hidden>PDF İndir <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/></svg></a>
+    </li>
+  </template>
+  <script id="eba-catalog" type="application/json">[{"id":"bilim-ve-teknoloji","label":"Bilim ve Teknoloji","items":[{"title":"Başlat Dergisi","original":"Başlat Dergisi.pdf","ascii":"baslat-dergisi.pdf"},{"title":"Bilişim Teknolojileri ve Yazılım 5. Sınıf Etkinlik Kitabı","original":"Bilişim Teknolojileri ve Yazılım 5. Sınıf Etkinlik Kitabı.pdf","ascii":"bilisim-teknolojileri-ve-yazilim-5-sinif-etkinlik-kitabi.pdf"},{"title":"Bilişim Teknolojileri ve Yazılım 5. Sınıf Kitabı","original":"Bilişim Teknolojileri ve Yazılım 5. Sınıf Kitabı.pdf","ascii":"bilisim-teknolojileri-ve-yazilim-5-sinif-kitabi.pdf"},{"title":"Bilişim Teknolojileri ve Yazılım 6. Sınıf Etkinlik Kitabı","original":"Bilişim Teknolojileri ve Yazılım 6. Sınıf Etkinlik Kitabı.pdf","ascii":"bilisim-teknolojileri-ve-yazilim-6-sinif-etkinlik-kitabi.pdf"},{"title":"Bilişim Teknolojileri ve Yazılım 6. Sınıf Kitabı","original":"Bilişim Teknolojileri ve Yazılım 6. Sınıf Kitabı.pdf","ascii":"bilisim-teknolojileri-ve-yazilim-6-sinif-kitabi.pdf"},{"title":"Bilişim Teknolojileri ve Yazılım 7. Sınıf","original":"Bilişim Teknolojileri ve Yazılım 7. Sınıf.pdf","ascii":"bilisim-teknolojileri-ve-yazilim-7-sinif.pdf"},{"title":"Bilişim Teknolojileri ve Yazılım 8. Sınıf Etkinlik Kitabı","original":"Bilişim Teknolojileri ve Yazılım 8. Sınıf Etkinlik Kitabı.pdf","ascii":"bilisim-teknolojileri-ve-yazilim-8-sinif-etkinlik-kitabi.pdf"},{"title":"Ebabil Güz 2018","original":"Ebabil Güz 2018.pdf","ascii":"ebabil-guz-2018.pdf"},{"title":"Eğlenceli Bilim 2","original":"Eğlenceli Bilim 2.pdf","ascii":"eglenceli-bilim-2.pdf"},{"title":"Eğlenceli Bilim Ekim 2016","original":"Eğlenceli Bilim Ekim 2016.pdf","ascii":"eglenceli-bilim-ekim-2016.pdf"},{"title":"Eğlenceli Bilim Ekim 2017","original":"Eğlenceli Bilim Ekim 2017.pdf","ascii":"eglenceli-bilim-ekim-2017.pdf"},{"title":"Eğlenceli Bilim Ekim 2018","original":"Eğlenceli Bilim Ekim 2018.pdf","ascii":"eglenceli-bilim-ekim-2018.pdf"},{"title":"Eğlenceli Bilim Haziran 2018","original":"Eğlenceli Bilim Haziran 2018.pdf","ascii":"eglenceli-bilim-haziran-2018.pdf"},{"title":"Eğlenceli Bilim Haziran 2019","original":"Eğlenceli Bilim Haziran 2019.pdf","ascii":"eglenceli-bilim-haziran-2019.pdf"},{"title":"Eğlenceli Bilim Şubat 2017","original":"Eğlenceli Bilim Şubat 2017.pdf","ascii":"eglenceli-bilim-subat-2017.pdf"},{"title":"Eğlenceli Bilim Şubat 2018","original":"Eğlenceli Bilim Şubat 2018.pdf","ascii":"eglenceli-bilim-subat-2018.pdf"},{"title":"Eğlenceli Bilim Şubat 2019","original":"Eğlenceli Bilim Şubat 2019.pdf","ascii":"eglenceli-bilim-subat-2019.pdf"},{"title":"Eğlenceli Bilim","original":"Eğlenceli Bilim.pdf","ascii":"eglenceli-bilim.pdf"},{"title":"İnterneti Nasıl Kullanmalıyım – Ortaokul Rehberlik","original":"İnterneti Nasıl Kullanmalıyım - Ortaokul Rehberlik.pdf","ascii":"interneti-nasil-kullanmaliyim-ortaokul-rehberlik.pdf"},{"title":"Siber Zorbalıkla Nasıl Mücadele Edilir","original":"Siber Zorbalıkla Nasıl Mücadele Edilir.pdf","ascii":"siber-zorbalikla-nasil-mucadele-edilir.pdf"},{"title":"Sosyal Medya Kullanım Kılavuzu","original":"Sosyal Medya Kullanım Klavuzu.pdf","ascii":"sosyal-medya-kullanim-kilavuzu.pdf"},{"title":"Yaz Okulu Matematik Dergisi","original":"Yaz Okulu Matematik Dergisi.pdf","ascii":"yaz-okulu-matematik-dergisi.pdf"}]},{"id":"eglence-ve-oyun","label":"Eğlence ve Oyun","items":[{"title":"Bayram Şenliği","original":"Bayram Şenliği.pdf","ascii":"bayram-senligi.pdf"},{"title":"Çocuklardan Ev Yapımı Öyküler","original":"Çocuklardan Ev Yapımı Öyküler.pdf","ascii":"cocuklardan-ev-yapimi-oykuler.pdf"},{"title":"Diyanet Çocuk (Aralık 2017)","original":"Diyanet Çocuk (Aralık 2017).pdf","ascii":"diyanet-cocuk-aralik-2017.pdf"},{"title":"Diyanet Çocuk (Mayıs 2018)","original":"Diyanet Çocuk (Mayıs 2018).pdf","ascii":"diyanet-cocuk-mayis-2018.pdf"},{"title":"Diyanet Çocuk (Ocak 2018)","original":"Diyanet Çocuk (Ocak 2018).pdf","ascii":"diyanet-cocuk-ocak-2018.pdf"},{"title":"Diyanet Çocuk (Şubat 2018)","original":"Diyanet Çocuk (Şubat 2018).pdf","ascii":"diyanet-cocuk-subat-2018.pdf"},{"title":"Dürüstlük ve Konfüçyüs","original":"Dürüstlük ve Konfüçyüs.pdf","ascii":"durustluk-ve-konfucyus.pdf"},{"title":"Evde Oyun Var","original":"Evde Oyun Var.pdf","ascii":"evde-oyun-var.pdf"},{"title":"İçimdeki Okul Sesleri – Ziya Selçuk","original":"İçimdeki Okul Sesleri - Ziya SELÇUK.pdf","ascii":"icimdeki-okul-sesleri-ziya-selcuk.pdf"},{"title":"İyiliğin Gücü – Aycan ve Aykız'ın Maceraları II","original":"İyiliğin Gücü - Aycan ve Aykız'ın Maceraları II.pdf","ascii":"iyiligin-gucu-aycan-ve-aykiz-in-maceralari-ii.pdf"},{"title":"Karagöz Hayal Perdesi","original":"Karagöz Hayal Perdesi.pdf","ascii":"karagoz-hayal-perdesi.pdf"},{"title":"Karagöz Okula Başladı","original":"Karagöz Okula Başladı.pdf","ascii":"karagoz-okula-basladi.pdf"},{"title":"Laklakçı Kaplumbağalar","original":"Laklakçı Kaplumbağalar.pdf","ascii":"laklakci-kaplumbagalar.pdf"},{"title":"Munzur Efsanesi","original":"Munzur Efsanesi.pdf","ascii":"munzur-efsanesi.pdf"},{"title":"Nasreddin Hocadan Fıkralar","original":"Nasreddin Hocadan Fıkralar.pdf","ascii":"nasreddin-hocadan-fikralar.pdf"},{"title":"Özel Eğitim Çocuk Dergisi Sayı 2 Okumanın Sevinciyle","original":"Özel Eğitim Çocuk Dergisi Sayı 2 Okumanın Sevinciyle.pdf","ascii":"ozel-egitim-cocuk-dergisi-sayi-2-okumanin-sevinciyle.pdf"},{"title":"Özel Eğitim Çocuk Dergisi Sayı 3 Oynaya Oynaya Gelin Çocuklar","original":"Özel Eğitim Çocuk Dergisi Sayı 3 Oynaya Oynaya Gelin Çocuklar.pdf","ascii":"ozel-egitim-cocuk-dergisi-sayi-3-oynaya-oynaya-gelin-cocuklar.pdf"},{"title":"Özel Eğitim Çocuk Dergisi Sayı 11 Türkçem Benim Ses Bayrağım","original":"Özel Eğitim Çocuk Dergisi Sayı 11 Türkçem Benim Ses Bayrağım.pdf","ascii":"ozel-egitim-cocuk-dergisi-sayi-11-turkcem-benim-ses-bayragim.pdf"},{"title":"Özel Sokağın Çocukları","original":"Özel Sokağın Çocukları.pdf","ascii":"ozel-sokagin-cocuklari.pdf"},{"title":"PTT Çocuk Aralık 2021 Sayısı","original":"PTT Çocuk Aralık 2021 Sayısı.pdf","ascii":"ptt-cocuk-aralik-2021-sayisi.pdf"},{"title":"PTT Çocuk Kasım 2021 Sayısı","original":"PTT Çocuk Kasım 2021 Sayısı.pdf","ascii":"ptt-cocuk-kasim-2021-sayisi.pdf"},{"title":"PTT Çocuk Mart 2022 Sayısı","original":"PTT Çocuk Mart 2022 Sayısı.pdf","ascii":"ptt-cocuk-mart-2022-sayisi.pdf"},{"title":"PTT Çocuk Nisan 2022 Sayısı","original":"PTT Çocuk Nisan 2022 Sayısı.pdf","ascii":"ptt-cocuk-nisan-2022-sayisi.pdf"},{"title":"Robot Muncuk","original":"Robot Muncuk.pdf","ascii":"robot-muncuk.pdf"},{"title":"Sevgi Bir Kuş (Temmuz 2016)","original":"Sevgi Bir Kuş (Temmuz 2016).pdf","ascii":"sevgi-bir-kus-temmuz-2016.pdf"},{"title":"Sihirli Fırça","original":"Sihirli Fırça.pdf","ascii":"sihirli-firca.pdf"},{"title":"TRT Çocuk (Ekim 2018)","original":"TRT Çocuk (Ekim 2018).pdf","ascii":"trt-cocuk-ekim-2018.pdf"},{"title":"TRT Çocuk (Haziran 2017)","original":"TRT Çocuk (Haziran 2017).pdf","ascii":"trt-cocuk-haziran-2017.pdf"},{"title":"TRT Çocuk (Şubat 2018)","original":"TRT Çocuk (Şubat 2018).pdf","ascii":"trt-cocuk-subat-2018.pdf"}]}]</script>
+  <script>
+    (() => {
+      const byId = id => document.getElementById(id);
+      const data = JSON.parse(byId("eba-catalog").textContent);
+      const categories = new Map(data.map(category => [category.id, category]));
+      const tabs = [...document.querySelectorAll(".eba-tab")];
+      const search = byId("eba-query");
+      const results = byId("eba-result-count");
+      const title = byId("eba-category");
+      const template = byId("eba-item-template");
+      const pagination = byId("eba-pages");
+      const prev = byId("eba-prev");
+      const next = byId("eba-next");
+      const fileChecks = new Map();
+      const pageSize = 10;
+      let activeTab = tabs[0], page = 0;
+
+      const normalize = value => value.toLocaleLowerCase("tr-TR").normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i").replace(/[^a-z0-9]+/g, " ").trim();
+      const panelFor = tab => byId(tab.getAttribute("aria-controls"));
+      byId("eba-total").textContent = data.reduce((n, category) => n + category.items.length, 0);
+      tabs.forEach(tab => {
+        tab.querySelector("[data-count]").textContent = categories.get(tab.dataset.category).items.length + " başlık";
+      });
+
+      function findPdf(category, item) {
+        const key = category + "/" + item.ascii;
+        if (fileChecks.has(key)) return fileChecks.get(key);
+        const check = (async () => {
+          if (!["http:", "https:"].includes(location.protocol)) return null;
+          for (const filename of new Set([item.original, item.ascii])) {
+            const path = "./pdfs/" + category + "/" + encodeURIComponent(filename);
+            try {
+              const response = await fetch(path, { method: "HEAD", cache: "no-store", redirect: "error" });
+              const type = response.headers.get("content-type") || "";
+              if (response.ok && !/^text\/html\b/i.test(type)) return path;
+            } catch {
+              // A missing or unavailable file leaves the download inactive.
+            }
+          }
+          return null;
+        })();
+        fileChecks.set(key, check);
+        return check;
+      }
+
+      function render() {
+        const category = categories.get(activeTab.dataset.category);
+        const words = normalize(search.value).split(" ").filter(Boolean);
+        const matches = category.items.filter(item => {
+          const name = normalize(item.title);
+          return words.every(word => name.includes(word));
+        });
+        const numPages = Math.max(1, Math.ceil(matches.length / pageSize));
+        page = Math.min(page, numPages - 1);
+        const start = page * pageSize;
+        const shown = matches.slice(start, start + pageSize);
+        const list = panelFor(activeTab).querySelector(".eba-list");
+        title.textContent = category.label;
+        results.textContent = matches.length
+          ? (start + 1) + "–" + (start + shown.length) + " / " + matches.length + " başlık"
+          : "0 başlık";
+        byId("eba-empty").hidden = matches.length !== 0;
+        pagination.hidden = numPages <= 1;
+        byId("eba-page-position").textContent = "Sayfa " + (page + 1) + " / " + numPages;
+        prev.disabled = page === 0;
+        next.disabled = page + 1 >= numPages;
+
+        list.replaceChildren(...shown.map(item => {
+          const row = template.content.firstElementChild.cloneNode(true);
+          row.querySelector("h3").textContent = item.title;
+          findPdf(category.id, item).then(path => {
+            if (!path || !row.isConnected) return;
+            const download = row.querySelector(".eba-ready");
+            download.href = path;
+            download.download = item.original;
+            download.setAttribute("aria-label", item.title + " PDF indir");
+            row.querySelector(".eba-waiting").hidden = true;
+            download.hidden = false;
+          });
+          return row;
+        }));
+      }
+
+      function activate(current, focus = false) {
+        activeTab = current;
+        page = 0;
+        for (const tab of tabs) {
+          const isActive = tab === current;
+          tab.setAttribute("aria-selected", String(isActive));
+          tab.tabIndex = isActive ? 0 : -1;
+          panelFor(tab).hidden = !isActive;
+          if (!isActive) panelFor(tab).querySelector(".eba-list").replaceChildren();
+        }
+        if (focus) current.focus();
+        render();
+      }
+      tabs.forEach((tab, i) => {
+        tab.addEventListener("click", () => activate(tab));
+        tab.addEventListener("keydown", event => {
+          const positions = { ArrowLeft: (i + tabs.length - 1) % tabs.length, ArrowRight: (i + 1) % tabs.length, Home: 0, End: tabs.length - 1 };
+          if (!Object.hasOwn(positions, event.key)) return;
+          event.preventDefault();
+          activate(tabs[positions[event.key]], true);
+        });
+      });
+      search.addEventListener("input", () => { page = 0; render(); });
+      function changePage(delta) {
+        page += delta;
+        render();
+        byId("eba-toolbar").scrollIntoView({ block: "start" });
+        title.focus({ preventScroll: true });
+      }
+      prev.addEventListener("click", () => changePage(-1));
+      next.addEventListener("click", () => changePage(1));
+      activate(tabs[0]);
+    })();
+  </script>
+</body>
+</html>

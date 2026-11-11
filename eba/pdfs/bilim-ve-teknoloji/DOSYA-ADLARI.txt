@@ -1,0 +1,70 @@
+﻿Bilim ve Teknoloji
+
+PDF'leri mevcut adlarıyla bu klasöre koyabilirsiniz.
+İsterseniz aşağıdaki sade adlar da geçerlidir. Her PDF için bir ad yeterlidir.
+
+Mevcut: Başlat Dergisi.pdf
+Sade:   baslat-dergisi.pdf
+
+Mevcut: Bilişim Teknolojileri ve Yazılım 5. Sınıf Etkinlik Kitabı.pdf
+Sade:   bilisim-teknolojileri-ve-yazilim-5-sinif-etkinlik-kitabi.pdf
+
+Mevcut: Bilişim Teknolojileri ve Yazılım 5. Sınıf Kitabı.pdf
+Sade:   bilisim-teknolojileri-ve-yazilim-5-sinif-kitabi.pdf
+
+Mevcut: Bilişim Teknolojileri ve Yazılım 6. Sınıf Etkinlik Kitabı.pdf
+Sade:   bilisim-teknolojileri-ve-yazilim-6-sinif-etkinlik-kitabi.pdf
+
+Mevcut: Bilişim Teknolojileri ve Yazılım 6. Sınıf Kitabı.pdf
+Sade:   bilisim-teknolojileri-ve-yazilim-6-sinif-kitabi.pdf
+
+Mevcut: Bilişim Teknolojileri ve Yazılım 7. Sınıf.pdf
+Sade:   bilisim-teknolojileri-ve-yazilim-7-sinif.pdf
+
+Mevcut: Bilişim Teknolojileri ve Yazılım 8. Sınıf Etkinlik Kitabı.pdf
+Sade:   bilisim-teknolojileri-ve-yazilim-8-sinif-etkinlik-kitabi.pdf
+
+Mevcut: Ebabil Güz 2018.pdf
+Sade:   ebabil-guz-2018.pdf
+
+Mevcut: Eğlenceli Bilim 2.pdf
+Sade:   eglenceli-bilim-2.pdf
+
+Mevcut: Eğlenceli Bilim Ekim 2016.pdf
+Sade:   eglenceli-bilim-ekim-2016.pdf
+
+Mevcut: Eğlenceli Bilim Ekim 2017.pdf
+Sade:   eglenceli-bilim-ekim-2017.pdf
+
+Mevcut: Eğlenceli Bilim Ekim 2018.pdf
+Sade:   eglenceli-bilim-ekim-2018.pdf
+
+Mevcut: Eğlenceli Bilim Haziran 2018.pdf
+Sade:   eglenceli-bilim-haziran-2018.pdf
+
+Mevcut: Eğlenceli Bilim Haziran 2019.pdf
+Sade:   eglenceli-bilim-haziran-2019.pdf
+
+Mevcut: Eğlenceli Bilim Şubat 2017.pdf
+Sade:   eglenceli-bilim-subat-2017.pdf
+
+Mevcut: Eğlenceli Bilim Şubat 2018.pdf
+Sade:   eglenceli-bilim-subat-2018.pdf
+
+Mevcut: Eğlenceli Bilim Şubat 2019.pdf
+Sade:   eglenceli-bilim-subat-2019.pdf
+
+Mevcut: Eğlenceli Bilim.pdf
+Sade:   eglenceli-bilim.pdf
+
+Mevcut: İnterneti Nasıl Kullanmalıyım - Ortaokul Rehberlik.pdf
+Sade:   interneti-nasil-kullanmaliyim-ortaokul-rehberlik.pdf
+
+Mevcut: Siber Zorbalıkla Nasıl Mücadele Edilir.pdf
+Sade:   siber-zorbalikla-nasil-mucadele-edilir.pdf
+
+Mevcut: Sosyal Medya Kullanım Klavuzu.pdf
+Sade:   sosyal-medya-kullanim-kilavuzu.pdf
+
+Mevcut: Yaz Okulu Matematik Dergisi.pdf
+Sade:   yaz-okulu-matematik-dergisi.pdf

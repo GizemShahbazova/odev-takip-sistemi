@@ -252,12 +252,12 @@ dialog.survey-dialog {
       min-height: 45px;
       line-height: 1.35;
     }
-    .mebi-menu { position: relative; min-width: 0; }
-    .mebi-menu > summary { list-style: none; cursor: pointer; }
-    .mebi-menu > summary::-webkit-details-marker { display: none; }
-    .mebi-menu > summary:focus-visible { outline: 3px solid #7ba8cf; outline-offset: 2px; }
-    .mebi-menu[open] > summary svg { transform: rotate(180deg); }
-    .header-links .mebi-menu-trigger {
+    .resource-menu { position: relative; min-width: 0; }
+    .resource-menu > summary { list-style: none; cursor: pointer; }
+    .resource-menu > summary::-webkit-details-marker { display: none; }
+    .resource-menu > summary:focus-visible { outline: 3px solid #7ba8cf; outline-offset: 2px; }
+    .resource-menu[open] > summary svg { transform: rotate(180deg); }
+    .header-links .resource-menu-trigger {
       height: 100%;
       padding: 10px 12px;
       border: 1px solid #a1adb7;
@@ -265,9 +265,9 @@ dialog.survey-dialog {
       color: #fff;
       font-size: 14px;
     }
-    .header-links .mebi-menu-trigger:hover,
-    .header-links .mebi-menu[open] > summary { background: #465c70; }
-    .mebi-menu-links a {
+    .header-links .resource-menu-trigger:hover,
+    .header-links .resource-menu[open] > summary { background: #465c70; }
+    .resource-menu-links a {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -278,8 +278,8 @@ dialog.survey-dialog {
       color: #344a5e;
       font-size: 13px;
     }
-    .mebi-menu-links a svg { flex: none; }
-    .header-links .mebi-menu-links {
+    .resource-menu-links a svg { flex: none; }
+    .header-links .resource-menu-links {
       position: absolute;
       z-index: 6;
       top: calc(100% + 7px);
@@ -292,13 +292,13 @@ dialog.survey-dialog {
       background: #fff;
       box-shadow: 0 6px 20px #192b3d30;
     }
-    .header-links .mebi-menu-links a { border: 0; color: #344a5e; }
-    .header-links .mebi-menu-links a:hover, .sidebar .mebi-menu-links a:hover {
+    .header-links .resource-menu-links a { border: 0; color: #344a5e; }
+    .header-links .resource-menu-links a:hover, .sidebar .resource-menu-links a:hover {
       background: #f5edf0;
       color: #7c2c3b;
     }
-    .sidebar .mebi-menu[open] > summary { background: #f0f3f6; }
-    .sidebar .mebi-menu-links {
+    .sidebar .resource-menu[open] > summary { background: #f0f3f6; }
+    .sidebar .resource-menu-links {
       margin: 0 12px 4px 18px;
       padding-left: 8px;
       border-left: 2px solid #dce1e5;
@@ -324,8 +324,8 @@ dialog.survey-dialog {
         padding: 8px 10px;
         white-space: normal;
       }
-      .header-links .mebi-menu-trigger { font-size: 13px; }
-      .header-links .mebi-menu-links { min-width: 0; }
+      .header-links .resource-menu-trigger { font-size: 13px; }
+      .header-links .resource-menu-links { min-width: 0; }
       .site-header--resources .survey-trigger,
       .site-header--resources .header-action { justify-self: start; align-self: center; }
     }
@@ -341,28 +341,40 @@ dialog.survey-dialog {
       </a>
       <a class="resource-menu-link" href="./materyaller/"><span>Öğretmen Atölyesi</span></a>
       <a class="resource-menu-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
-      <details class="mebi-menu">
-        <summary class="resource-menu-link mebi-menu-trigger"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
-        <div class="mebi-menu-links">
+      <details class="resource-menu" data-resource="mebi">
+        <summary class="resource-menu-link resource-menu-trigger"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
+        <div class="resource-menu-links">
           <a href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="Web sitesi (MEBİ, yeni sekme)">Web sitesi <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
           <a href="./mebi/">Kütüphane</a>
         </div>
       </details>
-      <a class="resource-menu-link" href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="EBA&#x27;da Neler Var? (yeni sekme)"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <details class="resource-menu" data-resource="eba">
+        <summary class="resource-menu-link resource-menu-trigger"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
+        <div class="resource-menu-links">
+          <a href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="Web sitesi (EBA, yeni sekme)">Web sitesi <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+          <a href="./eba/kutuphane.html">Kütüphane</a>
+        </div>
+      </details>
       <button id="header-settings" type="button" class="header-action" hidden>Ayarlar</button><span class="stage">Sınıfınızın ortak çalışma alanı</span></nav></header>
   <main id="main-content" tabindex="-1">
     <aside class="sidebar" aria-label="Site menüsü">
       <p class="menu-heading">GEZİNME</p><a id="menu-home" class="menu-active" href="./" aria-current="page">Ana sayfa</a>
       <a class="menu-link resource-menu-link" href="./materyaller/"><span>Öğretmen Atölyesi</span></a>
       <a class="menu-link resource-menu-link" href="https://tegm.meb.gov.tr/www/maarifin-kalbinde-oyun/icerik/1318" target="_blank" rel="noopener noreferrer" aria-label="Maarifin Kalbinde Oyun (yeni sekme)"><span>Maarifin Kalbinde Oyun</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
-      <details class="mebi-menu">
-        <summary class="menu-link resource-menu-link mebi-menu-trigger"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
-        <div class="mebi-menu-links">
+      <details class="resource-menu" data-resource="mebi">
+        <summary class="menu-link resource-menu-link resource-menu-trigger"><span>MEBİ'de Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
+        <div class="resource-menu-links">
           <a href="https://mebi.eba.gov.tr/discover" target="_blank" rel="noopener noreferrer" aria-label="Web sitesi (MEBİ, yeni sekme)">Web sitesi <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
           <a href="./mebi/">Kütüphane</a>
         </div>
       </details>
-      <a class="menu-link resource-menu-link" href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="EBA&#x27;da Neler Var? (yeni sekme)"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+      <details class="resource-menu" data-resource="eba">
+        <summary class="menu-link resource-menu-link resource-menu-trigger"><span>EBA'da Neler Var?</span><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></summary>
+        <div class="resource-menu-links">
+          <a href="https://eba.gov.tr/" target="_blank" rel="noopener noreferrer" aria-label="Web sitesi (EBA, yeni sekme)">Web sitesi <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M5 5h6v6"/></svg></a>
+          <a href="./eba/kutuphane.html">Kütüphane</a>
+        </div>
+      </details>
       <div class="sidebar-note"><strong>Öğretmen ve öğrenci</strong><p>Ödevleri ve öğrencilerin ilerlemesini aynı yerden takip edin.</p></div>
     </aside>
     <section id="intro-view" class="intro" aria-labelledby="intro-title">
@@ -632,7 +644,7 @@ dialog.survey-dialog {
   </script>
   <script>
     (() => {
-      const menus = [...document.querySelectorAll(".mebi-menu")];
+      const menus = [...document.querySelectorAll(".resource-menu")];
       document.addEventListener("click", event => {
         for (const menu of menus) {
           if (menu.open && !menu.contains(event.target)) menu.open = false;

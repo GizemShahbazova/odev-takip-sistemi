@@ -1,0 +1,91 @@
+﻿Eğlence ve Oyun
+
+PDF'leri mevcut adlarıyla bu klasöre koyabilirsiniz.
+İsterseniz aşağıdaki sade adlar da geçerlidir. Her PDF için bir ad yeterlidir.
+
+Mevcut: Bayram Şenliği.pdf
+Sade:   bayram-senligi.pdf
+
+Mevcut: Çocuklardan Ev Yapımı Öyküler.pdf
+Sade:   cocuklardan-ev-yapimi-oykuler.pdf
+
+Mevcut: Diyanet Çocuk (Aralık 2017).pdf
+Sade:   diyanet-cocuk-aralik-2017.pdf
+
+Mevcut: Diyanet Çocuk (Mayıs 2018).pdf
+Sade:   diyanet-cocuk-mayis-2018.pdf
+
+Mevcut: Diyanet Çocuk (Ocak 2018).pdf
+Sade:   diyanet-cocuk-ocak-2018.pdf
+
+Mevcut: Diyanet Çocuk (Şubat 2018).pdf
+Sade:   diyanet-cocuk-subat-2018.pdf
+
+Mevcut: Dürüstlük ve Konfüçyüs.pdf
+Sade:   durustluk-ve-konfucyus.pdf
+
+Mevcut: Evde Oyun Var.pdf
+Sade:   evde-oyun-var.pdf
+
+Mevcut: İçimdeki Okul Sesleri - Ziya SELÇUK.pdf
+Sade:   icimdeki-okul-sesleri-ziya-selcuk.pdf
+
+Mevcut: İyiliğin Gücü - Aycan ve Aykız'ın Maceraları II.pdf
+Sade:   iyiligin-gucu-aycan-ve-aykiz-in-maceralari-ii.pdf
+
+Mevcut: Karagöz Hayal Perdesi.pdf
+Sade:   karagoz-hayal-perdesi.pdf
+
+Mevcut: Karagöz Okula Başladı.pdf
+Sade:   karagoz-okula-basladi.pdf
+
+Mevcut: Laklakçı Kaplumbağalar.pdf
+Sade:   laklakci-kaplumbagalar.pdf
+
+Mevcut: Munzur Efsanesi.pdf
+Sade:   munzur-efsanesi.pdf
+
+Mevcut: Nasreddin Hocadan Fıkralar.pdf
+Sade:   nasreddin-hocadan-fikralar.pdf
+
+Mevcut: Özel Eğitim Çocuk Dergisi Sayı 2 Okumanın Sevinciyle.pdf
+Sade:   ozel-egitim-cocuk-dergisi-sayi-2-okumanin-sevinciyle.pdf
+
+Mevcut: Özel Eğitim Çocuk Dergisi Sayı 3 Oynaya Oynaya Gelin Çocuklar.pdf
+Sade:   ozel-egitim-cocuk-dergisi-sayi-3-oynaya-oynaya-gelin-cocuklar.pdf
+
+Mevcut: Özel Eğitim Çocuk Dergisi Sayı 11 Türkçem Benim Ses Bayrağım.pdf
+Sade:   ozel-egitim-cocuk-dergisi-sayi-11-turkcem-benim-ses-bayragim.pdf
+
+Mevcut: Özel Sokağın Çocukları.pdf
+Sade:   ozel-sokagin-cocuklari.pdf
+
+Mevcut: PTT Çocuk Aralık 2021 Sayısı.pdf
+Sade:   ptt-cocuk-aralik-2021-sayisi.pdf
+
+Mevcut: PTT Çocuk Kasım 2021 Sayısı.pdf
+Sade:   ptt-cocuk-kasim-2021-sayisi.pdf
+
+Mevcut: PTT Çocuk Mart 2022 Sayısı.pdf
+Sade:   ptt-cocuk-mart-2022-sayisi.pdf
+
+Mevcut: PTT Çocuk Nisan 2022 Sayısı.pdf
+Sade:   ptt-cocuk-nisan-2022-sayisi.pdf
+
+Mevcut: Robot Muncuk.pdf
+Sade:   robot-muncuk.pdf
+
+Mevcut: Sevgi Bir Kuş (Temmuz 2016).pdf
+Sade:   sevgi-bir-kus-temmuz-2016.pdf
+
+Mevcut: Sihirli Fırça.pdf
+Sade:   sihirli-firca.pdf
+
+Mevcut: TRT Çocuk (Ekim 2018).pdf
+Sade:   trt-cocuk-ekim-2018.pdf
+
+Mevcut: TRT Çocuk (Haziran 2017).pdf
+Sade:   trt-cocuk-haziran-2017.pdf
+
+Mevcut: TRT Çocuk (Şubat 2018).pdf
+Sade:   trt-cocuk-subat-2018.pdf
